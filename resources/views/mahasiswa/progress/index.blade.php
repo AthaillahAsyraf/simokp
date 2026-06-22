@@ -40,7 +40,9 @@
       <div class="form-group"><label>Catatan</label><textarea name="catatan" id="updCat" class="form-control" rows="3" placeholder="Misal: Sudah direvisi sesuai arahan dosen"></textarea></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modalUpd')">Batal</button>
-        <button type="submit" class="btn btn-primary" style="background:var(--mhs)">Update Progress</button>
+        <button type="submit" class="btn btn-success">
+  Update Progress
+</button>
       </div>
     </form>
   </div>

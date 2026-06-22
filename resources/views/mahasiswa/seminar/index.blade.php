@@ -42,15 +42,13 @@
 <div class="card" style="margin-top:20px">
   <div class="card-header"><h3>📋 Checklist Syarat Seminar KP</h3></div>
   <div class="card-body" style="display:grid;gap:12px">
-    @php
-      $checks = [
-        ['Laporan BAB I–V selesai 100%', $mahasiswa->progressPersen() === 100],
-        ['Minimal 30 entri logbook harian', $mahasiswa->logbooks->count() >= 30],
-        ['Logbook sudah diverifikasi instansi', $mahasiswa->logbooks->where('status_instansi','disetujui')->count() > 0],
-        ['Nilai dari pihak instansi sudah masuk', !!($mahasiswa->nilai?->nilai_instansi)],
-        ['Surat permohonan KP disetujui', $mahasiswa->surats->where('jenis','permohonan')->where('status','disetujui')->count() > 0],
-      ];
-    @endphp
+@php
+  $checks = [
+    ['Laporan BAB I–V selesai 100%', $mahasiswa->progressPersen() === 100],
+    ['Status sudah mencapai tahap seminar', $mahasiswa->status === 'seminar' || $mahasiswa->status === 'selesai'],
+    ['Data mahasiswa lengkap', !!($mahasiswa->nim && $mahasiswa->instansi)],
+  ];
+@endphp
     @foreach($checks as [$label, $done])
     <div style="display:flex;align-items:center;gap:12px;padding:10px;background:{{ $done?'rgba(34,197,94,.05)':'var(--surface2)' }};border-radius:8px;border:1px solid {{ $done?'rgba(34,197,94,.2)':'var(--border)' }}">
       <span style="font-size:18px">{{ $done ? '✅' : '⬜' }}</span>

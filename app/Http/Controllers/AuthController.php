@@ -1,53 +1,24 @@
 <?php
-
 namespace App\Http\Controllers;
-
-use App\Models\User;
-use App\Models\Mahasiswa;
-use App\Models\ProgressBab;
-use App\Models\Nilai;
+use App\Models\{User, Mahasiswa, ProgressBab};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\{Auth, Hash};
 
-class AuthController extends Controller
-{
-    public function showLogin()
-    {
-        return view('auth.login');
+class AuthController extends Controller {
+
+    public function showLogin()   { return view('auth.login'); }
+    public function showRegister(){ return view('auth.register'); }
+
+    public function login(Request $request) {
+        $request->validate(['email'=>'required|email','password'=>'required']);
+        if (!Auth::attempt($request->only('email','password'), $request->boolean('remember'))) {
+            return back()->withErrors(['email'=>'Email atau password salah.'])->withInput();
+        }
+        $request->session()->regenerate();
+        return redirect($this->redirectByRole(Auth::user()->role));
     }
 
-public function login(Request $request)
-{
-    $request->validate([
-        'email'    => 'required|email',
-        'password' => 'required',
-    ]);
-
-    if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-        return back()->withErrors(['email' => 'Email atau password salah.'])->withInput();
-    }
-
-    $request->session()->regenerate();
-
-    $role = Auth::user()->role;
-
-    return redirect()->route(match ($role) {
-        'admin' => 'admin.dashboard',
-        'dosen' => 'dosen.dashboard',
-        'instansi' => 'instansi.dashboard',
-        'mahasiswa' => 'mahasiswa.dashboard',
-        default => 'login',
-    });
-}
-
-    public function showRegister()
-    {
-        return view('auth.register');
-    }
-
-    public function register(Request $request)
-    {
+    public function register(Request $request) {
         $request->validate([
             'name'     => 'required|string|max:255',
             'nim'      => 'required|string|unique:mahasiswas,nim',
@@ -55,51 +26,67 @@ public function login(Request $request)
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
         ]);
-
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'mahasiswa',
+            'name'=>$request->name,'email'=>$request->email,
+            'password'=>Hash::make($request->password),'role'=>'mahasiswa',
         ]);
-
-        $mahasiswa = Mahasiswa::create([
-            'user_id'  => $user->id,
-            'nim'      => $request->nim,
-            'nama'     => $request->name,
-            'angkatan' => $request->angkatan,
-            'status'   => 'proses',
+        $mhs = Mahasiswa::create([
+            'user_id'=>$user->id,'nim'=>$request->nim,
+            'nama'=>$request->name,'angkatan'=>$request->angkatan,'status'=>'proses',
         ]);
-
-        // Buat progress BAB default
-        $babs = ['BAB I', 'BAB II', 'BAB III', 'BAB IV', 'BAB V', 'LAPORAN LENGKAP'];
-        foreach ($babs as $bab) {
-            ProgressBab::create(['mahasiswa_id' => $mahasiswa->id, 'bab' => $bab, 'status' => 'belum']);
+        foreach (['BAB I','BAB II','BAB III','BAB IV','BAB V'] as $bab) {
+            ProgressBab::create(['mahasiswa_id'=>$mhs->id,'bab'=>$bab,'status'=>'belum']);
         }
-
-        // Buat record nilai kosong
-        Nilai::create(['mahasiswa_id' => $mahasiswa->id]);
-
         Auth::login($user);
         return redirect()->route('mahasiswa.dashboard');
     }
 
-    public function logout(Request $request)
-    {
+    public function logout(Request $request) {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('login');
     }
 
-    private function redirectByRole(string $role): string
-    {
-        return match ($role) {
-            'admin'     => route('admin.dashboard'),
-            'dosen'     => route('dosen.dashboard'),
-            'instansi'  => route('instansi.dashboard'),
-            'mahasiswa' => route('mahasiswa.dashboard'),
-            default     => '/',
+    // ── Ganti Password ──────────────────────────────────────────────────────
+    public function showGantiPassword() {
+        // Admin tidak perlu ganti password lewat fitur ini
+        abort_if(Auth::user()->role === 'admin', 403);
+        return view('auth.ganti-password');
+    }
+
+    public function gantiPassword(Request $request) {
+        abort_if(Auth::user()->role === 'admin', 403);
+
+        $request->validate([
+            'password_lama'     => 'required',
+            'password_baru'     => 'required|min:8|confirmed',
+        ], [
+            'password_baru.min'       => 'Password baru minimal 8 karakter.',
+            'password_baru.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->password_lama, $user->password)) {
+            return back()->withErrors(['password_lama' => 'Password lama tidak sesuai.']);
+        }
+
+        if (Hash::check($request->password_baru, $user->password)) {
+            return back()->withErrors(['password_baru' => 'Password baru tidak boleh sama dengan password lama.']);
+        }
+
+        $user->update(['password' => Hash::make($request->password_baru)]);
+
+        return back()->with('success', 'Password berhasil diperbarui.');
+    }
+
+    public function redirectByRole(string $role): string {
+        return match($role) {
+            'admin'    => route('admin.dashboard'),
+            'dosen'    => route('dosen.dashboard'),
+            'instansi' => route('instansi.dashboard'),
+            default    => route('mahasiswa.dashboard'),
         };
     }
 }

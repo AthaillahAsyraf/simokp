@@ -11,13 +11,12 @@
 
 <div class="stats-grid stats-3">
   <div class="stat-card c-inst"><div class="stat-label">Mahasiswa KP</div><div class="stat-val">{{ $stats['total'] }}</div><div class="stat-sub">Di instansi Anda</div><div class="stat-icon">🎓</div></div>
-  <div class="stat-card c-admin"><div class="stat-label">Logbook Pending</div><div class="stat-val">{{ $stats['logbook_pending'] }}</div><div class="stat-sub">Perlu diverifikasi</div><div class="stat-icon">📋</div></div>
-  <div class="stat-card c-dosen"><div class="stat-label">Sudah Dinilai</div><div class="stat-val">{{ $stats['sudah_dinilai'] }}</div><div class="stat-sub">Dari {{ $stats['total'] }} mahasiswa</div><div class="stat-icon">⭐</div></div>
+ 
 </div>
 
 <div class="grid-2">
   <div class="card">
-    <div class="card-header"><h3>Mahasiswa KP Anda</h3><a href="{{ route('instansi.nilai.index') }}" class="btn btn-ghost btn-sm">Beri Nilai</a></div>
+    <div class="card-header"><h3>Mahasiswa KP Anda</h3><button class="btn btn-ghost btn-sm" disabled>Beri Nilai</button></div>
     <div class="card-body">
       @forelse($mahasiswas as $m)
       @php $pct = $m->progressPersen(); @endphp

@@ -2,272 +2,407 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title', 'SiMoKP') – Ilmu Komputer Unila</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>@yield('title','SiMoKP') — Ilmu Komputer Unila</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#0f1117; --surface:#191c25; --surface2:#21263a; --border:#2a2f45;
-  --text:#e8eaf2; --muted:#7b82a0;
-  --admin:#6366f1; --admin-l:#818cf8;
-  --dosen:#10b981; --dosen-l:#34d399;
-  --inst:#f59e0b;  --inst-l:#fbbf24;
-  --mhs:#ec4899;   --mhs-l:#f472b6;
-  --danger:#ef4444; --success:#22c55e;
+:root{
+  --white:#ffffff;
+  --gray-50:#f8fafc;
+  --gray-100:#f1f5f9;
+  --gray-200:#e2e8f0;
+  --gray-300:#cbd5e1;
+  --gray-400:#94a3b8;
+  --gray-500:#64748b;
+  --gray-600:#475569;
+  --gray-700:#334155;
+  --gray-800:#1e293b;
+  --gray-900:#0f172a;
+
+  --blue-50:#eff6ff;
+  --blue-100:#dbeafe;
+  --blue-500:#3b82f6;
+  --blue-600:#2563eb;
+  --blue-700:#1d4ed8;
+
+  --green-50:#f0fdf4;
+  --green-100:#dcfce7;
+  --green-500:#22c55e;
+  --green-600:#16a34a;
+  --green-700:#15803d;
+
+  --amber-50:#fffbeb;
+  --amber-100:#fef3c7;
+  --amber-500:#f59e0b;
+  --amber-600:#d97706;
+
+  --red-50:#fef2f2;
+  --red-100:#fee2e2;
+  --red-500:#ef4444;
+  --red-600:#dc2626;
+
+  --purple-50:#faf5ff;
+  --purple-100:#f3e8ff;
+  --purple-500:#a855f7;
+  --purple-600:#9333ea;
+
+  /* role colors */
+  --c-admin:   var(--blue-600);
+  --c-dosen:   var(--green-600);
+  --c-instansi:var(--amber-600);
+  --c-mhs:     var(--purple-600);
+
+  --sidebar-w: 248px;
+  --radius:    10px;
+  --shadow:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+body{font-family:'Inter',sans-serif;background:var(--gray-100);color:var(--gray-800);display:flex;min-height:100vh;font-size:14px;line-height:1.5}
 a{color:inherit;text-decoration:none}
 
-/* SIDEBAR */
-.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100}
-.sb-logo{padding:22px 20px;border-bottom:1px solid var(--border)}
-.sb-logo h2{font-size:20px;font-weight:800;letter-spacing:-0.5px}
-.sb-logo h2 span{color:var(--admin)}
-.sb-logo p{font-size:11px;color:var(--muted);margin-top:2px}
-.sb-role{margin:14px;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:center}
-.role-admin   {background:rgba(99,102,241,.15);color:var(--admin-l)}
-.role-dosen   {background:rgba(16,185,129,.15);color:var(--dosen-l)}
-.role-instansi{background:rgba(245,158,11,.15);color:var(--inst-l)}
-.role-mahasiswa{background:rgba(236,72,153,.15);color:var(--mhs-l)}
+/* ── SIDEBAR ─────────────────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);background:var(--white);
+  border-right:1px solid var(--gray-200);
+  display:flex;flex-direction:column;
+  position:fixed;left:0;top:0;bottom:0;z-index:100;
+  box-shadow:var(--shadow-md);
+}
+.sb-logo{
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--gray-100);
+  display:flex;align-items:center;gap:10px;
+}
+.sb-logo-icon{
+  width:36px;height:36px;border-radius:9px;
+  background:linear-gradient(135deg,var(--blue-600),var(--blue-500));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:16px;flex-shrink:0;
+}
+.sb-logo h2{font-size:15px;font-weight:800;color:var(--gray-900);letter-spacing:-.3px}
+.sb-logo p{font-size:11px;color:var(--gray-400);margin-top:1px}
+
+.sb-role-badge{
+  margin:12px 14px 6px;padding:7px 12px;border-radius:8px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  display:flex;align-items:center;gap:6px;
+}
+.role-admin   {background:var(--blue-50);color:var(--blue-700);border:1px solid var(--blue-100)}
+.role-dosen   {background:var(--green-50);color:var(--green-700);border:1px solid var(--green-100)}
+.role-instansi{background:var(--amber-50);color:var(--amber-600);border:1px solid var(--amber-100)}
+.role-mahasiswa{background:var(--purple-50);color:var(--purple-600);border:1px solid var(--purple-100)}
+
 .sb-nav{flex:1;padding:6px 10px;overflow-y:auto}
-.nav-sec{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:12px 8px 4px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);margin-bottom:1px;transition:all .15s}
-.nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{font-weight:600}
-.nav-item.active.role-admin   {background:rgba(99,102,241,.15);color:var(--admin-l)}
-.nav-item.active.role-dosen   {background:rgba(16,185,129,.15);color:var(--dosen-l)}
-.nav-item.active.role-instansi{background:rgba(245,158,11,.15);color:var(--inst-l)}
-.nav-item.active.role-mahasiswa{background:rgba(236,72,153,.15);color:var(--mhs-l)}
-.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:100px}
-.sb-footer{padding:14px;border-top:1px solid var(--border)}
-.user-pill{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:default}
-.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
-.u-name{font-size:13px;font-weight:600}
-.u-role{font-size:11px;color:var(--muted)}
-.btn-logout{margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:12px;padding:5px 10px;transition:all .15s}
-.btn-logout:hover{border-color:var(--danger);color:var(--danger)}
+.nav-section{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;padding:14px 8px 5px}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;
+  font-size:13px;font-weight:500;color:var(--gray-600);margin-bottom:1px;
+  transition:all .15s;cursor:pointer;
+}
+.nav-item:hover{background:var(--gray-100);color:var(--gray-900)}
+.nav-item.active{font-weight:600;background:var(--blue-50);color:var(--blue-700)}
+.nav-item.active.role-dosen   {background:var(--green-50);color:var(--green-700)}
+.nav-item.active.role-instansi{background:var(--amber-50);color:var(--amber-600)}
+.nav-item.active.role-mahasiswa{background:var(--purple-50);color:var(--purple-600)}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 
-/* MAIN */
-.main{margin-left:240px;flex:1;padding:32px;max-width:1200px}
-.page-header{margin-bottom:26px}
-.page-header h1{font-size:26px;font-weight:800;letter-spacing:-.5px}
-.page-header p{color:var(--muted);font-size:14px;margin-top:4px}
+.sb-footer{padding:12px 14px;border-top:1px solid var(--gray-100)}
+.user-card{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;
+  border-radius:8px;background:var(--gray-50);border:1px solid var(--gray-200);
+}
+.user-avatar{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  flex-shrink:0;background:var(--blue-100);
+}
+.user-name{font-size:12px;font-weight:600;color:var(--gray-800)}
+.user-role{font-size:10px;color:var(--gray-500)}
+.btn-logout{
+  margin-left:auto;background:none;border:none;color:var(--gray-400);
+  cursor:pointer;font-size:13px;padding:4px;border-radius:5px;
+  transition:all .15s;
+}
+.btn-logout:hover{color:var(--red-500);background:var(--red-50)}
 
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:20px;overflow:hidden}
-.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.card-header h3{font-size:15px;font-weight:700}
-.card-header p{font-size:12px;color:var(--muted);margin-top:2px}
-.card-body{padding:20px}
+/* ── MAIN ─────────────────────────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);flex:1;padding:28px 32px;max-width:1200px}
 
-/* STATS */
-.stats-grid{display:grid;gap:16px;margin-bottom:22px}
+.page-header{margin-bottom:24px}
+.page-header h1{font-size:22px;font-weight:800;color:var(--gray-900);letter-spacing:-.4px}
+.page-header p{color:var(--gray-500);font-size:13px;margin-top:3px}
+.page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+
+/* ── CARDS ────────────────────────────────────────────────────── */
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--white)}
+.card-header h3{font-size:14px;font-weight:700;color:var(--gray-800)}
+.card-header p{font-size:12px;color:var(--gray-500);margin-top:1px}
+.card-body{padding:18px}
+
+/* ── STATS ────────────────────────────────────────────────────── */
+.stats-grid{display:grid;gap:14px;margin-bottom:20px}
 .stats-4{grid-template-columns:repeat(4,1fr)}
 .stats-3{grid-template-columns:repeat(3,1fr)}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.stat-card.c-admin::before{background:var(--admin)}
-.stat-card.c-dosen::before{background:var(--dosen)}
-.stat-card.c-inst::before{background:var(--inst)}
-.stat-card.c-mhs::before{background:var(--mhs)}
-.stat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.stat-val{font-size:32px;font-weight:800;margin:6px 0 2px;font-family:'JetBrains Mono',monospace}
-.stat-sub{font-size:12px;color:var(--muted)}
-.stat-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:36px;opacity:.12}
+.stats-2{grid-template-columns:repeat(2,1fr)}
+.stat-card{
+  background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);
+  padding:18px;position:relative;overflow:hidden;box-shadow:var(--shadow);
+}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+.stat-card.c-blue::after  {background:var(--blue-500)}
+.stat-card.c-green::after {background:var(--green-500)}
+.stat-card.c-amber::after {background:var(--amber-500)}
+.stat-card.c-purple::after{background:var(--purple-500)}
+.stat-card.c-red::after   {background:var(--red-500)}
+.stat-label{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px}
+.stat-val{font-size:30px;font-weight:800;color:var(--gray-900);margin:6px 0 2px;font-family:'JetBrains Mono',monospace}
+.stat-sub{font-size:11px;color:var(--gray-400)}
+.stat-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:32px;opacity:.1}
 
-/* TABLE */
+/* ── TABLE ────────────────────────────────────────────────────── */
+.table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-thead tr{border-bottom:1px solid var(--border)}
-th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04)}
+thead tr{background:var(--gray-50);border-bottom:1px solid var(--gray-200)}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
+tbody tr:hover td{background:var(--gray-50)}
 
-/* PILLS */
-.pill{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
-.pill-proses  {background:rgba(245,158,11,.15);color:var(--inst-l)}
-.pill-selesai {background:rgba(34,197,94,.15);color:#4ade80}
-.pill-seminar {background:rgba(99,102,241,.15);color:var(--admin-l)}
-.pill-belum   {background:rgba(255,255,255,.07);color:var(--muted)}
-.pill-disetujui{background:rgba(16,185,129,.15);color:var(--dosen-l)}
-.pill-pending {background:rgba(245,158,11,.15);color:var(--inst-l)}
-.pill-ditolak {background:rgba(239,68,68,.15);color:#f87171}
-.pill-hadir   {background:rgba(34,197,94,.15);color:#4ade80}
-.pill-terjadwal{background:rgba(99,102,241,.15);color:var(--admin-l)}
-.pill-tidak_hadir{background:rgba(239,68,68,.15);color:#f87171}
+/* ── BADGES ───────────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
+.badge-proses   {background:var(--amber-100);color:var(--amber-600)}
+.badge-seminar  {background:var(--blue-100);color:var(--blue-700)}
+.badge-selesai  {background:var(--green-100);color:var(--green-700)}
+.badge-belum    {background:var(--gray-100);color:var(--gray-500)}
+.badge-terjadwal{background:var(--blue-100);color:var(--blue-700)}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
-.btn-primary{background:var(--admin);color:#fff} .btn-primary:hover{opacity:.85}
-.btn-success{background:var(--dosen);color:#fff} .btn-success:hover{opacity:.85}
-.btn-warning{background:var(--inst);color:#0f1117} .btn-warning:hover{opacity:.85}
-.btn-danger {background:var(--danger);color:#fff} .btn-danger:hover{opacity:.85}
-.btn-ghost  {background:var(--surface2);color:var(--text);border:1px solid var(--border)} .btn-ghost:hover{border-color:var(--text)}
+/* ── BUTTONS ──────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue-600);color:#fff;box-shadow:0 1px 2px rgba(37,99,235,.2)}
+.btn-primary:hover{background:var(--blue-700)}
+.btn-success{background:var(--green-600);color:#fff}
+.btn-success:hover{background:var(--green-700)}
+.btn-warning{background:var(--amber-500);color:#fff}
+.btn-warning:hover{background:var(--amber-600)}
+.btn-danger{background:var(--red-500);color:#fff}
+.btn-danger:hover{background:var(--red-600)}
+.btn-outline{background:var(--white);color:var(--gray-700);border:1px solid var(--gray-300)}
+.btn-outline:hover{background:var(--gray-50);border-color:var(--gray-400)}
 .btn-sm{padding:5px 10px;font-size:12px}
-.btn-xs{padding:3px 8px;font-size:11px}
+.btn-xs{padding:3px 8px;font-size:11px;border-radius:5px}
+.btn-ghost{background:transparent;color:var(--blue-600);border:1px solid var(--blue-200)}
+.btn-ghost:hover{background:var(--blue-50)}
 
-/* FORMS */
+/* ── FORMS ────────────────────────────────────────────────────── */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
-.form-group label{font-size:12px;font-weight:600;color:var(--muted)}
-.form-control{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;width:100%;transition:border-color .2s}
-.form-control:focus{outline:none;border-color:var(--admin)}
-select.form-control option{background:var(--surface)}
+.form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:var(--gray-700)}
+.form-control{
+  background:var(--white);border:1.5px solid var(--gray-300);border-radius:7px;
+  padding:8px 11px;color:var(--gray-800);font-size:13px;font-family:'Inter',sans-serif;
+  width:100%;transition:border-color .15s,box-shadow .15s;
+}
+.form-control:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+select.form-control{cursor:pointer}
 textarea.form-control{resize:vertical;min-height:80px}
+.form-hint{font-size:11px;color:var(--gray-400);margin-top:2px}
 
-/* PROGRESS */
-.prog-wrap{background:var(--surface2);border-radius:100px;height:6px;overflow:hidden}
-.prog-bar{height:100%;border-radius:100px;transition:width .5s}
-.prog-txt{font-size:11px;color:var(--muted);margin-top:3px}
+/* ── PROGRESS BAR ─────────────────────────────────────────────── */
+.prog-wrap{background:var(--gray-200);border-radius:100px;overflow:hidden}
+.prog-bar{height:100%;border-radius:100px;transition:width .5s ease}
+.prog-bar-blue  {background:var(--blue-500)}
+.prog-bar-green {background:var(--green-500)}
+.prog-bar-amber {background:var(--amber-500)}
+.prog-bar-purple{background:var(--purple-500)}
 
-/* ALERT */
-.alert{padding:11px 16px;border-radius:9px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.alert-info   {background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);color:var(--admin-l)}
-.alert-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80}
-.alert-warning{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--inst-l)}
-.alert-danger {background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171}
+/* ── ALERTS ───────────────────────────────────────────────────── */
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;display:flex;align-items:flex-start;gap:8px;margin-bottom:16px;border:1px solid transparent}
+.alert-info   {background:var(--blue-50);border-color:var(--blue-100);color:var(--blue-700)}
+.alert-success{background:var(--green-50);border-color:var(--green-100);color:var(--green-700)}
+.alert-warning{background:var(--amber-50);border-color:var(--amber-100);color:var(--amber-600)}
+.alert-danger {background:var(--red-50);border-color:var(--red-100);color:var(--red-600)}
 
-/* GRID */
+/* ── GRID ─────────────────────────────────────────────────────── */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+/* ── BAB CARDS ────────────────────────────────────────────────── */
+.bab-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.bab-card{
+  border:1.5px solid var(--gray-200);border-radius:10px;padding:14px 10px;text-align:center;
+  background:var(--white);transition:all .2s;position:relative;cursor:pointer;
+}
+.bab-card:hover{border-color:var(--blue-300);box-shadow:var(--shadow-md)}
+.bab-card.done{background:var(--green-50);border-color:var(--green-300)}
+.bab-card.done:hover{border-color:var(--green-500)}
+.bab-card .bab-icon{font-size:22px;margin-bottom:6px}
+.bab-card .bab-num{font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px}
+.bab-card .bab-stat{font-size:12px;font-weight:600;margin-top:3px;color:var(--gray-400)}
+.bab-card.done .bab-stat{color:var(--green-600)}
+.bab-card .bab-date{font-size:10px;color:var(--gray-400);margin-top:2px}
+
+/* ── MODAL ────────────────────────────────────────────────────── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .modal-bg.open{display:flex}
-.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 40px 80px rgba(0,0,0,.5);animation:su .2s ease}
-@keyframes su{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.modal-box h3{font-size:17px;font-weight:800;margin-bottom:20px}
-.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+.modal-box{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:26px;width:500px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:mIn .2s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-title{font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:18px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-100)}
 
-/* BAB GRID */
-.bab-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-.bab-item{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 6px;text-align:center}
-.bab-item.done{border-color:var(--dosen);background:rgba(16,185,129,.1)}
-.bab-item.proses{border-color:var(--inst);background:rgba(245,158,11,.1)}
-.bab-name{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase}
-.bab-status{font-size:18px;margin:4px 0}
-.bab-label{font-size:10px;font-weight:600;color:var(--muted)}
-.bab-item.done .bab-label{color:var(--dosen-l)}
-.bab-item.proses .bab-label{color:var(--inst-l)}
+/* ── FLASH ────────────────────────────────────────────────────── */
+.flash{position:fixed;bottom:20px;right:20px;z-index:9999;padding:12px 18px;border-radius:9px;font-size:13px;font-weight:600;background:var(--white);border:1px solid var(--gray-200);border-left:4px solid var(--green-500);box-shadow:var(--shadow-lg);max-width:320px;animation:fIn .3s ease}
+.flash-err{border-left-color:var(--red-500)}
+@keyframes fIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-/* FLASH */
-.flash{position:fixed;bottom:22px;right:22px;z-index:9999;padding:13px 20px;border-radius:10px;font-size:13px;font-weight:600;border-left:4px solid var(--success);background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--success);max-width:320px;animation:flashIn .3s ease}
-.flash-error{border-left-color:var(--danger)}
-@keyframes flashIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* ── DIVIDER ──────────────────────────────────────────────────── */
+.divider{border:none;border-top:1px solid var(--gray-100);margin:16px 0}
 
-/* Scrollbar */
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--admin-l)}
+/* ── MISC ─────────────────────────────────────────────────────── */
+code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600);background:var(--blue-50);padding:1px 6px;border-radius:4px}
+.text-muted{color:var(--gray-400)}
+.text-sm{font-size:12px}
+.fw-bold{font-weight:700}
+.empty-state{text-align:center;padding:36px;color:var(--gray-400)}
+.empty-state .icon{font-size:40px;margin-bottom:10px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
 </style>
 @stack('styles')
 </head>
 <body>
 
-{{-- SIDEBAR --}}
+{{-- ── SIDEBAR ─────────────────────────────────────────────────── --}}
+@php $role = auth()->user()->role; @endphp
 <aside class="sidebar">
   <div class="sb-logo">
-    <h2>SiMo<span>KP</span></h2>
-    <p>Ilmu Komputer Unila</p>
+    <div class="sb-logo-icon">🎓</div>
+    <div>
+      <h2>SiMoKP</h2>
+      <p>Ilmu Komputer Unila</p>
+    </div>
   </div>
 
-  @php $role = auth()->user()->role; @endphp
-  <div class="sb-role role-{{ $role }}">
-    {{ ['admin'=>'👑 Administrator','dosen'=>'👨‍🏫 Dosen Pembimbing','instansi'=>'🏢 Pihak Instansi','mahasiswa'=>'🎓 Mahasiswa'][$role] }}
+  <div class="sb-role-badge role-{{ $role }}">
+    <span>{{ ['admin'=>'🛡️','dosen'=>'👨‍🏫','instansi'=>'🏢','mahasiswa'=>'🎓'][$role] }}</span>
+    <span>{{ ['admin'=>'Administrator','dosen'=>'Dosen Pembimbing','instansi'=>'Pihak Instansi','mahasiswa'=>'Mahasiswa'][$role] }}</span>
   </div>
 
   <nav class="sb-nav">
     @if($role === 'admin')
-      <div class="nav-sec">Utama</div>
-      <a href="{{ route('admin.dashboard') }}" class="nav-item role-admin {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><span>📊</span> Dashboard</a>
-      <div class="nav-sec">Manajemen Data</div>
-      <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item role-admin {{ request()->routeIs('admin.mahasiswa*') ? 'active' : '' }}"><span>🎓</span> Data Mahasiswa</a>
-      <a href="{{ route('admin.dosen.index') }}" class="nav-item role-admin {{ request()->routeIs('admin.dosen*') ? 'active' : '' }}"><span>👨‍🏫</span> Data Dosen</a>
-      <a href="{{ route('admin.instansi.index') }}" class="nav-item role-admin {{ request()->routeIs('admin.instansi*') ? 'active' : '' }}"><span>🏢</span> Data Instansi</a>
-      <div class="nav-sec">Monitoring</div>
-      <a href="{{ route('admin.progress.index') }}" class="nav-item role-admin {{ request()->routeIs('admin.progress*') ? 'active' : '' }}"><span>📈</span> Progress BAB</a>
-      <a href="{{ route('admin.seminar.index') }}" class="nav-item role-admin {{ request()->routeIs('admin.seminar*') ? 'active' : '' }}"><span>🎤</span> Jadwal Seminar</a>
-      <div class="nav-sec">Administrasi</div>
-      <a href="{{ route('admin.surat.index') }}" class="nav-item role-admin {{ request()->routeIs('admin.surat*') ? 'active' : '' }}">
-        <span>📄</span> Surat & Dokumen
-        @php $sp = \App\Models\Surat::where('status','pending')->count() @endphp
-        @if($sp > 0)<span class="nav-badge">{{ $sp }}</span>@endif
+      <div class="nav-section">Utama</div>
+      <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">📊</span> Dashboard
       </a>
-      <a href="{{ route('admin.laporan.index') }}" class="nav-item role-admin {{ request()->routeIs('admin.laporan*') ? 'active' : '' }}"><span>📑</span> Laporan & Rekap</a>
+      <div class="nav-section">Data Master</div>
+      <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('admin.mahasiswa*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">🎓</span> Mahasiswa
+      </a>
+      <a href="{{ route('admin.dosen.index') }}" class="nav-item {{ request()->routeIs('admin.dosen*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">👨‍🏫</span> Dosen Pembimbing
+      </a>
+      <a href="{{ route('admin.instansi.index') }}" class="nav-item {{ request()->routeIs('admin.instansi*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">🏢</span> Instansi
+      </a>
+      <div class="nav-section">Monitoring</div>
+      <a href="{{ route('admin.progress.index') }}" class="nav-item {{ request()->routeIs('admin.progress*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">📈</span> Laporan
+      </a>
+      <a href="{{ route('admin.seminar.index') }}" class="nav-item {{ request()->routeIs('admin.seminar*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">🎤</span> Jadwal Seminar
+      </a>
 
     @elseif($role === 'dosen')
-      <div class="nav-sec">Utama</div>
-      <a href="{{ route('dosen.dashboard') }}" class="nav-item role-dosen {{ request()->routeIs('dosen.dashboard') ? 'active' : '' }}"><span>📊</span> Dashboard</a>
-      <div class="nav-sec">Bimbingan</div>
-      <a href="{{ route('dosen.progress.index') }}" class="nav-item role-dosen {{ request()->routeIs('dosen.progress*') ? 'active' : '' }}"><span>📈</span> Progress BAB</a>
-      <a href="{{ route('dosen.logbook.index') }}" class="nav-item role-dosen {{ request()->routeIs('dosen.logbook*') ? 'active' : '' }}"><span>📋</span> Logbook Mahasiswa</a>
-      <div class="nav-sec">Penilaian</div>
-      <a href="{{ route('dosen.nilai.index') }}" class="nav-item role-dosen {{ request()->routeIs('dosen.nilai*') ? 'active' : '' }}"><span>⭐</span> Input Nilai</a>
+      <div class="nav-section">Utama</div>
+      <a href="{{ route('dosen.dashboard') }}" class="nav-item {{ request()->routeIs('dosen.dashboard') ? 'active role-dosen' : '' }}">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <div class="nav-section">Bimbingan</div>
+      <a href="{{ route('dosen.progress.index') }}" class="nav-item {{ request()->routeIs('dosen.progress*') ? 'active role-dosen' : '' }}">
+        <span class="nav-icon">📈</span> Laporan
+      </a>
+      <a href="{{ route('dosen.seminar.index') }}" class="nav-item {{ request()->routeIs('dosen.seminar*') ? 'active role-dosen' : '' }}">
+        <span class="nav-icon">🎤</span> Jadwal Seminar
+      </a>
+      <a href="{{ route('dosen.chat.index') }}" class="nav-item {{ request()->routeIs('dosen.chat*') ? 'active role-dosen' : '' }}">
+        <span class="nav-icon">💬</span> Pesan Instansi
+      </a>
 
     @elseif($role === 'instansi')
-      <div class="nav-sec">Utama</div>
-      <a href="{{ route('instansi.dashboard') }}" class="nav-item role-instansi {{ request()->routeIs('instansi.dashboard') ? 'active' : '' }}"><span>📊</span> Dashboard</a>
-      <div class="nav-sec">Monitoring</div>
-      <a href="{{ route('instansi.logbook.index') }}" class="nav-item role-instansi {{ request()->routeIs('instansi.logbook*') ? 'active' : '' }}">
-        <span>📋</span> Verifikasi Logbook
-        @php $lp = \App\Models\Logbook::whereIn('mahasiswa_id', auth()->user()->instansi->mahasiswas->pluck('id'))->where('status_instansi','pending')->count() @endphp
-        @if($lp > 0)<span class="nav-badge">{{ $lp }}</span>@endif
+      <div class="nav-section">Utama</div>
+      <a href="{{ route('instansi.dashboard') }}" class="nav-item {{ request()->routeIs('instansi.dashboard') ? 'active role-instansi' : '' }}">
+        <span class="nav-icon">📊</span> Dashboard
       </a>
-      <div class="nav-sec">Penilaian</div>
-      <a href="{{ route('instansi.nilai.index') }}" class="nav-item role-instansi {{ request()->routeIs('instansi.nilai*') ? 'active' : '' }}"><span>⭐</span> Beri Nilai</a>
+      <div class="nav-section">Data KP</div>
+      <a href="{{ route('instansi.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('instansi.mahasiswa*') ? 'active role-instansi' : '' }}">
+        <span class="nav-icon">🎓</span> Mahasiswa KP
+      </a>
+      <a href="{{ route('instansi.chat.index') }}" class="nav-item {{ request()->routeIs('instansi.chat*') ? 'active role-instansi' : '' }}">
+        <span class="nav-icon">💬</span> Chat Dosen
+      </a>
 
     @elseif($role === 'mahasiswa')
-      <div class="nav-sec">Utama</div>
-      <a href="{{ route('mahasiswa.dashboard') }}" class="nav-item role-mahasiswa {{ request()->routeIs('mahasiswa.dashboard') ? 'active' : '' }}"><span>📊</span> Dashboard Saya</a>
-      <div class="nav-sec">KP Saya</div>
-      <a href="{{ route('mahasiswa.progress.index') }}" class="nav-item role-mahasiswa {{ request()->routeIs('mahasiswa.progress*') ? 'active' : '' }}"><span>📈</span> Progress BAB</a>
-      <a href="{{ route('mahasiswa.logbook.index') }}" class="nav-item role-mahasiswa {{ request()->routeIs('mahasiswa.logbook*') ? 'active' : '' }}"><span>📋</span> Logbook Harian</a>
-      <div class="nav-sec">Administrasi</div>
-      <a href="{{ route('mahasiswa.seminar.index') }}" class="nav-item role-mahasiswa {{ request()->routeIs('mahasiswa.seminar*') ? 'active' : '' }}"><span>🎤</span> Info Seminar</a>
-      <a href="{{ route('mahasiswa.surat.index') }}" class="nav-item role-mahasiswa {{ request()->routeIs('mahasiswa.surat*') ? 'active' : '' }}"><span>📄</span> Pengajuan Surat</a>
+      <div class="nav-section">Utama</div>
+      <a href="{{ route('mahasiswa.dashboard') }}" class="nav-item {{ request()->routeIs('mahasiswa.dashboard') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">📊</span> Dashboard Saya
+      </a>
+      <div class="nav-section">KP Saya</div>
+      <a href="{{ route('mahasiswa.progress.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.progress*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">📈</span> Laporan
+      </a>
+      <a href="{{ route('mahasiswa.seminar.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.seminar*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">🎤</span> Info Seminar
+      </a>
     @endif
   </nav>
 
   <div class="sb-footer">
-    <div class="user-pill">
-      <div class="avatar role-{{ $role }}" style="font-size:16px">
-        {{ ['admin'=>'🛡️','dosen'=>'👨‍🏫','instansi'=>'🏢','mahasiswa'=>'👤'][$role] }}
-      </div>
+    @if(auth()->user()->role !== 'admin')
+    <a href="{{ route('ganti-password') }}"
+       style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--gray-500);margin-bottom:6px;text-decoration:none;transition:all .15s"
+       onmouseover="this.style.background='var(--gray-100)';this.style.color='var(--gray-800)'"
+       onmouseout="this.style.background='';this.style.color='var(--gray-500)'">
+      <span>🔐</span> Ganti Password
+    </a>
+    @endif
+    <div class="user-card">
+      <div class="user-avatar">{{ ['admin'=>'🛡️','dosen'=>'👨‍🏫','instansi'=>'🏢','mahasiswa'=>'🎓'][$role] }}</div>
       <div>
-        <div class="u-name">{{ Str::limit(auth()->user()->name, 18) }}</div>
-        <div class="u-role">{{ ucfirst($role) }}</div>
+        <div class="user-name">{{ Str::limit(auth()->user()->name, 16) }}</div>
+        <div class="user-role">{{ ucfirst($role) }}</div>
       </div>
       <form method="POST" action="{{ route('logout') }}" style="margin-left:auto">
         @csrf
-        <button type="submit" class="btn-logout">Keluar</button>
+        <button type="submit" class="btn-logout" title="Keluar">🔓</button>
       </form>
     </div>
   </div>
 </aside>
 
-{{-- MAIN CONTENT --}}
+{{-- ── MAIN ──────────────────────────────────────────────────────── --}}
 <main class="main">
   @if(session('success'))
     <div class="flash" id="flashMsg">✅ {{ session('success') }}</div>
   @endif
   @if(session('error'))
-    <div class="flash flash-error" id="flashMsg">❌ {{ session('error') }}</div>
+    <div class="flash flash-err" id="flashMsg">❌ {{ session('error') }}</div>
   @endif
 
   @yield('content')
 </main>
 
 <script>
-  // Auto-hide flash
-  setTimeout(() => { const f = document.getElementById('flashMsg'); if(f) f.style.opacity = '0'; }, 3000);
-
-  // Modal helpers
-  function openModal(id) { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-bg').forEach(m => {
-    m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+setTimeout(() => { const f=document.getElementById('flashMsg'); if(f){f.style.opacity='0';f.style.transform='translateY(8px)';f.style.transition='all .4s';} }, 3000);
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.modal-bg').forEach(m=>{
+    m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
   });
+});
 </script>
 @stack('scripts')
 </body>

@@ -51,12 +51,13 @@
 @push('scripts')
 <script>
 function openUpd(id,bab,status,tgl,cat,nama){
-  document.getElementById('updForm').action=`/dosen/progress/${id}`;
-  document.getElementById('updNama').textContent=nama;
-  document.getElementById('updBab').textContent=bab;
-  document.getElementById('updStatus').value=status;
-  document.getElementById('updTgl').value=tgl||'';
-  document.getElementById('updCat').value=cat||'';
+  // ✅ FIX: pakai url() helper Blade, bukan hardcode /dosen/progress
+  document.getElementById('updForm').action = `{{ url('dosen-area/progress') }}/${id}`;
+  document.getElementById('updNama').textContent = nama;
+  document.getElementById('updBab').textContent  = bab;
+  document.getElementById('updStatus').value     = status;
+  document.getElementById('updTgl').value        = tgl || '';
+  document.getElementById('updCat').value        = cat || '';
   openModal('modalUpd');
 }
 </script>

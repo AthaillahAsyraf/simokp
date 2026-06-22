@@ -2,139 +2,100 @@
 @section('title','Detail Mahasiswa')
 @section('content')
 
-<div class="page-header">
+<div class="page-header page-header-row">
   <div style="display:flex;align-items:center;gap:12px">
-    <a href="{{ route('admin.mahasiswa.index') }}" class="btn btn-ghost btn-sm">← Kembali</a>
+    <a href="{{ route('admin.mahasiswa.index') }}" class="btn btn-outline btn-sm">← Kembali</a>
     <div>
       <h1>{{ $mahasiswa->nama }}</h1>
       <p><code>{{ $mahasiswa->nim }}</code> · Angkatan {{ $mahasiswa->angkatan }}</p>
     </div>
   </div>
+  <span class="badge badge-{{ $mahasiswa->status }}" style="font-size:13px;padding:5px 14px">{{ ucfirst($mahasiswa->status) }}</span>
 </div>
 
 <div class="grid-2">
-  {{-- Info Umum --}}
+  {{-- Info KP --}}
   <div class="card">
-    <div class="card-header"><h3>Informasi KP</h3><span class="pill pill-{{ $mahasiswa->status }}">{{ ucfirst($mahasiswa->status) }}</span></div>
+    <div class="card-header"><h3>Informasi Kerja Praktik</h3></div>
     <div class="card-body" style="display:grid;gap:12px;font-size:13px">
-      <div><div style="color:var(--muted);font-size:11px">Dosen Pembimbing</div><strong>{{ $mahasiswa->dosen?->nama ?? '–' }}</strong></div>
-      <div><div style="color:var(--muted);font-size:11px">Instansi / Lokasi KP</div><strong>{{ $mahasiswa->instansi?->nama ?? '–' }}</strong></div>
-      <div><div style="color:var(--muted);font-size:11px">Alamat Instansi</div>{{ $mahasiswa->instansi?->alamat ?? '–' }}</div>
-      <div><div style="color:var(--muted);font-size:11px">Tanggal Mulai</div><strong>{{ $mahasiswa->tanggal_mulai ?? '–' }}</strong></div>
-      <div><div style="color:var(--muted);font-size:11px">Tanggal Selesai</div><strong>{{ $mahasiswa->tanggal_selesai ?? '–' }}</strong></div>
-    </div>
-  </div>
-
-  {{-- Nilai --}}
-  <div class="card">
-    <div class="card-header"><h3>Rekapitulasi Nilai</h3></div>
-    <div class="card-body">
-      @php $nilai = $mahasiswa->nilai; @endphp
-      @if($nilai)
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;margin-bottom:16px">
-        <div style="background:rgba(245,158,11,.1);border-radius:10px;padding:14px">
-          <div style="font-size:11px;color:var(--muted)">Instansi (40%)</div>
-          <div style="font-size:26px;font-weight:800;color:var(--inst-l)">{{ $nilai->nilai_instansi ?? '–' }}</div>
+      <div>
+        <div class="text-sm text-muted" style="margin-bottom:2px">Dosen Pembimbing</div>
+        <strong>{{ $mahasiswa->dosen?->nama ?? '–' }}</strong>
+      </div>
+      <div>
+        <div class="text-sm text-muted" style="margin-bottom:2px">Instansi / Lokasi KP</div>
+        <strong>{{ $mahasiswa->instansi?->nama ?? '–' }}</strong>
+      </div>
+      <div>
+        <div class="text-sm text-muted" style="margin-bottom:2px">Bidang Instansi</div>
+        {{ $mahasiswa->instansi?->bidang ?? '–' }}
+      </div>
+      <div>
+        <div class="text-sm text-muted" style="margin-bottom:2px">Alamat Instansi</div>
+        {{ $mahasiswa->instansi?->alamat ?? '–' }}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div class="text-sm text-muted" style="margin-bottom:2px">Tanggal Mulai</div>
+          <strong>{{ $mahasiswa->tanggal_mulai ?? '–' }}</strong>
         </div>
-        <div style="background:rgba(16,185,129,.1);border-radius:10px;padding:14px">
-          <div style="font-size:11px;color:var(--muted)">Pembimbing (30%)</div>
-          <div style="font-size:26px;font-weight:800;color:var(--dosen-l)">{{ $nilai->nilai_pembimbing ?? '–' }}</div>
-        </div>
-        <div style="background:rgba(99,102,241,.1);border-radius:10px;padding:14px">
-          <div style="font-size:11px;color:var(--muted)">Seminar (30%)</div>
-          <div style="font-size:26px;font-weight:800;color:var(--admin-l)">{{ $nilai->nilai_seminar ?? '–' }}</div>
+        <div>
+          <div class="text-sm text-muted" style="margin-bottom:2px">Tanggal Selesai</div>
+          <strong>{{ $mahasiswa->tanggal_selesai ?? '–' }}</strong>
         </div>
       </div>
-      @if($nilai->nilai_akhir)
-        <div class="alert alert-success" style="justify-content:center;font-size:15px">
-          🏆 Nilai Akhir: <strong style="font-size:20px;margin-left:8px">{{ $nilai->nilai_akhir }}</strong>
-        </div>
-      @else
-        <div class="alert alert-info">ℹ️ Nilai akhir belum dapat dihitung. Lengkapi semua komponen nilai.</div>
-      @endif
-      @else
-        <p style="color:var(--muted);font-size:13px">Belum ada data nilai.</p>
-      @endif
-    </div>
-  </div>
-</div>
-
-{{-- Progress BAB --}}
-<div class="card">
-  <div class="card-header">
-    <div><h3>Progress BAB Laporan</h3><p>{{ $mahasiswa->progressPersen() }}% selesai</p></div>
-    <div class="prog-wrap" style="width:160px"><div class="prog-bar" style="width:{{ $mahasiswa->progressPersen() }}%;background:var(--admin)"></div></div>
-  </div>
-  <div style="padding:20px">
-    <div class="bab-grid">
-      @foreach($mahasiswa->progressBabs as $p)
-      <div class="bab-item {{ $p->status === 'selesai' ? 'done' : ($p->status === 'proses' ? 'proses' : '') }}">
-        <div class="bab-name">{{ $p->bab }}</div>
-        <div class="bab-status">{{ $p->status === 'selesai' ? '✅' : ($p->status === 'proses' ? '🔄' : '⏳') }}</div>
-        <div class="bab-label">{{ ucfirst($p->status) }}</div>
-        @if($p->tanggal_update)<div style="font-size:9px;color:var(--muted);margin-top:2px">{{ $p->tanggal_update }}</div>@endif
-        @if($p->catatan)<div style="font-size:9px;color:var(--muted);margin-top:1px">{{ Str::limit($p->catatan,20) }}</div>@endif
+      <div>
+        <div class="text-sm text-muted" style="margin-bottom:2px">No. HP</div>
+        {{ $mahasiswa->no_hp ?? '–' }}
       </div>
-      @endforeach
     </div>
   </div>
-</div>
 
-<div class="grid-2">
-  {{-- Logbook --}}
-  <div class="card">
-    <div class="card-header"><h3>Logbook Harian</h3><p>{{ $mahasiswa->logbooks->count() }} entri</p></div>
-    <table>
-      <thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Status</th></tr></thead>
-      <tbody>
-        @forelse($mahasiswa->logbooks->take(8) as $l)
-        <tr>
-          <td style="font-size:11px;color:var(--muted);white-space:nowrap">{{ $l->tanggal }}</td>
-          <td style="font-size:12px">{{ Str::limit($l->kegiatan, 60) }}</td>
-          <td><span class="pill pill-{{ $l->status_instansi }}">{{ $l->status_instansi }}</span></td>
-        </tr>
-        @empty
-          <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:18px">Belum ada logbook</td></tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
-
-  {{-- Surat & Seminar --}}
+  {{-- Progress + Seminar --}}
   <div>
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><h3>Seminar KP</h3></div>
-      <div class="card-body" style="font-size:13px">
-        @if($mahasiswa->seminar)
-        @php $s = $mahasiswa->seminar; @endphp
-        <div style="display:grid;gap:8px">
-          <div><span style="color:var(--muted)">Tanggal:</span> <strong>{{ $s->tanggal }}</strong></div>
-          <div><span style="color:var(--muted)">Jam:</span> {{ \Carbon\Carbon::parse($s->jam)->format('H:i') }} WIB · {{ $s->ruangan }}</div>
-          <div><span style="color:var(--muted)">Penguji:</span> {{ $s->dosen_penguji ?? '–' }}</div>
-          <div><span style="color:var(--muted)">Status:</span> <span class="pill pill-{{ $s->status }}">{{ $s->status }}</span></div>
-          @if($s->nilai)<div><span style="color:var(--muted)">Nilai Seminar:</span> <strong style="color:var(--dosen-l);font-size:18px">{{ $s->nilai }}</strong></div>@endif
+      <div class="card-header">
+        <div><h3>Progress BAB</h3></div>
+        <span style="font-weight:700;color:{{ $mahasiswa->progressPersen()==100?'#16a34a':'#2563eb' }}">{{ $mahasiswa->progressPersen() }}%</span>
+      </div>
+      <div class="card-body">
+        <div class="prog-wrap" style="height:8px;margin-bottom:14px">
+          <div class="prog-bar prog-bar-{{ $mahasiswa->progressPersen()==100?'green':'blue' }}" style="width:{{ $mahasiswa->progressPersen() }}%"></div>
         </div>
-        @else
-          <p style="color:var(--muted)">Belum ada jadwal seminar.</p>
-        @endif
+        <div style="display:flex;flex-direction:column;gap:6px">
+          @foreach($mahasiswa->progressBabs as $p)
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;background:{{ $p->status==='selesai'?'#f0fdf4':'#f8fafc' }};border:1px solid {{ $p->status==='selesai'?'#dcfce7':'#e2e8f0' }}">
+            <span style="font-size:16px">{{ $p->status==='selesai'?'✅':'⏳' }}</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;color:{{ $p->status==='selesai'?'#15803d':'#374151' }}">{{ $p->bab }}</div>
+              @if($p->tanggal_selesai)<div class="text-sm text-muted">{{ $p->tanggal_selesai }}</div>@endif
+            </div>
+            <span class="badge badge-{{ $p->status==='selesai'?'selesai':'belum' }}">{{ ucfirst($p->status) }}</span>
+          </div>
+          @endforeach
+        </div>
       </div>
     </div>
+
+    {{-- Seminar --}}
     <div class="card">
-      <div class="card-header"><h3>Pengajuan Surat</h3></div>
-      <table>
-        <thead><tr><th>Jenis</th><th>Tanggal</th><th>Status</th></tr></thead>
-        <tbody>
-          @forelse($mahasiswa->surats as $s)
-          <tr>
-            <td style="font-size:12px">{{ ucfirst($s->jenis) }}</td>
-            <td style="font-size:11px;color:var(--muted)">{{ $s->created_at->format('d/m/Y') }}</td>
-            <td><span class="pill pill-{{ $s->status }}">{{ $s->status }}</span></td>
-          </tr>
-          @empty
-            <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:14px">Belum ada surat</td></tr>
-          @endforelse
-        </tbody>
-      </table>
+      <div class="card-header"><h3>🎤 Seminar KP</h3></div>
+      <div class="card-body" style="font-size:13px">
+        @if($mahasiswa->seminar)
+          @php $s = $mahasiswa->seminar; @endphp
+          <div style="display:grid;gap:9px">
+            <div><span class="text-muted">Tanggal:</span> <strong>{{ $s->tanggal }}</strong></div>
+            <div><span class="text-muted">Jam:</span> {{ \Carbon\Carbon::parse($s->jam)->format('H:i') }} WIB · {{ $s->ruangan }}</div>
+            <div><span class="text-muted">Penguji:</span> {{ $s->dosen_penguji ?? '–' }}</div>
+            <div><span class="text-muted">Status:</span> <span class="badge badge-{{ $s->status }}">{{ ucfirst($s->status) }}</span></div>
+          </div>
+        @else
+          <div class="empty-state" style="padding:20px">
+            <div class="icon">🗓️</div>
+            <p>Belum ada jadwal seminar.</p>
+          </div>
+        @endif
+      </div>
     </div>
   </div>
 </div>
