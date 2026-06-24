@@ -314,6 +314,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('admin.seminar.index') }}" class="nav-item {{ request()->routeIs('admin.seminar*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
       </a>
+      <a href="{{ route('admin.absensi.index') }}" class="nav-item {{ request()->routeIs('admin.absensi*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">📋</span> Absensi Mahasiswa
+      </a>
 
     @elseif($role === 'dosen')
       <div class="nav-section">Utama</div>
@@ -326,6 +329,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       </a>
       <a href="{{ route('dosen.seminar.index') }}" class="nav-item {{ request()->routeIs('dosen.seminar*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
+      </a>
+      <a href="{{ route('dosen.absensi.index') }}" class="nav-item {{ request()->routeIs('dosen.absensi*') ? 'active role-dosen' : '' }}">
+        <span class="nav-icon">📋</span> Absensi Mahasiswa
       </a>
       <a href="{{ route('dosen.chat.index') }}" class="nav-item {{ request()->routeIs('dosen.chat*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">💬</span> Pesan Instansi
@@ -340,6 +346,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('instansi.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('instansi.mahasiswa*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">🎓</span> Mahasiswa KP
       </a>
+      <a href="{{ route('instansi.absensi.index') }}" class="nav-item {{ request()->routeIs('instansi.absensi*') ? 'active role-instansi' : '' }}">
+        <span class="nav-icon">📋</span> Absensi Mahasiswa
+      </a>
       <a href="{{ route('instansi.chat.index') }}" class="nav-item {{ request()->routeIs('instansi.chat*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">💬</span> Chat Dosen
       </a>
@@ -350,6 +359,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">📊</span> Dashboard Saya
       </a>
       <div class="nav-section">KP Saya</div>
+      <a href="{{ route('mahasiswa.absensi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.absensi*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">📍</span> Absensi
+      </a>
       <a href="{{ route('mahasiswa.progress.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.progress*') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">📈</span> Laporan
       </a>

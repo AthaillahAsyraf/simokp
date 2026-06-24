@@ -35,7 +35,7 @@
 <div class="card">
   <div class="table-wrap">
     <table>
-      <thead><tr><th>#</th><th>Nama Instansi</th><th>Bidang</th><th>Kontak Person</th><th>Mhs KP</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>#</th><th>Nama Instansi</th><th>Bidang</th><th>Kontak Person</th><th>Lokasi</th><th>Mhs KP</th><th>Aksi</th></tr></thead>
       <tbody>
         @forelse($instansis as $i => $inst)
         <tr>
@@ -49,12 +49,19 @@
             {{ $inst->kontak_person ?? '–' }}
             @if($inst->no_hp)<br><span>{{ $inst->no_hp }}</span>@endif
           </td>
+          <td class="text-sm">
+            @if($inst->latitude && $inst->longitude)
+              <span class="badge badge-selesai">📍 Diatur ({{ $inst->radius_absen ?? 100 }}m)</span>
+            @else
+              <span class="badge badge-belum">Belum diatur</span>
+            @endif
+          </td>
           <td><span class="badge badge-proses">{{ $inst->mahasiswas->count() }} mhs</span></td>
           <td>
             <div style="display:flex;gap:4px">
               <a href="{{ route('admin.instansi.show',$inst) }}" class="btn btn-ghost btn-xs">Detail</a>
               <button class="btn btn-outline btn-xs"
-                onclick="openEdit({{ $inst->id }},'{{ addslashes($inst->nama) }}','{{ addslashes($inst->bidang) }}','{{ addslashes($inst->alamat) }}','{{ addslashes($inst->kontak_person) }}','{{ $inst->no_hp }}')">Edit</button>
+                onclick="openEdit({{ $inst->id }},'{{ addslashes($inst->nama) }}','{{ addslashes($inst->bidang) }}','{{ addslashes($inst->alamat) }}','{{ addslashes($inst->kontak_person) }}','{{ $inst->no_hp }}','{{ $inst->latitude }}','{{ $inst->longitude }}','{{ $inst->radius_absen ?? 100 }}')">Edit</button>
               <form method="POST" action="{{ route('admin.instansi.destroy',$inst) }}"
                 onsubmit="return confirm('Hapus instansi ini?')" style="display:inline">
                 @csrf @method('DELETE')
@@ -64,7 +71,7 @@
           </td>
         </tr>
         @empty
-          <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8">Belum ada data instansi.</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8">Belum ada data instansi.</td></tr>
         @endforelse
       </tbody>
     </table>
@@ -133,6 +140,41 @@
                title="No. HP harus berupa angka saja">
         @error('no_hp','tambah')<small style="color:#dc2626">{{ $message }}</small>@enderror
       </div>
+
+      <hr class="divider">
+      <div class="form-group" style="margin-bottom:8px">
+        <label class="form-label">📍 Lokasi Titik Absen</label>
+        <p class="form-hint" style="margin:0 0 8px">Wajib diisi agar mahasiswa bisa absen di instansi ini. Klik kanan lokasi di Google Maps untuk menyalin koordinatnya, atau gunakan tombol di bawah jika Anda sedang berada di lokasi instansi.</p>
+        <button type="button" class="btn btn-outline btn-sm" onclick="ambilLokasiSaya('tambah')" id="btnLokasiTambah">📡 Gunakan Lokasi Saya Sekarang</button>
+        <small id="lokasiTambahInfo" class="form-hint" style="display:block;margin-top:4px"></small>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Latitude</label>
+          <input type="text" name="latitude" id="tLat"
+                 class="form-control @error('latitude','tambah') is-invalid @enderror"
+                 placeholder="-5.4291839" value="{{ old('latitude') }}">
+          @error('latitude','tambah')<small style="color:#dc2626">{{ $message }}</small>@enderror
+        </div>
+        <div class="form-group">
+          <label class="form-label">Longitude</label>
+          <input type="text" name="longitude" id="tLng"
+                 class="form-control @error('longitude','tambah') is-invalid @enderror"
+                 placeholder="105.2618658" value="{{ old('longitude') }}">
+          @error('longitude','tambah')<small style="color:#dc2626">{{ $message }}</small>@enderror
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Radius Toleransi Absen (meter)</label>
+        <input type="number" name="radius_absen"
+               class="form-control @error('radius_absen','tambah') is-invalid @enderror"
+               min="10" max="5000" placeholder="100" value="{{ old('radius_absen', 100) }}">
+        <p class="form-hint">Jarak maksimal dari titik koordinat di atas agar absen dianggap valid. Default 100 meter.</p>
+        @error('radius_absen','tambah')<small style="color:#dc2626">{{ $message }}</small>@enderror
+      </div>
+      <hr class="divider">
 
       <div class="form-group">
         <label class="form-label">Email Login *</label>
@@ -215,6 +257,40 @@
         @error('no_hp','edit')<small style="color:#dc2626">{{ $message }}</small>@enderror
       </div>
 
+      <hr class="divider">
+      <div class="form-group" style="margin-bottom:8px">
+        <label class="form-label">📍 Lokasi Titik Absen</label>
+        <p class="form-hint" style="margin:0 0 8px">Wajib diisi agar mahasiswa bisa absen di instansi ini.</p>
+        <button type="button" class="btn btn-outline btn-sm" onclick="ambilLokasiSaya('edit')" id="btnLokasiEdit">📡 Gunakan Lokasi Saya Sekarang</button>
+        <small id="lokasiEditInfo" class="form-hint" style="display:block;margin-top:4px"></small>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Latitude</label>
+          <input type="text" name="latitude" id="eLat"
+                 class="form-control @error('latitude','edit') is-invalid @enderror"
+                 placeholder="-5.4291839">
+          @error('latitude','edit')<small style="color:#dc2626">{{ $message }}</small>@enderror
+        </div>
+        <div class="form-group">
+          <label class="form-label">Longitude</label>
+          <input type="text" name="longitude" id="eLng"
+                 class="form-control @error('longitude','edit') is-invalid @enderror"
+                 placeholder="105.2618658">
+          @error('longitude','edit')<small style="color:#dc2626">{{ $message }}</small>@enderror
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Radius Toleransi Absen (meter)</label>
+        <input type="number" name="radius_absen" id="eRadius"
+               class="form-control @error('radius_absen','edit') is-invalid @enderror"
+               min="10" max="5000" placeholder="100">
+        @error('radius_absen','edit')<small style="color:#dc2626">{{ $message }}</small>@enderror
+      </div>
+      <hr class="divider">
+
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalEdit')">Batal</button>
         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
@@ -239,7 +315,10 @@ window.addEventListener('load', function () {
         '{{ addslashes(old('bidang', '')) }}',
         '{{ addslashes(old('alamat', '')) }}',
         '{{ addslashes(old('kontak_person', '')) }}',
-        '{{ old('no_hp', '') }}'
+        '{{ old('no_hp', '') }}',
+        '{{ old('latitude', '') }}',
+        '{{ old('longitude', '') }}',
+        '{{ old('radius_absen', 100) }}'
     );
 });
 @endif
@@ -269,14 +348,49 @@ document.getElementById('formTambah').addEventListener('submit', function (e) {
 });
 
 /* ── Open Edit Modal ── */
-function openEdit(id, nama, bidang, alamat, kontak, hp) {
+function openEdit(id, nama, bidang, alamat, kontak, hp, lat, lng, radius) {
     document.getElementById('editForm').action = `/admin/instansi/${id}`;
     document.getElementById('eNama').value    = nama    || '';
     document.getElementById('eBidang').value  = bidang  || '';
     document.getElementById('eAlamat').value  = alamat  || '';
     document.getElementById('eKontak').value  = kontak  || '';
     document.getElementById('eHp').value      = hp      || '';
+    document.getElementById('eLat').value     = lat     || '';
+    document.getElementById('eLng').value     = lng     || '';
+    document.getElementById('eRadius').value  = radius  || 100;
     openModal('modalEdit');
+}
+
+/* ── Ambil koordinat GPS perangkat saat ini dan isi ke form ── */
+function ambilLokasiSaya(mode) {
+    const suffix = mode === 'tambah' ? 'T' : 'e';
+    const infoEl  = document.getElementById('lokasi' + (mode === 'tambah' ? 'Tambah' : 'Edit') + 'Info');
+    const btnEl   = document.getElementById('btnLokasi' + (mode === 'tambah' ? 'Tambah' : 'Edit'));
+
+    if (!navigator.geolocation) {
+        infoEl.textContent = '❌ Perangkat/browser tidak mendukung GPS.';
+        infoEl.style.color = '#dc2626';
+        return;
+    }
+
+    btnEl.disabled = true;
+    infoEl.style.color = '#64748b';
+    infoEl.textContent = '📡 Mendeteksi lokasi...';
+
+    navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude.toFixed(7);
+        const lng = pos.coords.longitude.toFixed(7);
+        const akurasi = Math.round(pos.coords.accuracy);
+        document.getElementById(suffix + 'Lat').value = lat;
+        document.getElementById(suffix + 'Lng').value = lng;
+        infoEl.style.color = '#16a34a';
+        infoEl.textContent = `✅ Lokasi terisi (akurasi ±${akurasi}m). Periksa kembali sebelum menyimpan.`;
+        btnEl.disabled = false;
+    }, () => {
+        infoEl.style.color = '#dc2626';
+        infoEl.textContent = '❌ Gagal mengambil lokasi. Pastikan GPS aktif dan izin lokasi diberikan, atau isi manual lewat Google Maps.';
+        btnEl.disabled = false;
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 }
 </script>
 @endpush

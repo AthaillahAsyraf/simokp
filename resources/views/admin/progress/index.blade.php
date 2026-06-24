@@ -6,11 +6,10 @@
 /* ── STUDENT CARDS ──────────────────────────────────────── */
 .mhs-card {
   background:#fff;border:1px solid #e2e8f0;border-radius:10px;
-  margin-bottom:8px;overflow:hidden;
+  margin-bottom:10px;overflow:hidden;
 }
 .mhs-card-header {
-  padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  border-bottom:1px solid #f1f5f9;
+  padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
 }
 .mhs-info { flex:1;min-width:0 }
 .mhs-name {
@@ -22,27 +21,33 @@
 .pct-text { font-size:14px;font-weight:800;color:#2563eb;min-width:36px;text-align:right }
 .pct-text.selesai { color:#16a34a }
 
-/* ── BAB CHIPS ──────────────────────────────────────────── */
-.bab-track {
-  padding:10px 16px;
-  display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+/* ── SIMPLE PROGRESS + DROPDOWN ─────────────────────────── */
+.bab-simple { padding:0 16px 14px }
+
+.progress-bar-bg {
+  width:100%;height:6px;background:#f1f5f9;border-radius:99px;overflow:hidden;margin-bottom:10px;
 }
-.bab-chip {
-  display:inline-flex;align-items:center;gap:5px;
-  padding:5px 10px;border-radius:7px;font-size:12px;font-weight:600;
-  border:1px solid #e2e8f0;white-space:nowrap;
+.progress-bar-fill {
+  height:100%;background:#2563eb;border-radius:99px;transition:width .3s;
 }
-.bab-chip.done  { background:#f0fdf4;border-color:#86efac;color:#15803d }
-.bab-chip.belum { background:#f8fafc;border-color:#e2e8f0;color:#94a3b8 }
-.bab-chip .chip-icon { font-size:13px }
-.btn-chip {
-  padding:1px 7px;border-radius:5px;font-size:11px;font-weight:700;
-  border:none;cursor:pointer;line-height:1.6;
+.progress-bar-fill.selesai { background:#16a34a }
+
+.bab-select-row { display:flex;gap:8px }
+
+.bab-select {
+  flex:1;min-width:0;font-size:13px;padding:7px 10px;border:1px solid #e2e8f0;
+  border-radius:7px;background:#f8fafc;color:#334155;
 }
-.btn-ok  { background:#dcfce7;color:#15803d;border:1px solid #86efac }
-.btn-ok:hover  { background:#bbf7d0 }
-.btn-rst { background:#fee2e2;color:#dc2626;border:1px solid #fca5a5 }
-.btn-rst:hover { background:#fecaca }
+
+.btn-bab-action {
+  flex-shrink:0;font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;
+  border:1px solid #86efac;background:#dcfce7;color:#15803d;cursor:pointer;white-space:nowrap;
+}
+.btn-bab-action:hover { background:#bbf7d0 }
+.btn-bab-action.reset {
+  border-color:#fca5a5;background:#fee2e2;color:#dc2626;
+}
+.btn-bab-action.reset:hover { background:#fecaca }
 </style>
 @endpush
 
@@ -51,7 +56,7 @@
 <div class="page-header page-header-row">
   <div>
     <h1>Monitoring Progress BAB</h1>
-    <p>Klik tombol BAB untuk update — BAB sebelumnya otomatis ikut selesai</p>
+    <p>Pilih BAB dari dropdown, lalu klik tombol aksi</p>
   </div>
 </div>
 
@@ -83,7 +88,11 @@
 
 {{-- Student List --}}
 @forelse($mahasiswas as $m)
-@php $pct = $m->progressPersen(); @endphp
+@php
+  $pct = $m->progressPersen();
+  $firstBab = $m->progressBabs->first();
+  $firstIsSelesai = $firstBab && $firstBab->status === 'selesai';
+@endphp
 <div class="mhs-card">
 
   {{-- Header: info + badge --}}
@@ -101,26 +110,31 @@
     </div>
   </div>
 
-  {{-- BAB chips: satu baris --}}
-  <div class="bab-track">
-    @foreach($m->progressBabs as $p)
-    <div class="bab-chip {{ $p->status==='selesai'?'done':'belum' }}"
-         title="{{ $p->catatan ? $p->catatan.' · ' : '' }}{{ $p->tanggal_selesai ?? '' }}">
-      <span class="chip-icon">{{ $p->status==='selesai' ? '✅' : '⏳' }}</span>
-      <span>{{ $p->bab }}</span>
-      @if($p->status === 'belum')
-        <button class="btn-chip btn-ok"
-                onclick="openSelesai({{ $p->id }},'{{ $p->bab }}','{{ $m->nama }}')">
-          ✓
-        </button>
-      @else
-        <button class="btn-chip btn-rst"
-                onclick="submitReset({{ $p->id }})">
-          ↩
-        </button>
-      @endif
+  {{-- Progress bar + dropdown BAB --}}
+  <div class="bab-simple">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill {{ $pct==100?'selesai':'' }}" style="width:{{ $pct }}%"></div>
     </div>
-    @endforeach
+
+    <div class="bab-select-row">
+      <select class="bab-select" id="babSelect{{ $m->id }}" onchange="updateBabAction({{ $m->id }})">
+        @foreach($m->progressBabs as $p)
+          <option value="{{ $p->id }}"
+                  data-status="{{ $p->status }}"
+                  data-bab="{{ $p->bab }}"
+                  data-nama="{{ $m->nama }}">
+            {{ $p->status === 'selesai' ? '✅' : '⬜' }} {{ $p->bab }} — {{ $p->status === 'selesai' ? 'Selesai' : 'Belum' }}
+          </option>
+        @endforeach
+      </select>
+
+      <button type="button"
+              class="btn-bab-action {{ $firstIsSelesai ? 'reset' : '' }}"
+              id="babAction{{ $m->id }}"
+              onclick="handleBabAction({{ $m->id }})">
+        {{ $firstIsSelesai ? '↩ Reset' : '✓ Tandai Selesai' }}
+      </button>
+    </div>
   </div>
 
 </div>
@@ -177,6 +191,33 @@ function submitReset(id) {
   if (!confirm('Reset BAB ini dan semua BAB sesudahnya ke Belum?')) return;
   document.getElementById('resetForm').action = `/admin/progress/${id}`;
   document.getElementById('resetForm').submit();
+}
+
+// Update tombol aksi sesuai status BAB yang dipilih di dropdown
+function updateBabAction(mid) {
+  const select = document.getElementById('babSelect' + mid);
+  const opt    = select.options[select.selectedIndex];
+  const btn    = document.getElementById('babAction' + mid);
+
+  if (opt.dataset.status === 'selesai') {
+    btn.textContent = '↩ Reset';
+    btn.classList.add('reset');
+  } else {
+    btn.textContent = '✓ Tandai Selesai';
+    btn.classList.remove('reset');
+  }
+}
+
+// Jalankan aksi sesuai BAB yang sedang dipilih
+function handleBabAction(mid) {
+  const select = document.getElementById('babSelect' + mid);
+  const opt    = select.options[select.selectedIndex];
+
+  if (opt.dataset.status === 'selesai') {
+    submitReset(select.value);
+  } else {
+    openSelesai(select.value, opt.dataset.bab, opt.dataset.nama);
+  }
 }
 </script>
 @endpush

@@ -54,6 +54,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::post('seminar',             [\App\Http\Controllers\Admin\SeminarController::class,'store'])->name('seminar.store');
     Route::put('seminar/{seminar}',    [\App\Http\Controllers\Admin\SeminarController::class,'update'])->name('seminar.update');
     Route::delete('seminar/{seminar}', [\App\Http\Controllers\Admin\SeminarController::class,'destroy'])->name('seminar.destroy');
+
+    // Absensi
+    Route::get('absensi',                         [\App\Http\Controllers\Admin\AbsensiController::class,'index'])->name('absensi.index');
+    Route::get('absensi/{mahasiswa}',             [\App\Http\Controllers\Admin\AbsensiController::class,'show'])->name('absensi.show');
+    Route::patch('absensi/catatan/{absensi}',     [\App\Http\Controllers\Admin\AbsensiController::class,'updateCatatan'])->name('absensi.catatan');
 });
 
 // ─── DOSEN ───────────────────────────────────────────────────────────────────
@@ -70,6 +75,11 @@ Route::prefix('dosen-area')->name('dosen.')->middleware(['auth','role:dosen'])->
     Route::get  ('chat/{chat}',       [\App\Http\Controllers\Dosen\ChatController::class,'show'])->name('chat.show');
     Route::post ('chat/{chat}/reply', [\App\Http\Controllers\Dosen\ChatController::class,'reply'])->name('chat.reply');
     Route::patch('chat/{chat}/close', [\App\Http\Controllers\Dosen\ChatController::class,'close'])->name('chat.close');
+
+    // Absensi
+    Route::get('absensi',                         [\App\Http\Controllers\Dosen\AbsensiController::class,'index'])->name('absensi.index');
+    Route::get('absensi/{mahasiswa}',             [\App\Http\Controllers\Dosen\AbsensiController::class,'show'])->name('absensi.show');
+    Route::patch('absensi/catatan/{absensi}',     [\App\Http\Controllers\Dosen\AbsensiController::class,'updateCatatan'])->name('absensi.catatan');
 });
 
 // ─── INSTANSI ─────────────────────────────────────────────────────────────────
@@ -85,6 +95,10 @@ Route::prefix('instansi-area')->name('instansi.')->middleware(['auth','role:inst
     Route::post('chat',              [\App\Http\Controllers\Instansi\ChatController::class,'store'])->name('chat.store');
     Route::get ('chat/{chat}',       [\App\Http\Controllers\Instansi\ChatController::class,'show'])->name('chat.show');
     Route::post('chat/{chat}/reply', [\App\Http\Controllers\Instansi\ChatController::class,'reply'])->name('chat.reply');
+
+    // Absensi
+    Route::get('absensi',                     [\App\Http\Controllers\Instansi\AbsensiController::class,'index'])->name('absensi.index');
+    Route::get('absensi/{mahasiswa}',         [\App\Http\Controllers\Instansi\AbsensiController::class,'show'])->name('absensi.show');
 });
 
 // ─── MAHASISWA ────────────────────────────────────────────────────────────────
@@ -93,4 +107,7 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
     Route::get('progress',               [\App\Http\Controllers\Mahasiswa\ProgressController::class,'index'])->name('progress.index');
     Route::put('progress/{progressBab}', [\App\Http\Controllers\Mahasiswa\ProgressController::class,'update'])->name('progress.update');
     Route::get('seminar', [\App\Http\Controllers\Mahasiswa\SeminarController::class,'index'])->name('seminar.index');
+    Route::get('/absensi', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'index'])->name('absensi.index');
+    Route::post('/absensi/masuk', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'checkIn'])->name('absensi.checkin');
+    Route::post('/absensi/pulang', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'checkOut'])->name('absensi.checkout');
 });
