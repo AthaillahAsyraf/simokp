@@ -12,19 +12,42 @@ class ProgressController extends Controller {
         return view('dosen.progress.index', compact('mahasiswas'));
     }
 
-    public function update(Request $request, ProgressBab $progressBab) {
+    /**
+     * Dosen verifikasi file laporan yang diupload mahasiswa untuk satu BAB.
+     * keputusan = approved -> cascade selesai (pakai logic existing di Mahasiswa model)
+     * keputusan = revisi   -> BAB tetap belum, mahasiswa wajib upload ulang
+     */
+    public function verifikasi(Request $request, ProgressBab $progressBab) {
         $dosen = Auth::user()->dosen;
         abort_if($progressBab->mahasiswa->dosen_id !== $dosen->id, 403);
-        $request->validate(['status'=>'required|in:belum,selesai','catatan'=>'nullable|string|max:500']);
+
+        $request->validate([
+            'keputusan' => 'required|in:approved,revisi',
+            'catatan'   => 'nullable|string|max:500',
+        ], [], ['keputusan' => 'keputusan']);
+
+        if (!$progressBab->file) {
+            return back()->with('error', 'Mahasiswa belum mengupload file untuk BAB ini.');
+        }
+
+        if ($request->keputusan === 'revisi' && !$request->filled('catatan')) {
+            return back()->with('error', 'Catatan revisi wajib diisi supaya mahasiswa tahu apa yang harus diperbaiki.');
+        }
 
         $mahasiswa = $progressBab->mahasiswa;
-        $urutan    = $progressBab->urutan();
 
-        if ($request->status === 'selesai') {
-            $mahasiswa->selesaikanSampaiUrutan($urutan, $request->catatan);
+        if ($request->keputusan === 'approved') {
+            // Reuse cascade logic yang sudah teruji di Mahasiswa model
+            $mahasiswa->selesaikanSampaiUrutan($progressBab->urutan(), $request->catatan);
+            $msg = "{$progressBab->bab} disetujui.";
         } else {
-            $mahasiswa->resetDariBab($urutan);
+            $progressBab->update([
+                'verifikasi_status' => 'revisi',
+                'catatan'           => $request->catatan,
+            ]);
+            $msg = "{$progressBab->bab} dikembalikan untuk direvisi.";
         }
-        return back()->with('success',"Progress {$progressBab->bab} berhasil diperbarui.");
+
+        return back()->with('success', $msg);
     }
 }

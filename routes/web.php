@@ -48,7 +48,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::delete('instansi/{instansi}',   [\App\Http\Controllers\Admin\InstansiController::class,'destroy'])->name('instansi.destroy');
 
     Route::get('progress',                [\App\Http\Controllers\Admin\ProgressController::class,'index'])->name('progress.index');
-    Route::put('progress/{progressBab}',  [\App\Http\Controllers\Admin\ProgressController::class,'update'])->name('progress.update');
+
+    Route::get('pembimbing',                          [\App\Http\Controllers\Admin\PembimbingController::class,'index'])->name('pembimbing.index');
+    Route::put('pembimbing-lapangan/{mahasiswa}',      [\App\Http\Controllers\Admin\PembimbingController::class,'updateLapangan'])->name('pembimbing.updateLapangan');
 
     Route::get('seminar',              [\App\Http\Controllers\Admin\SeminarController::class,'index'])->name('seminar.index');
     Route::post('seminar',             [\App\Http\Controllers\Admin\SeminarController::class,'store'])->name('seminar.store');
@@ -66,7 +68,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
 Route::prefix('dosen-area')->name('dosen.')->middleware(['auth','role:dosen'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\Dosen\DashboardController::class,'index'])->name('dashboard');
     Route::get('progress',               [\App\Http\Controllers\Dosen\ProgressController::class,'index'])->name('progress.index');
-    Route::put('progress/{progressBab}', [\App\Http\Controllers\Dosen\ProgressController::class,'update'])->name('progress.update');
     Route::post('progress/{progressBab}/verifikasi', [\App\Http\Controllers\Dosen\ProgressController::class,'verifikasi'])->name('progress.verifikasi');
     Route::get('seminar', [\App\Http\Controllers\Dosen\SeminarController::class,'index'])->name('seminar.index');
 
@@ -104,8 +105,8 @@ Route::prefix('instansi-area')->name('instansi.')->middleware(['auth','role:inst
 // ─── MAHASISWA ────────────────────────────────────────────────────────────────
 Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasiswa'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\Mahasiswa\DashboardController::class,'index'])->name('dashboard');
-    Route::get('progress',               [\App\Http\Controllers\Mahasiswa\ProgressController::class,'index'])->name('progress.index');
-    Route::put('progress/{progressBab}', [\App\Http\Controllers\Mahasiswa\ProgressController::class,'update'])->name('progress.update');
+    Route::get('progress',                      [\App\Http\Controllers\Mahasiswa\ProgressController::class,'index'])->name('progress.index');
+    Route::post('progress/{progressBab}/upload', [\App\Http\Controllers\Mahasiswa\ProgressController::class,'upload'])->name('progress.upload');
     Route::get('seminar', [\App\Http\Controllers\Mahasiswa\SeminarController::class,'index'])->name('seminar.index');
     Route::get('/absensi', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'index'])->name('absensi.index');
     Route::post('/absensi/masuk', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'checkIn'])->name('absensi.checkin');
