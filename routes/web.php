@@ -49,13 +49,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
 
     Route::get('progress',                [\App\Http\Controllers\Admin\ProgressController::class,'index'])->name('progress.index');
 
+    Route::get('nilai', [\App\Http\Controllers\Admin\NilaiController::class,'index'])->name('nilai.index');
+
     Route::get('pembimbing',                          [\App\Http\Controllers\Admin\PembimbingController::class,'index'])->name('pembimbing.index');
     Route::put('pembimbing-lapangan/{mahasiswa}',      [\App\Http\Controllers\Admin\PembimbingController::class,'updateLapangan'])->name('pembimbing.updateLapangan');
 
-    Route::get('seminar',              [\App\Http\Controllers\Admin\SeminarController::class,'index'])->name('seminar.index');
-    Route::post('seminar',             [\App\Http\Controllers\Admin\SeminarController::class,'store'])->name('seminar.store');
-    Route::put('seminar/{seminar}',    [\App\Http\Controllers\Admin\SeminarController::class,'update'])->name('seminar.update');
-    Route::delete('seminar/{seminar}', [\App\Http\Controllers\Admin\SeminarController::class,'destroy'])->name('seminar.destroy');
+    Route::get('seminar',                     [\App\Http\Controllers\Admin\SeminarController::class,'index'])->name('seminar.index');
+    Route::post('seminar',                    [\App\Http\Controllers\Admin\SeminarController::class,'store'])->name('seminar.store');
+    Route::put('seminar/{seminar}',           [\App\Http\Controllers\Admin\SeminarController::class,'update'])->name('seminar.update');
+    Route::post('seminar/{seminar}/approve',  [\App\Http\Controllers\Admin\SeminarController::class,'approve'])->name('seminar.approve');
+    Route::post('seminar/{seminar}/reject',   [\App\Http\Controllers\Admin\SeminarController::class,'reject'])->name('seminar.reject');
+    Route::delete('seminar/{seminar}',        [\App\Http\Controllers\Admin\SeminarController::class,'destroy'])->name('seminar.destroy');
 
     // Absensi
     Route::get('absensi',                         [\App\Http\Controllers\Admin\AbsensiController::class,'index'])->name('absensi.index');
@@ -70,6 +74,10 @@ Route::prefix('dosen-area')->name('dosen.')->middleware(['auth','role:dosen'])->
     Route::get('progress',               [\App\Http\Controllers\Dosen\ProgressController::class,'index'])->name('progress.index');
     Route::post('progress/{progressBab}/verifikasi', [\App\Http\Controllers\Dosen\ProgressController::class,'verifikasi'])->name('progress.verifikasi');
     Route::get('seminar', [\App\Http\Controllers\Dosen\SeminarController::class,'index'])->name('seminar.index');
+
+    Route::get('nilai',                    [\App\Http\Controllers\Dosen\NilaiController::class,'index'])->name('nilai.index');
+    Route::put('nilai/{mahasiswa}',        [\App\Http\Controllers\Dosen\NilaiController::class,'update'])->name('nilai.update');
+    Route::put('nilai/{mahasiswa}/seminar',[\App\Http\Controllers\Dosen\NilaiController::class,'updateSeminar'])->name('nilai.updateSeminar');
 
     // Chat dari Instansi
     Route::get  ('chat',              [\App\Http\Controllers\Dosen\ChatController::class,'index'])->name('chat.index');
@@ -90,6 +98,9 @@ Route::prefix('instansi-area')->name('instansi.')->middleware(['auth','role:inst
     Route::get('mahasiswa',              [\App\Http\Controllers\Instansi\MahasiswaController::class,'index'])->name('mahasiswa.index');
     Route::get('mahasiswa/{mahasiswa}',  [\App\Http\Controllers\Instansi\MahasiswaController::class,'show'])->name('mahasiswa.show');
 
+    Route::get('nilai',             [\App\Http\Controllers\Instansi\NilaiController::class,'index'])->name('nilai.index');
+    Route::put('nilai/{mahasiswa}', [\App\Http\Controllers\Instansi\NilaiController::class,'update'])->name('nilai.update');
+
     // Chat ke Dosen — 'chat/baru' HARUS sebelum 'chat/{chat}'
     Route::get ('chat',              [\App\Http\Controllers\Instansi\ChatController::class,'index'])->name('chat.index');
     Route::get ('chat/baru',         [\App\Http\Controllers\Instansi\ChatController::class,'create'])->name('chat.create');
@@ -108,6 +119,7 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
     Route::get('progress',                      [\App\Http\Controllers\Mahasiswa\ProgressController::class,'index'])->name('progress.index');
     Route::post('progress/{progressBab}/upload', [\App\Http\Controllers\Mahasiswa\ProgressController::class,'upload'])->name('progress.upload');
     Route::get('seminar', [\App\Http\Controllers\Mahasiswa\SeminarController::class,'index'])->name('seminar.index');
+    Route::post('seminar', [\App\Http\Controllers\Mahasiswa\SeminarController::class,'store'])->name('seminar.store');
     Route::get('/absensi', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'index'])->name('absensi.index');
     Route::post('/absensi/masuk', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'checkIn'])->name('absensi.checkin');
     Route::post('/absensi/pulang', [\App\Http\Controllers\Mahasiswa\AbsensiController::class, 'checkOut'])->name('absensi.checkout');

@@ -14,6 +14,7 @@ class Mahasiswa extends Model {
     public function instansi()     { return $this->belongsTo(Instansi::class); }
     public function progressBabs() { return $this->hasMany(ProgressBab::class)->orderBy('id'); }
     public function seminar()      { return $this->hasOne(Seminar::class); }
+    public function nilai()        { return $this->hasOne(Nilai::class); }
 
     /**
      * FIX: Pakai collection yang sudah di-load, bukan query DB baru (hindari N+1)

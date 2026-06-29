@@ -311,6 +311,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('admin.progress.index') }}" class="nav-item {{ request()->routeIs('admin.progress*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">📈</span> Laporan
       </a>
+      <a href="{{ route('admin.nilai.index') }}" class="nav-item {{ request()->routeIs('admin.nilai*') ? 'active role-admin' : '' }}">
+  <span class="nav-icon">📝</span> Nilai
+</a>
       <a href="{{ route('admin.seminar.index') }}" class="nav-item {{ request()->routeIs('admin.seminar*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
       </a>
@@ -327,6 +330,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('dosen.progress.index') }}" class="nav-item {{ request()->routeIs('dosen.progress*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">📈</span> Laporan
       </a>
+      <a href="{{ route('dosen.nilai.index') }}" class="nav-item {{ request()->routeIs('dosen.nilai*') ? 'active role-dosen' : '' }}">
+  <span class="nav-icon">📝</span> Nilai
+</a>
       <a href="{{ route('dosen.seminar.index') }}" class="nav-item {{ request()->routeIs('dosen.seminar*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
       </a>
@@ -346,6 +352,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('instansi.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('instansi.mahasiswa*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">🎓</span> Mahasiswa KP
       </a>
+      <a href="{{ route('instansi.nilai.index') }}" class="nav-item {{ request()->routeIs('instansi.nilai*') ? 'active role-instansi' : '' }}">
+  <span class="nav-icon">📝</span> Nilai
+</a>
       <a href="{{ route('instansi.absensi.index') }}" class="nav-item {{ request()->routeIs('instansi.absensi*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">📋</span> Absensi Mahasiswa
       </a>

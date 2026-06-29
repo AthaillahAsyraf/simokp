@@ -25,7 +25,7 @@
             <th>Jam</th>
             <th>Ruangan</th>
             <th>Dosen Penguji</th>
-            <th>Nilai</th>
+            <th>Nilai Seminar</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -37,19 +37,21 @@
               <div class="text-sm text-muted">{{ $s->mahasiswa->nim }}</div>
             </td>
             <td>{{ \Carbon\Carbon::parse($s->tanggal)->format('d M Y') }}</td>
-            <td>{{ \Carbon\Carbon::parse($s->jam)->format('H:i') }} WIB</td>
-            <td>{{ $s->ruangan ?? '–' }}</td>
-            <td>{{ $s->dosen_penguji ?? '–' }}</td>
             <td>
-              @if($s->nilai)
-                <strong style="color:var(--green-600);font-size:16px">{{ $s->nilai }}</strong>
+              {{ $s->jam_mulai ? \Carbon\Carbon::parse($s->jam_mulai)->format('H:i') : '-' }}{{ $s->jam_selesai ? ' - '.\Carbon\Carbon::parse($s->jam_selesai)->format('H:i') : '' }} WIB
+            </td>
+            <td>{{ $s->ruangan ?? '–' }}</td>
+            <td>{{ $s->dosenPenguji?->nama ?? '–' }}</td>
+            <td>
+              @if($s->mahasiswa->nilai?->nilai_seminar)
+                <strong style="color:var(--green-600);font-size:16px">{{ $s->mahasiswa->nilai->nilai_seminar }}</strong>
               @else
                 <span class="text-muted">–</span>
               @endif
             </td>
             <td>
               <span class="badge {{ $s->status === 'selesai' ? 'badge-selesai' : ($s->status === 'terjadwal' ? 'badge-terjadwal' : 'badge-proses') }}">
-                {{ ucfirst(str_replace('_', ' ', $s->status)) }}
+                {{ ucwords(str_replace('_', ' ', $s->status)) }}
               </span>
             </td>
           </tr>

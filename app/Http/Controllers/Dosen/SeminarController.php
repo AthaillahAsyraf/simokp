@@ -8,7 +8,8 @@ class SeminarController extends Controller {
     public function index() {
         $dosen      = Auth::user()->dosen;
         $mhsIds     = $dosen->mahasiswas()->pluck('id');
-        $seminars   = Seminar::with('mahasiswa')->whereIn('mahasiswa_id',$mhsIds)->orderBy('tanggal')->get();
+        $seminars   = Seminar::with(['mahasiswa.nilai', 'dosenPenguji'])
+                        ->whereIn('mahasiswa_id', $mhsIds)->orderBy('tanggal')->get();
         return view('dosen.seminar.index', compact('seminars'));
     }
 }
