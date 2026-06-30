@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Mahasiswa extends Model {
     protected $fillable = [
         'user_id','nim','nama','angkatan','no_hp',
+        'foto_profil','bio',
         'dosen_id','instansi_id','tanggal_mulai','tanggal_selesai','status',
         'pembimbing_lapangan_nama','pembimbing_lapangan_jabatan','pembimbing_lapangan_no_hp',
     ];
@@ -16,9 +18,21 @@ class Mahasiswa extends Model {
     public function seminar()      { return $this->hasOne(Seminar::class); }
     public function nilai()        { return $this->hasOne(Nilai::class); }
 
-    /**
-     * FIX: Pakai collection yang sudah di-load, bukan query DB baru (hindari N+1)
-     */
+    // URL foto profil atau null
+    public function fotoUrl(): ?string {
+        return $this->foto_profil
+            ? Storage::url($this->foto_profil)
+            : null;
+    }
+
+    // Inisial nama untuk avatar fallback (misal "Budi Santoso" → "BS")
+    public function inisial(): string {
+        $parts = explode(' ', $this->nama);
+        $init  = strtoupper(substr($parts[0], 0, 1));
+        if (count($parts) > 1) $init .= strtoupper(substr(end($parts), 0, 1));
+        return $init;
+    }
+
     public function progressPersen(): int {
         $babs = $this->relationLoaded('progressBabs')
             ? $this->progressBabs
@@ -31,9 +45,6 @@ class Mahasiswa extends Model {
         return (int) round(($selesai / $total) * 100);
     }
 
-    /**
-     * FIX: Pakai collection yang sudah di-load (hindari N+1)
-     */
     public function allBabSelesai(): bool {
         $babs = $this->relationLoaded('progressBabs')
             ? $this->progressBabs
@@ -42,10 +53,6 @@ class Mahasiswa extends Model {
         return $babs->where('status', 'belum')->isEmpty();
     }
 
-    /**
-     * FIX UTAMA: Tambah 'verifikasi_status' => 'approved'
-     * Inilah penyebab ikon tidak terupdate — Blade mensyaratkan approved untuk tampil ✅
-     */
     public function selesaikanSampaiUrutan(int $babOrder, ?string $catatan = null): void {
         $babs = ['BAB I','BAB II','BAB III','BAB IV','BAB V'];
         foreach ($babs as $i => $bab) {
@@ -53,7 +60,7 @@ class Mahasiswa extends Model {
             if ($urutan <= $babOrder) {
                 $this->progressBabs()->where('bab', $bab)->update([
                     'status'            => 'selesai',
-                    'verifikasi_status' => 'approved', // ← INI YANG KURANG SEBELUMNYA
+                    'verifikasi_status' => 'approved',
                     'tanggal_selesai'   => now()->toDateString(),
                     'catatan'           => $urutan === $babOrder ? $catatan : null,
                 ]);
@@ -62,16 +69,13 @@ class Mahasiswa extends Model {
         $this->updateStatusOtomatis();
     }
 
-    /**
-     * FIX: Reset verifikasi_status ke null saat BAB di-reset
-     */
     public function resetDariBab(int $babOrder): void {
         $babs = ['BAB I','BAB II','BAB III','BAB IV','BAB V'];
         foreach ($babs as $i => $bab) {
             if (($i + 1) >= $babOrder) {
                 $this->progressBabs()->where('bab', $bab)->update([
                     'status'            => 'belum',
-                    'verifikasi_status' => null, // ← RESET JUGA
+                    'verifikasi_status' => null,
                     'tanggal_selesai'   => null,
                     'catatan'           => null,
                 ]);
@@ -81,7 +85,7 @@ class Mahasiswa extends Model {
     }
 
     private function updateStatusOtomatis(): void {
-        $this->refresh(); // refresh() otomatis reload relasi yang sudah di-load
+        $this->refresh();
         if ($this->allBabSelesai() && $this->status === 'proses') {
             $this->update(['status' => 'seminar']);
         } elseif (!$this->allBabSelesai() && $this->status === 'seminar') {

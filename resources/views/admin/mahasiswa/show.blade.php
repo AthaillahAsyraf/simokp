@@ -3,8 +3,20 @@
 @section('content')
 
 <div class="page-header page-header-row">
-  <div style="display:flex;align-items:center;gap:12px">
+  <div style="display:flex;align-items:center;gap:14px">
     <a href="{{ route('admin.mahasiswa.index') }}" class="btn btn-outline btn-sm">← Kembali</a>
+    @if($mahasiswa->foto_profil)
+      <img src="{{ $mahasiswa->fotoUrl() }}" alt="{{ $mahasiswa->nama }}"
+           style="width:52px;height:52px;border-radius:50%;object-fit:cover;
+                  border:3px solid var(--purple-200);box-shadow:var(--shadow)">
+    @else
+      <div style="width:52px;height:52px;border-radius:50%;
+                  background:var(--purple-50);border:3px solid var(--purple-200);
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:20px;font-weight:800;color:var(--purple-600)">
+        {{ $mahasiswa->inisial() }}
+      </div>
+    @endif
     <div>
       <h1>{{ $mahasiswa->nama }}</h1>
       <p><code>{{ $mahasiswa->nim }}</code> · Angkatan {{ $mahasiswa->angkatan }}</p>

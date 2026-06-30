@@ -20,19 +20,35 @@
     <div class="card-body">
       @forelse($mahasiswas as $m)
       @php $pct = $m->progressPersen(); @endphp
-      <div style="padding:12px 0;border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div>
-            <div style="font-size:14px;font-weight:700">{{ $m->nama }}</div>
-            <div style="font-size:11px;color:var(--muted)">{{ $m->nim }} · {{ $m->instansi?->nama ?? '–' }}</div>
+      <div style="padding:12px 0;border-bottom:1px solid var(--gray-100)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          @if($m->foto_profil)
+            <img src="{{ $m->fotoUrl() }}" alt="{{ $m->nama }}"
+                 style="width:36px;height:36px;border-radius:50%;object-fit:cover;
+                        border:2px solid var(--green-200);flex-shrink:0">
+          @else
+            <div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;
+                        background:var(--green-50);border:2px solid var(--green-200);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:14px;font-weight:700;color:var(--green-600)">
+              {{ $m->inisial() }}
+            </div>
+          @endif
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:var(--gray-900)">{{ $m->nama }}</div>
+            <div style="font-size:11px;color:var(--gray-500)">{{ $m->nim }} · {{ $m->instansi?->nama ?? '–' }}</div>
           </div>
-          <span class="pill pill-{{ $m->status }}">{{ ucfirst($m->status) }}</span>
+          <span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span>
         </div>
-        <div class="prog-wrap"><div class="prog-bar" style="width:{{ $pct }}%;background:var(--dosen)"></div></div>
-        <div class="prog-txt">{{ $pct }}% · {{ $m->progressBabs->where('status','selesai')->count() }}/6 BAB selesai</div>
+        <div class="prog-wrap" style="height:5px">
+          <div class="prog-bar prog-bar-green" style="width:{{ $pct }}%"></div>
+        </div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:3px">
+          {{ $pct }}% · {{ $m->progressBabs->where('status','selesai')->count() }}/5 BAB selesai
+        </div>
       </div>
       @empty
-        <p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Belum ada mahasiswa bimbingan.</p>
+        <p style="color:var(--gray-400);font-size:13px;text-align:center;padding:20px">Belum ada mahasiswa bimbingan.</p>
       @endforelse
     </div>
   </div>

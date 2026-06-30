@@ -20,14 +20,26 @@ class NilaiController extends Controller
         return view('instansi.nilai.index', compact('mahasiswas'));
     }
 
+    /**
+     * Nilai ini secara substansi adalah penilaian dari Pembimbing Lapangan
+     * (bukan "instansi" sebagai institusi). Karena pembimbing lapangan belum
+     * punya akun login sendiri, nilai diinput lewat akun Instansi — tapi wajib
+     * sudah ada nama pembimbing lapangan yang tercatat di profil mahasiswa,
+     * supaya nilai ini selalu bisa dipertanggungjawabkan atas nama seseorang
+     * yang jelas, bukan cuma "diisi instansi".
+     */
     public function update(Request $request, Mahasiswa $mahasiswa)
     {
         $instansi = Auth::user()->instansi;
         abort_if($mahasiswa->instansi_id !== $instansi->id, 403);
 
+        if (!$mahasiswa->pembimbing_lapangan_nama) {
+            return back()->with('error', "Nama Pembimbing Lapangan untuk {$mahasiswa->nama} belum diisi admin. Hubungi admin untuk melengkapi data ini sebelum memberi nilai.");
+        }
+
         $validator = Validator::make($request->all(), [
-            'nilai_instansi'   => 'required|numeric|min:0|max:100',
-            'catatan_instansi' => 'nullable|string|max:500',
+            'nilai_lapangan'   => 'required|numeric|min:0|max:100',
+            'catatan_lapangan' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -35,11 +47,11 @@ class NilaiController extends Controller
         }
 
         $nilai = Nilai::firstOrCreate(['mahasiswa_id' => $mahasiswa->id]);
-        $nilai->nilai_instansi   = $request->nilai_instansi;
-        $nilai->catatan_instansi = $request->catatan_instansi;
+        $nilai->nilai_lapangan   = $request->nilai_lapangan;
+        $nilai->catatan_lapangan = $request->catatan_lapangan;
         $nilai->nilai_akhir      = $nilai->hitungNilaiAkhir();
         $nilai->save();
 
-        return back()->with('success', 'Nilai instansi berhasil disimpan.');
+        return back()->with('success', 'Nilai pembimbing lapangan berhasil disimpan.');
     }
 }

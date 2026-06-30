@@ -44,6 +44,9 @@
 
   --purple-50:#faf5ff;
   --purple-100:#f3e8ff;
+  --purple-200:#e9d5ff;
+  --purple-300:#d8b4fe;
+  --purple-400:#c084fc;
   --purple-500:#a855f7;
   --purple-600:#9333ea;
 
@@ -118,6 +121,7 @@ a{color:inherit;text-decoration:none}
   width:32px;height:32px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;font-size:14px;
   flex-shrink:0;background:var(--blue-100);
+  overflow:hidden;
 }
 .user-name{font-size:12px;font-weight:600;color:var(--gray-800)}
 .user-role{font-size:10px;color:var(--gray-500)}
@@ -158,6 +162,10 @@ a{color:inherit;text-decoration:none}
 .stat-card.c-amber::after {background:var(--amber-500)}
 .stat-card.c-purple::after{background:var(--purple-500)}
 .stat-card.c-red::after   {background:var(--red-500)}
+.stat-card.c-admin::after {background:var(--blue-500)}
+.stat-card.c-dosen::after {background:var(--green-500)}
+.stat-card.c-inst::after  {background:var(--amber-500)}
+.stat-card.c-mhs::after   {background:var(--purple-500)}
 .stat-label{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px}
 .stat-val{font-size:30px;font-weight:800;color:var(--gray-900);margin:6px 0 2px;font-family:'JetBrains Mono',monospace}
 .stat-sub{font-size:11px;color:var(--gray-400)}
@@ -179,6 +187,9 @@ tbody tr:hover td{background:var(--gray-50)}
 .badge-selesai  {background:var(--green-100);color:var(--green-700)}
 .badge-belum    {background:var(--gray-100);color:var(--gray-500)}
 .badge-terjadwal{background:var(--blue-100);color:var(--blue-700)}
+.badge-approved {background:var(--green-100);color:var(--green-700)}
+.badge-rejected {background:var(--red-100);color:var(--red-600)}
+.badge-pending  {background:var(--amber-100);color:var(--amber-600)}
 
 /* ── BUTTONS ──────────────────────────────────────────────────── */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
@@ -302,8 +313,8 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">🎓</span> Mahasiswa
       </a>
       <a href="{{ route('admin.pembimbing.index') }}" class="nav-item {{ request()->routeIs('admin.pembimbing*') || request()->routeIs('admin.dosen*') ? 'active role-admin' : '' }}">
-  <span class="nav-icon">👨‍🏫</span> Pembimbing
-</a>
+        <span class="nav-icon">👨‍🏫</span> Pembimbing
+      </a>
       <a href="{{ route('admin.instansi.index') }}" class="nav-item {{ request()->routeIs('admin.instansi*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🏢</span> Instansi
       </a>
@@ -312,8 +323,8 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">📈</span> Laporan
       </a>
       <a href="{{ route('admin.nilai.index') }}" class="nav-item {{ request()->routeIs('admin.nilai*') ? 'active role-admin' : '' }}">
-  <span class="nav-icon">📝</span> Nilai
-</a>
+        <span class="nav-icon">📝</span> Nilai
+      </a>
       <a href="{{ route('admin.seminar.index') }}" class="nav-item {{ request()->routeIs('admin.seminar*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
       </a>
@@ -331,8 +342,8 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">📈</span> Laporan
       </a>
       <a href="{{ route('dosen.nilai.index') }}" class="nav-item {{ request()->routeIs('dosen.nilai*') ? 'active role-dosen' : '' }}">
-  <span class="nav-icon">📝</span> Nilai
-</a>
+        <span class="nav-icon">📝</span> Nilai
+      </a>
       <a href="{{ route('dosen.seminar.index') }}" class="nav-item {{ request()->routeIs('dosen.seminar*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
       </a>
@@ -353,8 +364,8 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">🎓</span> Mahasiswa KP
       </a>
       <a href="{{ route('instansi.nilai.index') }}" class="nav-item {{ request()->routeIs('instansi.nilai*') ? 'active role-instansi' : '' }}">
-  <span class="nav-icon">📝</span> Nilai
-</a>
+        <span class="nav-icon">📝</span> Nilai Lapangan
+      </a>
       <a href="{{ route('instansi.absensi.index') }}" class="nav-item {{ request()->routeIs('instansi.absensi*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">📋</span> Absensi Mahasiswa
       </a>
@@ -366,6 +377,10 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <div class="nav-section">Utama</div>
       <a href="{{ route('mahasiswa.dashboard') }}" class="nav-item {{ request()->routeIs('mahasiswa.dashboard') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">📊</span> Dashboard Saya
+      </a>
+      {{-- ── MENU PROFIL (BARU) ── --}}
+      <a href="{{ route('mahasiswa.profile.show') }}" class="nav-item {{ request()->routeIs('mahasiswa.profile*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">👤</span> Profil Saya
       </a>
       <div class="nav-section">KP Saya</div>
       <a href="{{ route('mahasiswa.absensi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.absensi*') ? 'active role-mahasiswa' : '' }}">
@@ -389,8 +404,23 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <span>🔐</span> Ganti Password
     </a>
     @endif
+
     <div class="user-card">
-      <div class="user-avatar">{{ ['admin'=>'🛡️','dosen'=>'👨‍🏫','instansi'=>'🏢','mahasiswa'=>'🎓'][$role] }}</div>
+      {{-- ── AVATAR: foto profil jika mahasiswa, emoji jika role lain (BARU) ── --}}
+      @php
+        $mhsFoto = ($role === 'mahasiswa' && auth()->user()->mahasiswa?->foto_profil)
+          ? auth()->user()->mahasiswa->fotoUrl()
+          : null;
+      @endphp
+      <div class="user-avatar">
+        @if($mhsFoto)
+          <img src="{{ $mhsFoto }}" alt="Foto Profil"
+               style="width:32px;height:32px;object-fit:cover;border-radius:8px;display:block">
+        @else
+          {{ ['admin'=>'🛡️','dosen'=>'👨‍🏫','instansi'=>'🏢','mahasiswa'=>'🎓'][$role] }}
+        @endif
+      </div>
+
       <div>
         <div class="user-name">{{ Str::limit(auth()->user()->name, 16) }}</div>
         <div class="user-role">{{ ucfirst($role) }}</div>

@@ -43,7 +43,7 @@
       <thead>
         <tr>
           <th>Mahasiswa</th><th>Instansi</th><th>Dosen</th>
-          <th>Nilai Instansi</th><th>Nilai Pembimbing</th><th>Nilai Seminar</th>
+          <th>Nilai Lapangan</th><th>Nilai Pembimbing</th><th>Nilai Seminar</th>
           <th>Nilai Akhir</th><th>Predikat</th><th>Status</th>
         </tr>
       </thead>
@@ -54,7 +54,7 @@
           <td><strong>{{ $m->nama }}</strong><br><code class="text-sm">{{ $m->nim }}</code></td>
           <td class="text-sm">{{ $m->instansi?->nama ?? '–' }}</td>
           <td class="text-sm text-muted">{{ $m->dosen?->nama ?? '–' }}</td>
-          <td class="text-sm">{{ $n?->nilai_instansi ?? '–' }}</td>
+          <td class="text-sm">{{ $n?->nilai_lapangan ?? '–' }}</td>
           <td class="text-sm">{{ $n?->nilai_pembimbing ?? '–' }}</td>
           <td class="text-sm">{{ $n?->nilai_seminar ?? '–' }}</td>
           <td><strong>{{ $n?->nilai_akhir ?? '–' }}</strong></td>

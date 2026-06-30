@@ -50,14 +50,32 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>NIM</th><th>Nama</th><th>Angkatan</th><th>Instansi</th><th>Dosen Pembimbing</th><th>Progress</th><th>Status</th><th>Aksi</th></tr>
+        <tr><th>Mahasiswa</th><th>Angkatan</th><th>Instansi</th><th>Dosen Pembimbing</th><th>Progress</th><th>Status</th><th>Aksi</th></tr>
       </thead>
       <tbody>
         @forelse($mahasiswas as $m)
         @php $pct = $m->progressPersen(); @endphp
         <tr>
-          <td><code>{{ $m->nim }}</code></td>
-          <td><strong>{{ $m->nama }}</strong></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              @if($m->foto_profil)
+                <img src="{{ $m->fotoUrl() }}" alt="{{ $m->nama }}"
+                     style="width:34px;height:34px;border-radius:50%;object-fit:cover;
+                            border:2px solid var(--purple-200);flex-shrink:0">
+              @else
+                <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;
+                            background:var(--purple-50);border:2px solid var(--purple-200);
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:12px;font-weight:700;color:var(--purple-600)">
+                  {{ $m->inisial() }}
+                </div>
+              @endif
+              <div>
+                <div style="font-weight:600">{{ $m->nama }}</div>
+                <code style="font-size:11px">{{ $m->nim }}</code>
+              </div>
+            </div>
+          </td>
           <td>{{ $m->angkatan }}</td>
           <td class="text-sm">
             @if($m->instansi) {{ $m->instansi->nama }}
@@ -88,7 +106,7 @@
           </td>
         </tr>
         @empty
-          <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8">Tidak ada data mahasiswa.</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8">Tidak ada data mahasiswa.</td></tr>
         @endforelse
       </tbody>
     </table>

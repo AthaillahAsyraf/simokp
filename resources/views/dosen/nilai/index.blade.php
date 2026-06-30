@@ -27,7 +27,7 @@
     <table>
       <thead>
         <tr>
-          <th>Mahasiswa</th><th>Nilai Instansi</th><th>Nilai Pembimbing</th><th>Nilai Seminar</th>
+          <th>Mahasiswa</th><th>Nilai Lapangan</th><th>Nilai Pembimbing</th><th>Nilai Seminar</th>
           <th>Nilai Akhir</th><th>Status</th><th>Aksi</th>
         </tr>
       </thead>
@@ -36,7 +36,7 @@
         @php $n = $m->nilai; $s = $m->seminar; @endphp
         <tr>
           <td><strong>{{ $m->nama }}</strong><br><code class="text-sm">{{ $m->nim }}</code><br><span class="text-sm text-muted">{{ $m->instansi?->nama }}</span></td>
-          <td class="text-sm">{{ $n?->nilai_instansi ?? '–' }}</td>
+          <td class="text-sm">{{ $n?->nilai_lapangan ?? '–' }}</td>
           <td class="text-sm">{{ $n?->nilai_pembimbing ?? '–' }}</td>
           <td class="text-sm">{{ $n?->nilai_seminar ?? '–' }}</td>
           <td><strong>{{ $n?->nilai_akhir ?? '–' }}</strong>
