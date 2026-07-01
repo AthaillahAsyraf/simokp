@@ -331,6 +331,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('admin.absensi.index') }}" class="nav-item {{ request()->routeIs('admin.absensi*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">📋</span> Absensi Mahasiswa
       </a>
+      <a href="{{ route('admin.surat.index') }}" class="nav-item {{ request()->routeIs('admin.surat*') ? 'active role-admin' : '' }}">
+  <span class="nav-icon">✉️</span> Surat
+</a>
 
     @elseif($role === 'dosen')
       <div class="nav-section">Utama</div>
@@ -369,6 +372,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('instansi.absensi.index') }}" class="nav-item {{ request()->routeIs('instansi.absensi*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">📋</span> Absensi Mahasiswa
       </a>
+      <a href="{{ route('instansi.surat.index') }}" class="nav-item {{ request()->routeIs('instansi.surat*') ? 'active role-instansi' : '' }}">
+  <span class="nav-icon">✉️</span> Surat
+</a>
       <a href="{{ route('instansi.chat.index') }}" class="nav-item {{ request()->routeIs('instansi.chat*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">💬</span> Chat Dosen
       </a>
@@ -392,6 +398,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('mahasiswa.seminar.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.seminar*') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">🎤</span> Info Seminar
       </a>
+      <a href="{{ route('mahasiswa.surat.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.surat*') ? 'active role-mahasiswa' : '' }}">
+  <span class="nav-icon">✉️</span> Surat
+</a>
     @endif
   </nav>
 
