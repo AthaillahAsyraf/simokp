@@ -44,10 +44,14 @@ class AbsensiController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'accuracy'  => 'required|numeric|min:0',
             'foto'      => 'required|image|mimes:jpeg,jpg,png|max:4096',
+            'rencana'   => 'required|string|min:10|max:1000',
+            
         ], [
             'foto.required' => 'Foto bukti absen wajib diambil melalui kamera.',
             'latitude.required'  => 'Lokasi GPS tidak terdeteksi. Aktifkan GPS dan izinkan akses lokasi.',
             'longitude.required' => 'Lokasi GPS tidak terdeteksi. Aktifkan GPS dan izinkan akses lokasi.',
+            'rencana.required'  => 'Rencana kegiatan hari ini wajib diisi.',
+            'rencana.min'       => 'Rencana kegiatan minimal 10 karakter.',  
         ]);
 
         if ($validator->fails()) {
@@ -97,6 +101,7 @@ class AbsensiController extends Controller
                         'status_masuk'      => $status,
                         'foto_masuk'        => $path,
                         'ip_masuk'          => $request->ip(),
+                        'rencana'           => $request->rencana,
                     ]
                 );
             });
@@ -122,8 +127,11 @@ class AbsensiController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'accuracy'  => 'required|numeric|min:0',
             'foto'      => 'required|image|mimes:jpeg,jpg,png|max:4096',
+            'realisasi'  => 'required|string|min:10|max:1000',
         ], [
             'foto.required' => 'Foto bukti absen wajib diambil melalui kamera.',
+            'realisasi.required' => 'Realisasi kegiatan hari ini wajib diisi.', 
+            'realisasi.min'      => 'Realisasi kegiatan minimal 10 karakter.',  
         ]);
 
         if ($validator->fails()) {
@@ -171,6 +179,7 @@ class AbsensiController extends Controller
                     'status_keluar'      => $status,
                     'foto_keluar'        => $path,
                     'ip_keluar'          => $request->ip(),
+                    'realisasi'          => $request->realisasi,
                 ]);
             });
         } catch (\Throwable $e) {

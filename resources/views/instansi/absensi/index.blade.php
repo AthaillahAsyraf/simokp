@@ -59,7 +59,9 @@
           <th>Tanggal</th>
           <th style="text-align:center">Absen Masuk</th>
           <th style="text-align:center">Absen Keluar</th>
+          <th style="text-align:center">Durasi</th>
           <th style="text-align:center">Status</th>
+          <th style="min-width:220px">Catatan Kegiatan</th>
           <th style="text-align:center">Detail</th>
         </tr>
       </thead>
@@ -98,8 +100,22 @@
             @else <span class="text-muted">–</span> @endif
           </td>
           <td style="text-align:center">
+            @if($a->durasi_jam !== null)
+              <div style="font-weight:700;font-size:13px;{{ $a->isDurasiKurang() ? 'color:#dc2626' : '' }}">
+                {{ number_format($a->durasi_jam, 1) }} jam
+              </div>
+              @if($a->isDurasiKurang())
+                <span style="font-size:11px;color:#dc2626;font-weight:600">⚠️ &lt; {{ \App\Models\Absensi::DURASI_MINIMAL_JAM }} jam</span>
+              @else
+                <span style="font-size:11px;color:var(--green-600)">✓ Cukup</span>
+              @endif
+            @else
+              <span class="text-muted">–</span>
+            @endif
+          </td>
+          <td style="text-align:center">
             @if($perluTinjau)
-              <span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca">⚠️ Tinjau</span>
+              <span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca" title="{{ implode(' • ', $a->alasanPerluTinjau()) }}">⚠️ Tinjau</span>
             @elseif($a->isLengkap())
               <span class="badge badge-selesai">✅ Lengkap</span>
             @elseif($a->jam_masuk)
@@ -108,13 +124,30 @@
               <span class="badge badge-belum">–</span>
             @endif
           </td>
+          <td style="font-size:12px;vertical-align:top;min-width:220px">
+            @if($a->rencana)
+              <div style="margin-bottom:6px">
+                <span style="font-size:10px;font-weight:700;color:var(--blue-600);background:var(--blue-50);padding:1px 6px;border-radius:4px">RENCANA</span>
+                <div style="margin-top:3px;color:var(--gray-700)">{{ Str::limit($a->rencana, 90) }}</div>
+              </div>
+            @endif
+            @if($a->realisasi)
+              <div>
+                <span style="font-size:10px;font-weight:700;color:var(--green-700);background:var(--green-50);padding:1px 6px;border-radius:4px">REALISASI</span>
+                <div style="margin-top:3px;color:var(--gray-700)">{{ Str::limit($a->realisasi, 90) }}</div>
+              </div>
+            @endif
+            @if(!$a->rencana && !$a->realisasi)
+              <span class="text-muted">–</span>
+            @endif
+          </td>
           <td style="text-align:center">
             <a href="{{ route('instansi.absensi.show', $a->mahasiswa) }}" class="btn btn-ghost btn-sm">Detail</a>
           </td>
         </tr>
         @empty
         <tr>
-          <td colspan="6" style="text-align:center;padding:36px;color:var(--gray-400)">
+          <td colspan="8" style="text-align:center;padding:36px;color:var(--gray-400)">
             Belum ada data absensi mahasiswa.
           </td>
         </tr>

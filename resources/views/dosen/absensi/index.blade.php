@@ -59,6 +59,7 @@
           <th>Tanggal</th>
           <th style="text-align:center">Absen Masuk</th>
           <th style="text-align:center">Absen Keluar</th>
+          <th style="text-align:center">Durasi</th>
           <th style="text-align:center">Status</th>
           <th style="text-align:center">Catatan</th>
           <th style="text-align:center">Detail</th>
@@ -97,8 +98,22 @@
             @else <span class="text-muted">–</span> @endif
           </td>
           <td style="text-align:center">
+            @if($a->durasi_jam !== null)
+              <div style="font-weight:700;font-size:13px;{{ $a->isDurasiKurang() ? 'color:#dc2626' : '' }}">
+                {{ number_format($a->durasi_jam, 1) }} jam
+              </div>
+              @if($a->isDurasiKurang())
+                <span style="font-size:11px;color:#dc2626;font-weight:600">⚠️ &lt; {{ \App\Models\Absensi::DURASI_MINIMAL_JAM }} jam</span>
+              @else
+                <span style="font-size:11px;color:var(--green-600)">✓ Cukup</span>
+              @endif
+            @else
+              <span class="text-muted">–</span>
+            @endif
+          </td>
+          <td style="text-align:center">
             @if($perluTinjau)
-              <span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca">⚠️ Tinjau</span>
+              <span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca" title="{{ implode(' • ', $a->alasanPerluTinjau()) }}">⚠️ Tinjau</span>
             @elseif($a->isLengkap())
               <span class="badge badge-selesai">✅ Lengkap</span>
             @elseif($a->jam_masuk)
@@ -118,7 +133,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="7" style="text-align:center;padding:36px;color:var(--gray-400)">
+          <td colspan="8" style="text-align:center;padding:36px;color:var(--gray-400)">
             Tidak ada data absensi.
           </td>
         </tr>

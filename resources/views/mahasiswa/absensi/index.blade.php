@@ -22,7 +22,6 @@
 .loc-info.wait{background:var(--gray-100);color:var(--gray-500)}
 .loc-info.ok{background:var(--green-50);color:var(--green-700)}
 .loc-info.bad{background:var(--red-50);color:var(--red-600)}
-
 .cam-actions{display:flex;gap:8px;margin-top:10px}
 .foto-thumb{width:40px;height:40px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--gray-200)}
 </style>
@@ -67,7 +66,7 @@
     <div class="card-header">
       <div>
         <h3>🕐 Absensi Hari Ini</h3>
-        <p>Setiap absen direkam dengan lokasi GPS, foto langsung dari kamera, dan jam server</p>
+        <p>Setiap absen direkam dengan lokasi GPS, foto langsung dari kamera, dan jam server. Durasi kerja minimal <strong>{{ \App\Models\Absensi::DURASI_MINIMAL_JAM }} jam/hari</strong> sesuai Panduan Kerja Praktik.</p>
       </div>
     </div>
     <div class="card-body">
@@ -111,7 +110,7 @@
       <thead>
         <tr>
           <th>Tanggal</th><th>Masuk</th><th>Jarak</th><th>Foto</th>
-          <th>Pulang</th><th>Jarak</th><th>Foto</th><th>Status</th>
+          <th>Pulang</th><th>Jarak</th><th>Foto</th><th>Durasi</th><th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -133,8 +132,15 @@
             @else - @endif
           </td>
           <td>
-            @if($r->status_masuk === 'diluar_radius' || $r->status_keluar === 'diluar_radius')
-              <span class="badge badge-invalid">Perlu Ditinjau</span>
+            @if($r->durasi_jam !== null)
+              <span style="font-weight:600;{{ $r->isDurasiKurang() ? 'color:#dc2626' : '' }}">
+                {{ number_format($r->durasi_jam, 1) }} jam
+              </span>
+            @else - @endif
+          </td>
+          <td>
+            @if($r->perluDitinjau())
+              <span class="badge badge-invalid" title="{{ implode(' • ', $r->alasanPerluTinjau()) }}">Perlu Ditinjau</span>
             @elseif($r->jam_masuk && $r->jam_keluar)
               <span class="badge badge-valid">Lengkap</span>
             @else
@@ -143,7 +149,7 @@
           </td>
         </tr>
         @empty
-        <tr><td colspan="8"><div class="empty-state"><div class="icon">📭</div>Belum ada riwayat absensi</div></td></tr>
+        <tr><td colspan="9"><div class="empty-state"><div class="icon">📭</div>Belum ada riwayat absensi</div></td></tr>
         @endforelse
       </tbody>
     </table>
@@ -160,6 +166,9 @@
 
     <div class="loc-info wait" id="locStatus">📡 Mendeteksi lokasi GPS Anda...</div>
 
+    {{-- ← BARU: info durasi kerja live, hanya tampil saat absen pulang --}}
+    <div class="loc-info" id="durasiInfo" style="display:none"></div>
+
     <div class="cam-wrap">
       <video id="camVideo" autoplay playsinline muted></video>
       <canvas id="camCanvas" style="display:none"></canvas>
@@ -169,6 +178,14 @@
     <div class="cam-actions">
       <button type="button" class="btn btn-outline" id="btnRetake" style="display:none" onclick="retakePhoto()">🔄 Ambil Ulang</button>
       <button type="button" class="btn btn-primary" id="btnCapture" onclick="capturePhoto()">📸 Ambil Foto</button>
+    </div>
+
+    {{-- ← BARU: catatan kegiatan (rencana saat masuk, realisasi saat pulang) --}}
+    <div class="form-group" style="margin-top:14px">
+      <label class="form-label" style="font-weight:600" id="catatanLabel">📋 Rencana Kegiatan Hari Ini *</label>
+      <textarea id="inputCatatan" class="form-control" rows="3" minlength="10" maxlength="1000"
+        placeholder="Tuliskan rencana kegiatan Anda hari ini..." oninput="updateSubmitState()"></textarea>
+      <p class="form-hint" id="catatanHint">Minimal 10 karakter.</p>
     </div>
 
     <div class="modal-footer">
@@ -185,6 +202,7 @@
   <input type="hidden" name="longitude" id="lngMasuk">
   <input type="hidden" name="accuracy" id="accMasuk">
   <input type="file" name="foto" id="fotoMasuk">
+  <input type="hidden" name="rencana" id="rencanaMasuk">
 </form>
 <form id="formAbsenKeluar" action="{{ route('mahasiswa.absensi.checkout') }}" method="POST" enctype="multipart/form-data" style="display:none">
   @csrf
@@ -192,6 +210,7 @@
   <input type="hidden" name="longitude" id="lngKeluar">
   <input type="hidden" name="accuracy" id="accKeluar">
   <input type="file" name="foto" id="fotoKeluar">
+  <input type="hidden" name="realisasi" id="realisasiKeluar">
 </form>
 @endsection
 
@@ -200,11 +219,14 @@
 const INSTANSI_LAT   = {{ $instansi?->latitude ?? 'null' }};
 const INSTANSI_LNG   = {{ $instansi?->longitude ?? 'null' }};
 const RADIUS_ABSEN   = {{ $instansi?->radius_absen ?? 100 }};
+const JAM_MASUK_HARI_INI = @json($absensiHariIni?->jam_masuk); // "HH:mm:ss" atau null
+const DURASI_MINIMAL_JAM = {{ \App\Models\Absensi::DURASI_MINIMAL_JAM }};
 
 let currentMode     = null;   // 'masuk' | 'keluar'
 let cameraStream    = null;
 let currentPosition = null;
 let capturedBlob    = null;
+let durasiInterval   = null;  // ← BARU: interval untuk update durasi live
 
 function hitungJarakMeter(lat1, lng1, lat2, lng2){
   const R = 6371000;
@@ -213,6 +235,31 @@ function hitungJarakMeter(lat1, lng1, lat2, lng2){
   const dLng = toRad(lng2 - lng1);
   const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ← BARU: hitung & tampilkan durasi kerja berjalan (sejak jam_masuk s.d. sekarang)
+function updateDurasiInfo(){
+  const el = document.getElementById('durasiInfo');
+  if (currentMode !== 'keluar' || !JAM_MASUK_HARI_INI) {
+    el.style.display = 'none';
+    return;
+  }
+  const [h, m, s] = JAM_MASUK_HARI_INI.split(':').map(Number);
+  const masuk = new Date();
+  masuk.setHours(h, m, s || 0, 0);
+  const sekarang = new Date();
+  let jam = (sekarang - masuk) / 1000 / 3600;
+  if (jam < 0) jam += 24; // jaga-jaga lintas tengah malam
+
+  el.style.display = 'flex';
+  if (jam < DURASI_MINIMAL_JAM) {
+    const sisaMenit = Math.ceil((DURASI_MINIMAL_JAM - jam) * 60);
+    el.className = 'loc-info bad';
+    el.textContent = `⚠️ Durasi kerja baru ${jam.toFixed(1)} jam — kurang ${sisaMenit} menit lagi dari minimal ${DURASI_MINIMAL_JAM} jam sesuai panduan KP. Anda tetap bisa absen pulang, namun akan ditandai untuk ditinjau dosen pembimbing.`;
+  } else {
+    el.className = 'loc-info ok';
+    el.textContent = `✅ Durasi kerja sudah ${jam.toFixed(1)} jam — memenuhi minimal ${DURASI_MINIMAL_JAM} jam.`;
+  }
 }
 
 function openAbsenModal(mode){
@@ -226,6 +273,22 @@ function openAbsenModal(mode){
   document.getElementById('btnRetake').style.display = 'none';
   document.getElementById('btnCapture').style.display = 'inline-flex';
 
+  // ← BARU: reset & sesuaikan label textarea catatan sesuai mode
+  const inputCatatan = document.getElementById('inputCatatan');
+  inputCatatan.value = '';
+  if (mode === 'masuk') {
+    document.getElementById('catatanLabel').textContent = '📋 Rencana Kegiatan Hari Ini *';
+    inputCatatan.placeholder = 'Tuliskan rencana kegiatan yang akan Anda lakukan hari ini...';
+  } else {
+    document.getElementById('catatanLabel').textContent = '✅ Realisasi Kegiatan Hari Ini *';
+    inputCatatan.placeholder = 'Tuliskan kegiatan yang sudah Anda selesaikan hari ini...';
+  }
+
+  // ← BARU: mulai update durasi live (hanya relevan & tampil saat mode keluar)
+  updateDurasiInfo();
+  if (durasiInterval) clearInterval(durasiInterval);
+  durasiInterval = setInterval(updateDurasiInfo, 15000); // refresh tiap 15 detik
+
   const loc = document.getElementById('locStatus');
   loc.className = 'loc-info wait';
   loc.textContent = '📡 Mendeteksi lokasi GPS Anda...';
@@ -237,6 +300,7 @@ function openAbsenModal(mode){
 
 function closeAbsenModal(){
   stopCamera();
+  if (durasiInterval) { clearInterval(durasiInterval); durasiInterval = null; } // ← BARU
   closeModal('modalAbsen');
 }
 
@@ -322,16 +386,25 @@ function retakePhoto(){
 }
 
 function updateSubmitState(){
-  document.getElementById('btnSubmitAbsen').disabled = !(capturedBlob && currentPosition);
+  const catatan = document.getElementById('inputCatatan').value.trim();
+  document.getElementById('btnSubmitAbsen').disabled = !(capturedBlob && currentPosition && catatan.length >= 10);
 }
 
 function submitAbsen(){
-  if (!capturedBlob || !currentPosition) return;
+  const catatan = document.getElementById('inputCatatan').value.trim();
+  if (!capturedBlob || !currentPosition || catatan.length < 10) return;
   const suffix = currentMode === 'masuk' ? 'Masuk' : 'Keluar';
 
   document.getElementById('lat'+suffix).value = currentPosition.coords.latitude;
   document.getElementById('lng'+suffix).value = currentPosition.coords.longitude;
   document.getElementById('acc'+suffix).value = Math.round(currentPosition.coords.accuracy);
+
+  // ← BARU: salin catatan ke hidden field yang sesuai (rencana saat masuk, realisasi saat pulang)
+  if (currentMode === 'masuk') {
+    document.getElementById('rencanaMasuk').value = catatan;
+  } else {
+    document.getElementById('realisasiKeluar').value = catatan;
+  }
 
   const file = new File([capturedBlob], 'absen_'+Date.now()+'.jpg', { type: 'image/jpeg' });
   const dt = new DataTransfer();
@@ -344,9 +417,17 @@ function submitAbsen(){
 }
 
 @if($errors->absenMasuk->any())
-  document.addEventListener('DOMContentLoaded', () => openAbsenModal('masuk'));
+  document.addEventListener('DOMContentLoaded', () => {
+    openAbsenModal('masuk');
+    document.getElementById('inputCatatan').value = @json(old('rencana', ''));
+    updateSubmitState();
+  });
 @elseif($errors->absenKeluar->any())
-  document.addEventListener('DOMContentLoaded', () => openAbsenModal('keluar'));
+  document.addEventListener('DOMContentLoaded', () => {
+    openAbsenModal('keluar');
+    document.getElementById('inputCatatan').value = @json(old('realisasi', ''));
+    updateSubmitState();
+  });
 @endif
 </script>
 @endpush

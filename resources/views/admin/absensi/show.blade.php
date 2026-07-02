@@ -115,7 +115,7 @@
           {{-- Status --}}
           <td style="text-align:center">
             @if($perluTinjau)
-              <span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca">⚠️ Luar Radius</span>
+              <span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca" title="{{ implode(' • ', $a->alasanPerluTinjau()) }}">⚠️ Tinjau</span>
             @elseif($a->isLengkap())
               <span class="badge badge-selesai">✅ Lengkap</span>
             @elseif($a->jam_masuk)
