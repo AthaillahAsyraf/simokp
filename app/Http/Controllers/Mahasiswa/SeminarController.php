@@ -37,11 +37,12 @@ class SeminarController extends Controller {
         }
 
         $validator = Validator::make($request->all(), [
+            'judul_kp'    => 'required|string|max:255',
             'tanggal'     => 'required|date|after_or_equal:today',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'required|after:jam_mulai',
             'ruangan'     => 'required|string|max:100',
-        ], [], ['jam_selesai' => 'jam selesai']);
+        ], [], ['jam_selesai' => 'jam selesai', 'judul_kp' => 'judul KP/PKL']);
 
         if ($validator->fails()) {
             return back()->withErrors($validator, 'daftar')->withInput();
@@ -59,6 +60,7 @@ class SeminarController extends Controller {
         Seminar::updateOrCreate(
             ['mahasiswa_id' => $mahasiswa->id],
             [
+                'judul_kp'         => $request->judul_kp,
                 'tanggal'          => $request->tanggal,
                 'jam_mulai'        => $request->jam_mulai,
                 'jam_selesai'      => $request->jam_selesai,

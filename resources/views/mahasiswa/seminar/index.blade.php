@@ -35,6 +35,7 @@
     <div class="card-header"><h3>🕓 Pengajuan Seminar Anda</h3><span class="badge badge-proses">Menunggu Persetujuan Admin</span></div>
     <div class="card-body">
       <p class="text-sm text-muted" style="margin-bottom:14px">Pengajuan jadwal di bawah ini sedang ditinjau admin. Dosen penguji akan ditentukan saat disetujui.</p>
+      <div style="margin-bottom:14px"><div class="text-sm text-muted">Judul KP/PKL</div><strong>{{ $s->judul_kp }}</strong></div>
       <div class="form-grid">
         <div><div class="text-sm text-muted">Tanggal Diajukan</div><strong>{{ \Carbon\Carbon::parse($s->tanggal)->translatedFormat('d F Y') }}</strong></div>
         <div><div class="text-sm text-muted">Jam</div><strong>{{ \Carbon\Carbon::parse($s->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($s->jam_selesai)->format('H:i') }} WIB</strong></div>
@@ -48,6 +49,7 @@
   <div class="card">
     <div class="card-header"><h3>🎤 Jadwal Seminar KP Anda</h3><span class="badge badge-terjadwal">Terjadwal</span></div>
     <div class="card-body">
+      <div style="margin-bottom:16px"><div class="text-sm text-muted">Judul KP/PKL</div><strong>{{ $s->judul_kp }}</strong></div>
       <div class="grid-2" style="gap:20px;margin-bottom:20px">
         <div class="seminar-hero">
           <div class="text-sm text-muted" style="text-transform:uppercase;letter-spacing:.5px">Tanggal Seminar</div>
@@ -69,6 +71,7 @@
   <div class="card">
     <div class="card-header"><h3>🎉 Seminar KP Selesai</h3><span class="badge badge-selesai">Selesai</span></div>
     <div class="card-body">
+      <div style="margin-bottom:14px"><div class="text-sm text-muted">Judul KP/PKL</div><strong>{{ $s->judul_kp }}</strong></div>
       <div class="form-grid" style="margin-bottom:16px">
         <div><div class="text-sm text-muted">Tanggal</div><strong>{{ \Carbon\Carbon::parse($s->tanggal)->translatedFormat('d F Y') }}</strong></div>
         <div><div class="text-sm text-muted">Ruangan</div><strong>{{ $s->ruangan }}</strong></div>
@@ -102,6 +105,11 @@
       @else
         <form method="POST" action="{{ route('mahasiswa.seminar.store') }}">
           @csrf
+          <div class="form-group">
+            <label class="form-label">Judul KP/PKL *</label>
+            <textarea name="judul_kp" class="form-control" rows="2" placeholder="Judul laporan Kerja Praktik Anda" required>{{ old('judul_kp') }}</textarea>
+            <p class="form-hint">Judul ini otomatis muncul di lembar penilaian seminar dosen pembimbing — pastikan sudah final.</p>
+          </div>
           <div class="form-grid">
             <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" name="tanggal" class="form-control" value="{{ old('tanggal') }}" min="{{ now()->toDateString() }}" required></div>
             <div class="form-group"><label class="form-label">Jam Mulai *</label><input type="time" name="jam_mulai" class="form-control" value="{{ old('jam_mulai') }}" required></div>

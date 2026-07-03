@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 
 class Seminar extends Model {
     protected $fillable = [
-        'mahasiswa_id','tanggal','jam_mulai','jam_selesai','ruangan',
+        'mahasiswa_id','judul_kp','tanggal','jam_mulai','jam_selesai','ruangan',
         'dosen_penguji_id','status','diajukan_oleh','catatan',
     ];
 

@@ -43,7 +43,7 @@
       <thead>
         <tr>
           <th>Mahasiswa</th><th>Instansi</th><th>Dosen</th>
-          <th>Nilai Lapangan</th><th>Nilai Pembimbing</th><th>Nilai Seminar</th>
+          <th>Nilai Lapangan</th><th>Nilai Pembimbing</th>
           <th>Nilai Akhir</th><th>Predikat</th><th>Status</th>
         </tr>
       </thead>
@@ -55,7 +55,6 @@
           <td class="text-sm">{{ $m->instansi?->nama ?? '–' }}</td>
           <td class="text-sm text-muted">{{ $m->dosen?->nama ?? '–' }}</td>
           <td class="text-sm">{{ $n?->nilai_lapangan ?? '–' }}</td>
-          <td class="text-sm">{{ $n?->nilai_pembimbing ?? '–' }}</td>
           <td class="text-sm">{{ $n?->nilai_seminar ?? '–' }}</td>
           <td><strong>{{ $n?->nilai_akhir ?? '–' }}</strong></td>
           <td>
@@ -71,7 +70,7 @@
           </td>
         </tr>
         @empty
-          <tr><td colspan="9" style="text-align:center;padding:28px;color:var(--gray-400)">Tidak ada data yang cocok dengan filter.</td></tr>
+          <tr><td colspan="8" style="text-align:center;padding:28px;color:var(--gray-400)">Tidak ada data yang cocok dengan filter.</td></tr>
         @endforelse
       </tbody>
     </table>

@@ -80,8 +80,8 @@ Route::prefix('dosen-area')->name('dosen.')->middleware(['auth','role:dosen'])->
     Route::get('seminar', [\App\Http\Controllers\Dosen\SeminarController::class,'index'])->name('seminar.index');
 
     Route::get('nilai',                    [\App\Http\Controllers\Dosen\NilaiController::class,'index'])->name('nilai.index');
-    Route::put('nilai/{mahasiswa}',        [\App\Http\Controllers\Dosen\NilaiController::class,'update'])->name('nilai.update');
     Route::put('nilai/{mahasiswa}/seminar',[\App\Http\Controllers\Dosen\NilaiController::class,'updateSeminar'])->name('nilai.updateSeminar');
+    Route::get('nilai/{mahasiswa}/cetak',[\App\Http\Controllers\Dosen\NilaiController::class,'cetak'])->name('nilai.cetak');
 
     // Chat dari Instansi
     Route::get  ('chat',              [\App\Http\Controllers\Dosen\ChatController::class,'index'])->name('chat.index');
@@ -104,6 +104,7 @@ Route::prefix('instansi-area')->name('instansi.')->middleware(['auth','role:inst
 
     Route::get('nilai',             [\App\Http\Controllers\Instansi\NilaiController::class,'index'])->name('nilai.index');
     Route::put('nilai/{mahasiswa}', [\App\Http\Controllers\Instansi\NilaiController::class,'update'])->name('nilai.update');
+    Route::get('nilai/{mahasiswa}/cetak', [\App\Http\Controllers\Instansi\NilaiController::class,'cetak'])->name('nilai.cetak');
 
     // Chat ke Dosen — 'chat/baru' HARUS sebelum 'chat/{chat}'
     Route::get ('chat',              [\App\Http\Controllers\Instansi\ChatController::class,'index'])->name('chat.index');
@@ -138,6 +139,9 @@ Route::post('logbook',             [\App\Http\Controllers\Mahasiswa\LogbookContr
 Route::delete('logbook/{logbook}', [\App\Http\Controllers\Mahasiswa\LogbookController::class,'destroy'])->name('logbook.destroy');
     Route::get('seminar', [\App\Http\Controllers\Mahasiswa\SeminarController::class,'index'])->name('seminar.index');
     Route::post('seminar', [\App\Http\Controllers\Mahasiswa\SeminarController::class,'store'])->name('seminar.store');
+    Route::get('nilai',       [\App\Http\Controllers\Mahasiswa\NilaiController::class,'index'])->name('nilai.index');
+    Route::get('nilai/cetak', [\App\Http\Controllers\Mahasiswa\NilaiController::class,'cetak'])->name('nilai.cetak');
+    Route::get('nilai/cetak-lapangan', [\App\Http\Controllers\Mahasiswa\NilaiController::class,'cetakLapangan'])->name('nilai.cetakLapangan');
     Route::get('surat',                   [\App\Http\Controllers\Mahasiswa\SuratController::class,'index'])->name('surat.index');
     Route::post('surat',                  [\App\Http\Controllers\Mahasiswa\SuratController::class,'store'])->name('surat.store');
     Route::post('surat/{surat}/teruskan', [\App\Http\Controllers\Mahasiswa\SuratController::class,'teruskan'])->name('surat.teruskan');

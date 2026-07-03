@@ -17,7 +17,7 @@
 @endpush
 
 @section('content')
-<div class="page-header"><h1>Nilai Mahasiswa</h1><p>Input nilai pembimbingan & nilai seminar mahasiswa bimbingan Anda</p></div>
+<div class="page-header"><h1>Nilai Mahasiswa</h1><p>Input nilai pembimbing & lihat nilai akhir mahasiswa bimbingan Anda</p></div>
 
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
 @if(session('error'))<div class="alert alert-warning">⚠️ {{ session('error') }}</div>@endif
@@ -27,7 +27,7 @@
     <table>
       <thead>
         <tr>
-          <th>Mahasiswa</th><th>Nilai Lapangan</th><th>Nilai Pembimbing</th><th>Nilai Seminar</th>
+          <th>Mahasiswa</th><th>Nilai Lapangan</th><th>Nilai Pembimbing</th>
           <th>Nilai Akhir</th><th>Status</th><th>Aksi</th>
         </tr>
       </thead>
@@ -37,8 +37,7 @@
         <tr>
           <td><strong>{{ $m->nama }}</strong><br><code class="text-sm">{{ $m->nim }}</code><br><span class="text-sm text-muted">{{ $m->instansi?->nama }}</span></td>
           <td class="text-sm">{{ $n?->nilai_lapangan ?? '–' }}</td>
-          <td class="text-sm">{{ $n?->nilai_pembimbing ?? '–' }}</td>
-          <td class="text-sm">{{ $n?->nilai_seminar ?? '–' }}</td>
+          <td class="text-sm">{{ $n?->nilai_seminar ?? '–' }} @if($n?->huruf_mutu_seminar)<span class="text-muted">({{ $n->huruf_mutu_seminar }})</span>@endif</td>
           <td><strong>{{ $n?->nilai_akhir ?? '–' }}</strong>
             @if($n?->predikat)<span class="predikat predikat-{{ $n->predikat }}" style="margin-left:6px">{{ $n->predikat }}</span>@endif
           </td>
@@ -48,61 +47,50 @@
           </td>
           <td>
             <div style="display:flex;gap:4px;flex-wrap:wrap">
-              <button class="btn btn-outline btn-xs" onclick="openPembimbing({{ $m->id }}, {{ json_encode($m->nama) }}, {{ json_encode($n?->nilai_pembimbing) }}, {{ json_encode($n?->catatan_pembimbing) }})">Nilai Pembimbing</button>
               @if($s && ($s->isTerjadwal() || $s->isSelesai()))
-                <button class="btn btn-outline btn-xs" onclick="openSeminar({{ $m->id }}, {{ json_encode($m->nama) }}, {{ json_encode($n?->nilai_seminar) }})">Nilai Seminar</button>
+                <button class="btn btn-outline btn-xs" onclick="openSeminar({{ $m->id }}, {{ json_encode($m->nama) }}, {{ json_encode($n) }})">Isi Nilai</button>
               @else
-                <button class="btn btn-outline btn-xs" disabled title="Seminar belum dijadwalkan">Nilai Seminar</button>
+                <button class="btn btn-outline btn-xs" disabled title="Seminar belum dijadwalkan">Isi Nilai</button>
+              @endif
+              @if($n?->nilai_seminar !== null)
+                <a class="btn btn-outline btn-xs" href="{{ route('dosen.nilai.cetak', $m->id) }}" target="_blank">Cetak Nilai</a>
               @endif
             </div>
           </td>
         </tr>
         @empty
-          <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--gray-400)">Belum ada mahasiswa bimbingan.</td></tr>
+          <tr><td colspan="6" style="text-align:center;padding:28px;color:var(--gray-400)">Belum ada mahasiswa bimbingan.</td></tr>
         @endforelse
       </tbody>
     </table>
   </div>
 </div>
 
-{{-- MODAL NILAI PEMBIMBING --}}
-<div class="modal-bg" id="modalPembimbing">
-  <div class="modal-box">
-    <div class="modal-title" id="pTitle">📝 Nilai Pembimbingan</div>
-    @if($errors->pembimbing->any())
-    <div class="err-box"><ul>@foreach($errors->pembimbing->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
-    @endif
-    <form method="POST" id="pembimbingForm">
-      @csrf @method('PUT')
-      <div class="form-group">
-        <label class="form-label">Nilai (0-100) *</label>
-        <input type="number" name="nilai_pembimbing" id="pNilai" class="form-control" min="0" max="100" step="0.01" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Catatan</label>
-        <textarea name="catatan_pembimbing" id="pCatatan" class="form-control" rows="3" placeholder="Masukan/feedback untuk mahasiswa..."></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline" onclick="closeModal('modalPembimbing')">Batal</button>
-        <button type="submit" class="btn btn-primary">Simpan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-{{-- MODAL NILAI SEMINAR --}}
+{{-- MODAL ISI NILAI PEMBIMBING — 6 aspek berbobot sesuai Lembar Penilaian Seminar KP Dosen Pembimbing --}}
 <div class="modal-bg" id="modalSeminar">
-  <div class="modal-box">
-    <div class="modal-title" id="sTitle">🎤 Nilai Seminar</div>
+  <div class="modal-box" style="width:560px">
+    <div class="modal-title" id="sTitle">📝 Isi Nilai Pembimbing</div>
     @if($errors->seminar->any())
     <div class="err-box"><ul>@foreach($errors->seminar->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
     @endif
-    <form method="POST" id="seminarForm">
+    <form method="POST" id="seminarForm" oninput="hitungTotalSeminar()">
       @csrf @method('PUT')
-      <div class="form-group">
-        <label class="form-label">Nilai Seminar (0-100) *</label>
-        <input type="number" name="nilai_seminar" id="sNilai" class="form-control" min="0" max="100" step="0.01" required>
+
+      <p class="text-sm" style="font-weight:700;color:var(--gray-700);margin-bottom:6px">1. Seminar</p>
+      <div class="form-group"><label class="form-label">a. Penguasaan materi/metode (20%) *</label><input type="number" name="seminar_penguasaan_materi" id="s1a" class="form-control" min="0" max="100" step="0.01" required></div>
+      <div class="form-group"><label class="form-label">b. Sikap ilmiah dan argumentasi (10%) *</label><input type="number" name="seminar_sikap_ilmiah" id="s1b" class="form-control" min="0" max="100" step="0.01" required></div>
+      <div class="form-group"><label class="form-label">c. Teknik penyajian dan kebahasaan (10%) *</label><input type="number" name="seminar_teknik_penyajian" id="s1c" class="form-control" min="0" max="100" step="0.01" required></div>
+
+      <p class="text-sm" style="font-weight:700;color:var(--gray-700);margin:14px 0 6px">2. Laporan</p>
+      <div class="form-group"><label class="form-label">a. Originalitas (30%) *</label><input type="number" name="seminar_originalitas" id="s2a" class="form-control" min="0" max="100" step="0.01" required></div>
+      <div class="form-group"><label class="form-label">b. Relevansi dan keterpaduan (15%) *</label><input type="number" name="seminar_relevansi" id="s2b" class="form-control" min="0" max="100" step="0.01" required></div>
+      <div class="form-group"><label class="form-label">c. Penulisan (format dan bahasa) (15%) *</label><input type="number" name="seminar_penulisan" id="s2c" class="form-control" min="0" max="100" step="0.01" required></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gray-50);border-radius:8px;padding:10px 14px;margin-top:10px">
+        <span class="text-sm text-muted">Nilai Total (otomatis, sesuai bobot)</span>
+        <strong id="sTotalOut" style="font-size:18px">–</strong>
       </div>
+
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalSeminar')">Batal</button>
         <button type="submit" class="btn btn-primary">Simpan</button>
@@ -113,18 +101,30 @@
 
 @push('scripts')
 <script>
-function openPembimbing(id, nama, nilai, catatan) {
-  document.getElementById('pembimbingForm').action = `{{ url('dosen-area/nilai') }}/${id}`;
-  document.getElementById('pTitle').textContent = '📝 Nilai Pembimbingan — ' + nama;
-  document.getElementById('pNilai').value   = nilai || '';
-  document.getElementById('pCatatan').value = catatan || '';
-  openModal('modalPembimbing');
-}
-function openSeminar(id, nama, nilai) {
+const BOBOT_SEMINAR = { s1a:0.20, s1b:0.10, s1c:0.10, s2a:0.30, s2b:0.15, s2c:0.15 };
+
+function openSeminar(id, nama, n) {
+  n = n || {};
   document.getElementById('seminarForm').action = `{{ url('dosen-area/nilai') }}/${id}/seminar`;
-  document.getElementById('sTitle').textContent = '🎤 Nilai Seminar — ' + nama;
-  document.getElementById('sNilai').value = nilai || '';
+  document.getElementById('sTitle').textContent = '📝 Isi Nilai Pembimbing — ' + nama;
+  document.getElementById('s1a').value = n.seminar_penguasaan_materi ?? '';
+  document.getElementById('s1b').value = n.seminar_sikap_ilmiah ?? '';
+  document.getElementById('s1c').value = n.seminar_teknik_penyajian ?? '';
+  document.getElementById('s2a').value = n.seminar_originalitas ?? '';
+  document.getElementById('s2b').value = n.seminar_relevansi ?? '';
+  document.getElementById('s2c').value = n.seminar_penulisan ?? '';
+  hitungTotalSeminar();
   openModal('modalSeminar');
+}
+
+function hitungTotalSeminar() {
+  let total = 0, lengkap = true;
+  for (const id in BOBOT_SEMINAR) {
+    const v = document.getElementById(id).value;
+    if (v === '') { lengkap = false; continue; }
+    total += parseFloat(v) * BOBOT_SEMINAR[id];
+  }
+  document.getElementById('sTotalOut').textContent = lengkap ? total.toFixed(2) : '–';
 }
 </script>
 @endpush

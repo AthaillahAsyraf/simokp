@@ -38,8 +38,15 @@ class NilaiController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'nilai_lapangan'   => 'required|numeric|min:0|max:100',
-            'catatan_lapangan' => 'nullable|string|max:500',
+            'lapangan_kehadiran'               => 'required|numeric|min:0|max:100',
+            'lapangan_tata_tertib'              => 'required|numeric|min:0|max:100',
+            'lapangan_kerjasama_anggota'        => 'required|numeric|min:0|max:100',
+            'lapangan_kerjasama_kelompok_lain'  => 'required|numeric|min:0|max:100',
+            'lapangan_kerjasama_pembimbing'     => 'required|numeric|min:0|max:100',
+            'lapangan_inovasi'                  => 'required|numeric|min:0|max:100',
+            'lapangan_tugas'                    => 'required|numeric|min:0|max:100',
+            'lapangan_keseriusan'               => 'required|numeric|min:0|max:100',
+            'catatan_lapangan'                  => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -47,11 +54,32 @@ class NilaiController extends Controller
         }
 
         $nilai = Nilai::firstOrCreate(['mahasiswa_id' => $mahasiswa->id]);
-        $nilai->nilai_lapangan   = $request->nilai_lapangan;
+        $nilai->fill($request->only(Nilai::KOMPONEN_LAPANGAN));
         $nilai->catatan_lapangan = $request->catatan_lapangan;
+        $nilai->nilai_lapangan   = $nilai->hitungNilaiLapangan();
         $nilai->nilai_akhir      = $nilai->hitungNilaiAkhir();
         $nilai->save();
 
         return back()->with('success', 'Nilai pembimbing lapangan berhasil disimpan.');
+    }
+
+    /**
+     * Cetak "FORM NILAI PEMBIMBING LAPANGAN" (format resmi instansi) untuk
+     * satu mahasiswa. View cetak ini SAMA PERSIS dengan yang dipakai
+     * mahasiswa mencetak nilai lapangannya sendiri (lihat
+     * Mahasiswa\NilaiController@cetakLapangan).
+     */
+    public function cetak(Mahasiswa $mahasiswa)
+    {
+        $instansi = Auth::user()->instansi;
+        abort_if($mahasiswa->instansi_id !== $instansi->id, 403);
+
+        $mahasiswa->load(['seminar', 'instansi', 'nilai']);
+        abort_if(!$mahasiswa->nilai || $mahasiswa->nilai->nilai_lapangan === null, 404, 'Nilai lapangan belum diisi.');
+
+        return view('nilai.cetak-lapangan', [
+            'mahasiswa' => $mahasiswa,
+            'backUrl'   => route('instansi.nilai.index'),
+        ]);
     }
 }

@@ -398,6 +398,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('mahasiswa.seminar.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.seminar*') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">🎤</span> Info Seminar
       </a>
+            <a href="{{ route('mahasiswa.nilai.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.nilai*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">📝</span> Nilai
+      </a>
       <a href="{{ route('mahasiswa.surat.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.surat*') ? 'active role-mahasiswa' : '' }}">
   <span class="nav-icon">✉️</span> Surat
 </a>

@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 
 /**
  * Admin cuma monitoring di sini (read-only) — input nilai dilakukan
- * Dosen (nilai_pembimbing, nilai_seminar) dan Pembimbing Lapangan lewat akun
- * Instansi (nilai_lapangan).
+ * Dosen (nilai_seminar, ditampilkan sebagai "Nilai Pembimbing") dan
+ * Pembimbing Lapangan lewat akun Instansi (nilai_lapangan).
  */
 class NilaiController extends Controller
 {
@@ -29,7 +29,7 @@ class NilaiController extends Controller
             $query->where(function ($q2) use ($status) {
                 if ($status === 'Belum Lengkap') {
                     $q2->whereDoesntHave('nilai')->orWhereHas('nilai', fn ($q3) => $q3
-                        ->whereNull('nilai_lapangan')->orWhereNull('nilai_pembimbing')->orWhereNull('nilai_seminar'));
+                        ->whereNull('nilai_lapangan')->orWhereNull('nilai_seminar'));
                 } elseif ($status === 'Lulus') {
                     $q2->whereHas('nilai', fn ($q3) => $q3->whereNotNull('nilai_akhir')->where('nilai_akhir', '>=', \App\Models\Nilai::BATAS_LULUS));
                 } else {
