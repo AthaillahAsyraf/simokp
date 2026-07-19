@@ -46,12 +46,13 @@
         @endphp
         <div class="bab-card {{ $state }}" data-bab-id="{{ $p->id }}"
              @if(!$locked)
-             onclick="openUpload({{ $p->id }}, '{{ $p->bab }}', '{{ $state }}', {{ json_encode($p->file_url) }}, {{ json_encode($p->file_asli) }}, {{ json_encode($p->catatan) }})"
+             onclick="openUpload({{ $p->id }}, '{{ $p->bab }}', '{{ $state }}', {{ json_encode($p->file_url) }}, {{ json_encode($p->file_asli) }}, {{ json_encode($p->catatan) }}, {{ json_encode($p->file_dosen_url) }}, {{ json_encode($p->file_dosen_asli) }})"
              @endif>
           <div class="bab-icon">{{ $icon }}</div>
           <div class="bab-num">{{ $p->bab }}</div>
           <div class="bab-stat">{{ $label }}</div>
           @if($p->file_uploaded_at)<div class="bab-date">{{ $p->file_uploaded_at->format('d M Y') }}</div>@endif
+          @if($p->file_dosen)<div class="bab-date" style="color:var(--green-600);font-weight:600">📎 Ada file dari dosen</div>@endif
         </div>
       @endforeach
     </div>
@@ -73,6 +74,10 @@
       <a href="#" id="upFileLink" target="_blank" class="file-link">📄 <span id="upFileName"></span></a>
     </div>
 
+    <div id="upFileDosenExisting" style="display:none">
+      <a href="#" id="upFileDosenLink" target="_blank" class="file-link" style="background:var(--green-50);border-color:var(--green-100);color:var(--green-600)">📎 <span id="upFileDosenName"></span></a>
+    </div>
+
     <form method="POST" id="upForm" enctype="multipart/form-data">
       @csrf
       <div class="form-group" id="upFormGroup">
@@ -90,7 +95,7 @@
 
 @push('scripts')
 <script>
-function openUpload(id, bab, state, fileUrl, fileName, catatan) {
+function openUpload(id, bab, state, fileUrl, fileName, catatan, fileDosenUrl, fileDosenName) {
   document.getElementById('upForm').action = `{{ url('mahasiswa/progress') }}/${id}/upload`;
   document.getElementById('upTitle').textContent = '📝 ' + bab;
 
@@ -109,6 +114,15 @@ function openUpload(id, bab, state, fileUrl, fileName, catatan) {
     existingBox.style.display = 'block';
   } else {
     existingBox.style.display = 'none';
+  }
+
+  const fileDosenBox = document.getElementById('upFileDosenExisting');
+  if (fileDosenUrl) {
+    document.getElementById('upFileDosenLink').href = fileDosenUrl;
+    document.getElementById('upFileDosenName').textContent = 'File dari dosen: ' + (fileDosenName || 'lihat file');
+    fileDosenBox.style.display = 'block';
+  } else {
+    fileDosenBox.style.display = 'none';
   }
 
   const formGroup = document.getElementById('upFormGroup');

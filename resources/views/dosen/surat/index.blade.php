@@ -11,8 +11,8 @@
 
 .thread-item{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--gray-100)}
 .thread-item:last-child{border-bottom:none}
-.thread-icon{width:38px;height:38px;border-radius:50%;background:var(--amber-50);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.thread-icon.out{background:var(--blue-50)}
+.thread-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.thread-icon.in{background:var(--green-50)}.thread-icon.out{background:var(--blue-50)}
 .thread-body{flex:1;min-width:0}
 .thread-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:4px;flex-wrap:wrap}
 .thread-route{font-size:12px;color:var(--gray-500)}
@@ -40,7 +40,7 @@
 @section('content')
 <div class="page-header">
   <h1>Surat</h1>
-  <p>Kelola surat masuk dari mahasiswa & kirim korespondensi ke semua pihak</p>
+  <p>Pantau korespondensi mahasiswa bimbingan & kirim surat ke semua pihak</p>
 </div>
 
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
@@ -65,7 +65,7 @@
     <div class="card-body">
       @forelse($suratMasuk as $s)
         <div class="thread-item">
-          <div class="thread-icon">📥</div>
+          <div class="thread-icon in">📥</div>
           <div class="thread-body">
             <div class="thread-head">
               <strong>{{ $s->perihal }}</strong>
@@ -75,22 +75,18 @@
               Dari: <strong>{{ $s->pengirim_nama }}</strong> ({{ ucfirst($s->pengirim_role) }}) &middot; {{ $s->jenis_label }}
             </div>
             @if($s->keterangan)<p class="text-sm" style="margin-top:6px">{{ $s->keterangan }}</p>@endif
-            @if($s->file)<a href="{{ $s->file_url }}" target="_blank" class="file-link">📄 Lihat Surat Pengantar</a>@endif
-
-            @php $sudahDibalas = $s->balasan->where('jenis', \App\Models\Surat::JENIS_BALASAN)->isNotEmpty(); @endphp
-            <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <button class="btn btn-primary btn-sm"
+            @if($s->file)<a href="{{ $s->file_url }}" target="_blank" class="file-link">📄 Lihat Lampiran</a>@endif
+            <div style="margin-top:10px">
+              <button class="btn btn-outline btn-sm"
                 onclick="openBalas({{ $s->id }}, {{ json_encode($s->pengirim_nama) }}, {{ json_encode($s->perihal) }})">
                 ↩️ Balas
               </button>
-              @if($sudahDibalas)<span class="badge badge-selesai" style="font-size:11px">✅ Sudah dibalas</span>@endif
             </div>
-
-            @foreach($s->balasan->where('jenis', \App\Models\Surat::JENIS_BALASAN) as $b)
+            @foreach($s->balasan ?? [] as $b)
               <div class="reply-bubble">
-                <div class="reply-meta">📤 Balasan Anda — {{ $b->created_at->format('d M Y, H:i') }}</div>
+                <div class="reply-meta">📤 {{ $b->pengirim_nama }} — {{ $b->created_at->format('d M Y, H:i') }}</div>
                 <p class="text-sm">{{ $b->keterangan }}</p>
-                @if($b->file)<a href="{{ $b->file_url }}" target="_blank" class="file-link">📄 Lampiran Balasan</a>@endif
+                @if($b->file)<a href="{{ $b->file_url }}" target="_blank" class="file-link">📄 Lampiran</a>@endif
               </div>
             @endforeach
           </div>
@@ -112,7 +108,7 @@
   <div class="card">
     <div class="card-header"><h3>Kirim Surat Baru</h3></div>
     <div class="card-body">
-      <form method="POST" action="{{ route('instansi.surat.kirim') }}" enctype="multipart/form-data">
+      <form method="POST" action="{{ route('dosen.surat.kirim') }}" enctype="multipart/form-data">
         @csrf
         <div class="form-group">
           <label class="form-label">Tujuan Penerima *</label>
@@ -127,14 +123,14 @@
               <input type="radio" name="tujuan_role" value="admin" {{ old('tujuan_role') === 'admin' ? 'checked' : '' }}>
               🏛️ Admin
             </label>
-            <label class="recipient-card {{ old('tujuan_role') === 'dosen' ? 'selected' : '' }}"
-              onclick="selectRecipient(this,'dosen')">
-              <input type="radio" name="tujuan_role" value="dosen" {{ old('tujuan_role') === 'dosen' ? 'checked' : '' }}>
-              👨‍🏫 Dosen
+            <label class="recipient-card {{ old('tujuan_role') === 'instansi' ? 'selected' : '' }}"
+              onclick="selectRecipient(this,'instansi')">
+              <input type="radio" name="tujuan_role" value="instansi" {{ old('tujuan_role') === 'instansi' ? 'checked' : '' }}>
+              🏢 Instansi
             </label>
           </div>
           <div class="specific-recipient {{ old('tujuan_role') === 'mahasiswa' ? 'visible' : '' }}" id="dropMahasiswa">
-            <label class="form-label" style="font-size:12px;margin-top:8px">Pilih Mahasiswa *</label>
+            <label class="form-label" style="font-size:12px;margin-top:8px">Pilih Mahasiswa Bimbingan *</label>
             <select name="tujuan_mahasiswa_id" class="form-control">
               <option value="">-- Pilih mahasiswa --</option>
               @foreach($listMahasiswa as $m)
@@ -144,19 +140,20 @@
               @endforeach
             </select>
           </div>
-          <div class="specific-recipient {{ old('tujuan_role') === 'dosen' ? 'visible' : '' }}" id="dropDosen">
-            <label class="form-label" style="font-size:12px;margin-top:8px">Pilih Dosen *</label>
-            <select name="tujuan_dosen_id" class="form-control">
-              <option value="">-- Pilih dosen --</option>
-              @foreach($listDosen as $d)
-                <option value="{{ $d->id }}" {{ old('tujuan_dosen_id') == $d->id ? 'selected' : '' }}>{{ $d->nama }}</option>
+          <div class="specific-recipient {{ old('tujuan_role') === 'instansi' ? 'visible' : '' }}" id="dropInstansi">
+            <label class="form-label" style="font-size:12px;margin-top:8px">Pilih Instansi *</label>
+            <select name="tujuan_instansi_id" class="form-control">
+              <option value="">-- Pilih instansi --</option>
+              @foreach($listInstansi as $i)
+                <option value="{{ $i->id }}" {{ old('tujuan_instansi_id') == $i->id ? 'selected' : '' }}>{{ $i->nama }}</option>
               @endforeach
             </select>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Perihal *</label>
-          <input type="text" name="perihal" class="form-control" value="{{ old('perihal') }}" placeholder="Perihal surat..." required>
+          <input type="text" name="perihal" class="form-control" value="{{ old('perihal') }}"
+            placeholder="cth: Bimbingan KP — Evaluasi Progress Laporan" required>
         </div>
         <div class="form-group">
           <label class="form-label">Isi Surat *</label>
@@ -165,7 +162,7 @@
         <div class="form-group">
           <label class="form-label">Lampiran <span style="color:var(--gray-400);font-weight:400">(opsional)</span></label>
           <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-          <p class="file-hint">PDF, DOC/DOCX, atau gambar — maks 10 MB. Cocok untuk surat balasan resmi berkop instansi.</p>
+          <p class="file-hint">PDF, DOC/DOCX, atau gambar — maks 10 MB</p>
         </div>
         <button type="submit" class="btn btn-primary">Kirim Surat</button>
       </form>
@@ -208,7 +205,7 @@
       @csrf
       <div class="form-group">
         <label class="form-label">Isi Balasan *</label>
-        <textarea name="keterangan" class="form-control" rows="4" placeholder="Tulis isi balasan surat..." required></textarea>
+        <textarea name="keterangan" class="form-control" rows="4" placeholder="Tulis isi balasan..." required></textarea>
       </div>
       <div class="form-group">
         <label class="form-label">Lampiran <span style="color:var(--gray-400);font-weight:400">(opsional)</span></label>
@@ -237,16 +234,16 @@ switchTab('masuk');
 function selectRecipient(el, role) {
   document.querySelectorAll('.recipient-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  ['dropMahasiswa','dropDosen'].forEach(id => document.getElementById(id).classList.remove('visible'));
+  ['dropMahasiswa','dropInstansi'].forEach(id => document.getElementById(id).classList.remove('visible'));
   if (role === 'mahasiswa') document.getElementById('dropMahasiswa').classList.add('visible');
-  if (role === 'dosen')     document.getElementById('dropDosen').classList.add('visible');
+  if (role === 'instansi')  document.getElementById('dropInstansi').classList.add('visible');
 }
 document.querySelectorAll('.recipient-card').forEach(c => {
   if (c.querySelector('input:checked')) c.classList.add('selected');
 });
 
 function openBalas(id, nama, perihal) {
-  document.getElementById('balasForm').action = `{{ url('instansi-area/surat') }}/${id}/balas`;
+  document.getElementById('balasForm').action = `{{ url('dosen-area/surat') }}/${id}/balas`;
   document.getElementById('balasTitle').textContent = '↩️ Balas — ' + nama + ' (' + perihal + ')';
   openModal('modalBalas');
 }

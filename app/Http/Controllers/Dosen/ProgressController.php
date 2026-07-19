@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProgressBab;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProgressController extends Controller {
     public function index() {
@@ -22,9 +23,10 @@ class ProgressController extends Controller {
         abort_if($progressBab->mahasiswa->dosen_id !== $dosen->id, 403);
 
         $request->validate([
-            'keputusan' => 'required|in:approved,revisi',
-            'catatan'   => 'nullable|string|max:500',
-        ], [], ['keputusan' => 'keputusan']);
+            'keputusan'  => 'required|in:approved,revisi',
+            'catatan'    => 'nullable|string|max:500',
+            'file_dosen' => 'nullable|file|mimes:pdf,doc,docx,zip|max:10240',
+        ], [], ['keputusan' => 'keputusan', 'file_dosen' => 'file lampiran']);
 
         if (!$progressBab->file) {
             return back()->with('error', 'Mahasiswa belum mengupload file untuk BAB ini.');
@@ -36,16 +38,40 @@ class ProgressController extends Controller {
 
         $mahasiswa = $progressBab->mahasiswa;
 
+        // Kirim file ke mahasiswa bersifat opsional — dosen boleh melampirkan
+        // file koreksi/tanda tangan/lampiran tambahan, atau tidak sama sekali.
+        $fileDosenData = [];
+        if ($request->hasFile('file_dosen')) {
+            if ($progressBab->file_dosen) {
+                Storage::disk('public')->delete($progressBab->file_dosen);
+            }
+            $uploaded = $request->file('file_dosen');
+            $path = $uploaded->store('laporan_bab_dosen/'.$mahasiswa->id, 'public');
+
+            $fileDosenData = [
+                'file_dosen'             => $path,
+                'file_dosen_asli'        => $uploaded->getClientOriginalName(),
+                'file_dosen_uploaded_at' => now(),
+            ];
+        }
+
         if ($request->keputusan === 'approved') {
+            if ($fileDosenData) {
+                $progressBab->update($fileDosenData);
+            }
             // Reuse cascade logic yang sudah teruji di Mahasiswa model
             $mahasiswa->selesaikanSampaiUrutan($progressBab->urutan(), $request->catatan);
             $msg = "{$progressBab->bab} disetujui.";
         } else {
-            $progressBab->update([
+            $progressBab->update(array_merge([
                 'verifikasi_status' => 'revisi',
                 'catatan'           => $request->catatan,
-            ]);
+            ], $fileDosenData));
             $msg = "{$progressBab->bab} dikembalikan untuk direvisi.";
+        }
+
+        if ($fileDosenData) {
+            $msg .= ' File dari dosen berhasil dikirim ke mahasiswa.';
         }
 
         return back()->with('success', $msg);

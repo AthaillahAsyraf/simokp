@@ -52,6 +52,10 @@ class MahasiswaController extends Controller {
             'instansi_id'  => $request->instansi_id ?: null,
             'tanggal_mulai'=> $request->tanggal_mulai,
             'status'       => 'proses',
+            // Kalau admin langsung isi dosen & instansi saat membuat akun (mis.
+            // berkas sudah diurus manual/offline), langsung aktifkan KP-nya.
+            // Kalau tidak, mahasiswa mulai dari tahap lengkapi berkas seperti biasa.
+            'tahap'        => ($request->dosen_id && $request->instansi_id) ? 'aktif_kp' : 'lengkapi_berkas',
         ]);
         foreach (['BAB I','BAB II','BAB III','BAB IV','BAB V'] as $bab) {
             ProgressBab::create(['mahasiswa_id'=>$mhs->id,'bab'=>$bab,'status'=>'belum']);
@@ -61,7 +65,18 @@ class MahasiswaController extends Controller {
 
     public function update(Request $request, Mahasiswa $mahasiswa) {
         $request->validate(['nama'=>'required','angkatan'=>'required']);
+
+        // Instansi/dosen baru cuma boleh diisi kalau berkas persyaratan mahasiswa
+        // sudah disetujui (tahap >= menunggu_instansi), sesuai Prosedur KP.
+        $akanSetInstansi = $request->filled('instansi_id') && !$mahasiswa->instansi_id;
+        $akanSetDosen    = $request->filled('dosen_id') && !$mahasiswa->dosen_id;
+        if (($akanSetInstansi || $akanSetDosen) && !$mahasiswa->sudahMencapaiTahap(Mahasiswa::TAHAP_MENUNGGU_INSTANSI)) {
+            return back()->with('error', "Berkas persyaratan {$mahasiswa->nama} belum disetujui admin (lihat menu Persyaratan KP). Instansi/dosen belum bisa ditentukan dulu.")->withInput();
+        }
+
         $mahasiswa->update($request->only(['nama','angkatan','no_hp','dosen_id','instansi_id','tanggal_mulai','tanggal_selesai','status']));
+        $mahasiswa->cekMajukanKeAktifKp();
+
         return back()->with('success','Data mahasiswa diperbarui.');
     }
 

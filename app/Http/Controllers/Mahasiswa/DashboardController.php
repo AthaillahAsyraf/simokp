@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller {
     public function index() {
-        $mahasiswa = Auth::user()->mahasiswa->load(['dosen','instansi','progressBabs','seminar']);
+        $mahasiswa = Auth::user()->mahasiswa->load(['dosen','instansi','progressBabs','seminar','syaratAdministrasi']);
         return view('mahasiswa.dashboard', compact('mahasiswa'));
     }
 }

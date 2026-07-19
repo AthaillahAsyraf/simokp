@@ -33,6 +33,7 @@ class AuthController extends Controller {
         $mhs = Mahasiswa::create([
             'user_id'=>$user->id,'nim'=>$request->nim,
             'nama'=>$request->name,'angkatan'=>$request->angkatan,'status'=>'proses',
+            'tahap'=>Mahasiswa::TAHAP_LENGKAPI_BERKAS,
         ]);
         foreach (['BAB I','BAB II','BAB III','BAB IV','BAB V'] as $bab) {
             ProgressBab::create(['mahasiswa_id'=>$mhs->id,'bab'=>$bab,'status'=>'belum']);

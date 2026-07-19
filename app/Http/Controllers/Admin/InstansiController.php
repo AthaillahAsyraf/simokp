@@ -113,4 +113,128 @@ class InstansiController extends Controller
 
         return redirect()->route('admin.instansi.index')->with('success', 'Instansi berhasil dihapus.');
     }
+
+    /**
+     * Ekstrak koordinat lat/lng dari sebuah link Google Maps yang ditempel user.
+     * Mendukung link panjang (langsung diparse dari string-nya) maupun link
+     * pendek (maps.app.goo.gl / goo.gl) yang perlu ditelusuri redirect-nya
+     * dulu di server (karena browser tidak bisa fetch cross-origin ke sana).
+     */
+    public function resolveLokasi(Request $request)
+    {
+        $request->validate([
+            'link' => 'required|string|max:2048',
+        ]);
+
+        $link = trim($request->link);
+
+        // 1) Coba ekstrak langsung dari string link (link Maps versi panjang
+        //    sudah mengandung koordinat di URL-nya, tidak perlu request keluar).
+        $coords = $this->extractLatLng($link);
+
+        // 2) Kalau belum ketemu, kemungkinan ini link pendek yang perlu
+        //    ditelusuri redirect-nya. Batasi HANYA ke domain Google Maps
+        //    yang dikenal supaya endpoint ini tidak disalahgunakan untuk
+        //    memanggil URL sembarangan dari server (SSRF).
+        if (!$coords) {
+            if (!$this->isAllowedMapsHost($link)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Link harus berupa link Google Maps (google.com/maps, maps.app.goo.gl, atau goo.gl).',
+                ], 422);
+            }
+
+            $finalUrl = $this->resolveFinalUrl($link);
+            if ($finalUrl) {
+                $coords = $this->extractLatLng($finalUrl);
+            }
+        }
+
+        if (!$coords) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Koordinat tidak ditemukan pada link tersebut. Pastikan link berasal dari tombol "Bagikan" di Google Maps, atau isi koordinat secara manual.',
+            ], 422);
+        }
+
+        return response()->json([
+            'success'   => true,
+            'latitude'  => $coords['lat'],
+            'longitude' => $coords['lng'],
+        ]);
+    }
+
+    private function extractLatLng(string $url): ?array
+    {
+        // Format: .../@-5.4291839,105.2618658,17z
+        if (preg_match('/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/', $url, $m)) {
+            return ['lat' => $m[1], 'lng' => $m[2]];
+        }
+        // Format: ?q=-5.4291839,105.2618658 atau ?query=-5.4291839,105.2618658
+        if (preg_match('/[?&](?:q|query)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/', $url, $m)) {
+            return ['lat' => $m[1], 'lng' => $m[2]];
+        }
+        // Format: ?ll=-5.4291839,105.2618658
+        if (preg_match('/[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/', $url, $m)) {
+            return ['lat' => $m[1], 'lng' => $m[2]];
+        }
+        // Format data-blob Google Maps: !3d-5.4291839!4d105.2618658
+        if (preg_match('/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/', $url, $m)) {
+            return ['lat' => $m[1], 'lng' => $m[2]];
+        }
+
+        return null;
+    }
+
+    private function isAllowedMapsHost(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (!$parts || empty($parts['host']) || empty($parts['scheme'])) {
+            return false;
+        }
+        if (!in_array(strtolower($parts['scheme']), ['http', 'https'], true)) {
+            return false;
+        }
+
+        $host = strtolower($parts['host']);
+        $allowed = [
+            'maps.google.com', 'www.google.com', 'google.com',
+            'maps.app.goo.gl', 'goo.gl', 'g.co',
+        ];
+
+        foreach ($allowed as $a) {
+            if ($host === $a || str_ends_with($host, '.'.$a)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function resolveFinalUrl(string $url): ?string
+    {
+        if (!function_exists('curl_init')) {
+            return null;
+        }
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 10,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; KP-System/1.0)',
+        ]);
+        curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            curl_close($ch);
+            return null;
+        }
+
+        $finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        curl_close($ch);
+
+        return $finalUrl ?: null;
+    }
 }

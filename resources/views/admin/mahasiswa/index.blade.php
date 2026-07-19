@@ -93,11 +93,16 @@
             </div>
             <div class="text-sm text-muted">{{ $pct }}%</div>
           </td>
-          <td><span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span></td>
+          <td>
+            <span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span>
+            @if($m->tahap !== 'aktif_kp')
+              <br><span class="badge {{ $m->tahap === 'revisi_berkas' ? 'badge-rejected' : 'badge-belum' }}" style="margin-top:3px">{{ $m->tahapLabel() }}</span>
+            @endif
+          </td>
           <td>
             <div style="display:flex;gap:4px;flex-wrap:wrap">
               <a href="{{ route('admin.mahasiswa.show',$m) }}" class="btn btn-ghost btn-xs">Detail</a>
-              <button class="btn btn-outline btn-xs" onclick="openEdit({{ $m->id }},'{{ addslashes($m->nama) }}','{{ $m->angkatan }}','{{ $m->status }}','{{ $m->dosen_id }}','{{ $m->instansi_id }}','{{ $m->tanggal_mulai }}')">Edit</button>
+              <button class="btn btn-outline btn-xs" onclick="openEdit({{ $m->id }},'{{ addslashes($m->nama) }}','{{ $m->angkatan }}','{{ $m->status }}','{{ $m->dosen_id }}','{{ $m->instansi_id }}','{{ $m->tanggal_mulai }}',{{ $m->sudahMencapaiTahap('menunggu_instansi') ? 'true' : 'false' }})">Edit</button>
               <form method="POST" action="{{ route('admin.mahasiswa.destroy',$m) }}" onsubmit="return confirm('Hapus mahasiswa ini?')" style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-xs">Hapus</button>
@@ -285,6 +290,9 @@
           </select>
         </div>
       </div>
+      <div class="alert alert-warning" id="eHintBerkas" style="display:none;margin-top:4px">
+        ⚠️ Berkas persyaratan mahasiswa ini belum disetujui (menu <a href="{{ route('admin.persyaratan.index') }}">Persyaratan KP</a>). Dosen/Instansi baru bisa ditentukan setelah berkas disetujui.
+      </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalEdit')">Batal</button>
         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
@@ -332,7 +340,7 @@ document.getElementById('formTambah').addEventListener('submit', function (e) {
 });
 
 /* ── Open Edit Modal ── */
-function openEdit(id, nama, angkatan, status, dosenId, instansiId, tglMulai) {
+function openEdit(id, nama, angkatan, status, dosenId, instansiId, tglMulai, siapDitempatkan) {
   document.getElementById('editForm').action = `/admin/mahasiswa/${id}`;
   document.getElementById('eNama').value      = nama;
   document.getElementById('eAngkatan').value  = angkatan;
@@ -340,6 +348,7 @@ function openEdit(id, nama, angkatan, status, dosenId, instansiId, tglMulai) {
   document.getElementById('eDosen').value     = dosenId    || '';
   document.getElementById('eInstansi').value  = instansiId || '';
   document.getElementById('eTglMulai').value  = tglMulai   || '';
+  document.getElementById('eHintBerkas').style.display = siapDitempatkan ? 'none' : '';
   openModal('modalEdit');
 }
 </script>

@@ -318,6 +318,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('admin.instansi.index') }}" class="nav-item {{ request()->routeIs('admin.instansi*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🏢</span> Instansi
       </a>
+      <a href="{{ route('admin.persyaratan.index') }}" class="nav-item {{ request()->routeIs('admin.persyaratan*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">🗂️</span> Persyaratan KP
+      </a>
       <div class="nav-section">Monitoring</div>
       <a href="{{ route('admin.progress.index') }}" class="nav-item {{ request()->routeIs('admin.progress*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">📈</span> Laporan
@@ -356,6 +359,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('dosen.chat.index') }}" class="nav-item {{ request()->routeIs('dosen.chat*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">💬</span> Pesan Instansi
       </a>
+      <a href="{{ route('dosen.surat.index') }}" class="nav-item {{ request()->routeIs('dosen.surat*') ? 'active role-dosen' : '' }}">
+  <span class="nav-icon">✉️</span> Surat
+</a>
 
     @elseif($role === 'instansi')
       <div class="nav-section">Utama</div>
@@ -380,6 +386,7 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       </a>
 
     @elseif($role === 'mahasiswa')
+      @php $mhsNav = Auth::user()->mahasiswa; $aktifKp = $mhsNav?->sudahAktifKp(); @endphp
       <div class="nav-section">Utama</div>
       <a href="{{ route('mahasiswa.dashboard') }}" class="nav-item {{ request()->routeIs('mahasiswa.dashboard') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">📊</span> Dashboard Saya
@@ -388,19 +395,40 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('mahasiswa.profile.show') }}" class="nav-item {{ request()->routeIs('mahasiswa.profile*') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">👤</span> Profil Saya
       </a>
+      <a href="{{ route('mahasiswa.persyaratan.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.persyaratan*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">🗂️</span> Persyaratan KP
+      </a>
+      <a href="{{ route('mahasiswa.surat-balasan.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.surat-balasan*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">✉️</span> Surat Balasan Instansi
+      </a>
       <div class="nav-section">KP Saya</div>
-      <a href="{{ route('mahasiswa.absensi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.absensi*') ? 'active role-mahasiswa' : '' }}">
-        <span class="nav-icon">📍</span> Absensi
-      </a>
-      <a href="{{ route('mahasiswa.progress.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.progress*') ? 'active role-mahasiswa' : '' }}">
-        <span class="nav-icon">📈</span> Laporan
-      </a>
-      <a href="{{ route('mahasiswa.seminar.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.seminar*') ? 'active role-mahasiswa' : '' }}">
-        <span class="nav-icon">🎤</span> Info Seminar
-      </a>
-            <a href="{{ route('mahasiswa.nilai.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.nilai*') ? 'active role-mahasiswa' : '' }}">
-        <span class="nav-icon">📝</span> Nilai
-      </a>
+      @if($aktifKp)
+        <a href="{{ route('mahasiswa.absensi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.absensi*') ? 'active role-mahasiswa' : '' }}">
+          <span class="nav-icon">📍</span> Absensi
+        </a>
+        <a href="{{ route('mahasiswa.progress.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.progress*') ? 'active role-mahasiswa' : '' }}">
+          <span class="nav-icon">📈</span> Laporan
+        </a>
+        <a href="{{ route('mahasiswa.seminar.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.seminar*') ? 'active role-mahasiswa' : '' }}">
+          <span class="nav-icon">🎤</span> Info Seminar
+        </a>
+        <a href="{{ route('mahasiswa.nilai.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.nilai*') ? 'active role-mahasiswa' : '' }}">
+          <span class="nav-icon">📝</span> Nilai
+        </a>
+      @else
+        <span class="nav-item" style="opacity:.45;cursor:not-allowed" title="Selesaikan tahap Persyaratan KP dulu">
+          <span class="nav-icon">🔒</span> Absensi
+        </span>
+        <span class="nav-item" style="opacity:.45;cursor:not-allowed" title="Selesaikan tahap Persyaratan KP dulu">
+          <span class="nav-icon">🔒</span> Laporan
+        </span>
+        <span class="nav-item" style="opacity:.45;cursor:not-allowed" title="Selesaikan tahap Persyaratan KP dulu">
+          <span class="nav-icon">🔒</span> Info Seminar
+        </span>
+        <span class="nav-item" style="opacity:.45;cursor:not-allowed" title="Selesaikan tahap Persyaratan KP dulu">
+          <span class="nav-icon">🔒</span> Nilai
+        </span>
+      @endif
       <a href="{{ route('mahasiswa.surat.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.surat*') ? 'active role-mahasiswa' : '' }}">
   <span class="nav-icon">✉️</span> Surat
 </a>

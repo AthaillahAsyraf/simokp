@@ -144,7 +144,15 @@
       <hr class="divider">
       <div class="form-group" style="margin-bottom:8px">
         <label class="form-label">📍 Lokasi Titik Absen</label>
-        <p class="form-hint" style="margin:0 0 8px">Wajib diisi agar mahasiswa bisa absen di instansi ini. Klik kanan lokasi di Google Maps untuk menyalin koordinatnya, atau gunakan tombol di bawah jika Anda sedang berada di lokasi instansi.</p>
+        <p class="form-hint" style="margin:0 0 8px">Wajib diisi agar mahasiswa bisa absen di instansi ini. Tempelkan link Google Maps lokasi instansi (tombol "Bagikan" → "Salin link" di Google Maps), atau gunakan tombol GPS jika Anda sedang berada di lokasi instansi.</p>
+
+        <div style="display:flex;gap:6px;margin-bottom:4px">
+          <input type="text" id="tLinkMaps" class="form-control"
+                 placeholder="Tempel link Google Maps di sini, mis. https://maps.app.goo.gl/xxxx">
+          <button type="button" class="btn btn-outline btn-sm" onclick="ambilDariLink('tambah')" id="btnLinkTambah" style="white-space:nowrap">🔗 Ambil dari Link</button>
+        </div>
+        <small id="linkTambahInfo" class="form-hint" style="display:block;margin-bottom:10px"></small>
+
         <button type="button" class="btn btn-outline btn-sm" onclick="ambilLokasiSaya('tambah')" id="btnLokasiTambah">📡 Gunakan Lokasi Saya Sekarang</button>
         <small id="lokasiTambahInfo" class="form-hint" style="display:block;margin-top:4px"></small>
       </div>
@@ -260,7 +268,15 @@
       <hr class="divider">
       <div class="form-group" style="margin-bottom:8px">
         <label class="form-label">📍 Lokasi Titik Absen</label>
-        <p class="form-hint" style="margin:0 0 8px">Wajib diisi agar mahasiswa bisa absen di instansi ini.</p>
+        <p class="form-hint" style="margin:0 0 8px">Wajib diisi agar mahasiswa bisa absen di instansi ini. Tempelkan link Google Maps lokasi instansi, atau gunakan tombol GPS jika Anda sedang berada di lokasi.</p>
+
+        <div style="display:flex;gap:6px;margin-bottom:4px">
+          <input type="text" id="eLinkMaps" class="form-control"
+                 placeholder="Tempel link Google Maps di sini, mis. https://maps.app.goo.gl/xxxx">
+          <button type="button" class="btn btn-outline btn-sm" onclick="ambilDariLink('edit')" id="btnLinkEdit" style="white-space:nowrap">🔗 Ambil dari Link</button>
+        </div>
+        <small id="linkEditInfo" class="form-hint" style="display:block;margin-bottom:10px"></small>
+
         <button type="button" class="btn btn-outline btn-sm" onclick="ambilLokasiSaya('edit')" id="btnLokasiEdit">📡 Gunakan Lokasi Saya Sekarang</button>
         <small id="lokasiEditInfo" class="form-hint" style="display:block;margin-top:4px"></small>
       </div>
@@ -358,12 +374,15 @@ function openEdit(id, nama, bidang, alamat, kontak, hp, lat, lng, radius) {
     document.getElementById('eLat').value     = lat     || '';
     document.getElementById('eLng').value     = lng     || '';
     document.getElementById('eRadius').value  = radius  || 100;
+    document.getElementById('eLinkMaps').value = '';
+    document.getElementById('linkEditInfo').textContent = '';
+    document.getElementById('lokasiEditInfo').textContent = '';
     openModal('modalEdit');
 }
 
 /* ── Ambil koordinat GPS perangkat saat ini dan isi ke form ── */
 function ambilLokasiSaya(mode) {
-    const suffix = mode === 'tambah' ? 'T' : 'e';
+    const suffix = mode === 'tambah' ? 't' : 'e';
     const infoEl  = document.getElementById('lokasi' + (mode === 'tambah' ? 'Tambah' : 'Edit') + 'Info');
     const btnEl   = document.getElementById('btnLokasi' + (mode === 'tambah' ? 'Tambah' : 'Edit'));
 
@@ -391,6 +410,86 @@ function ambilLokasiSaya(mode) {
         infoEl.textContent = '❌ Gagal mengambil lokasi. Pastikan GPS aktif dan izin lokasi diberikan, atau isi manual lewat Google Maps.';
         btnEl.disabled = false;
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+}
+
+/* ── Ambil koordinat dari link Google Maps yang ditempel user ── */
+async function ambilDariLink(mode) {
+    const suffix  = mode === 'tambah' ? 't' : 'e';
+    const capSuf  = mode === 'tambah' ? 'Tambah' : 'Edit';
+    const linkEl  = document.getElementById(suffix + 'LinkMaps');
+    const infoEl  = document.getElementById('link' + capSuf + 'Info');
+    const btnEl   = document.getElementById('btnLink' + capSuf);
+    const link    = linkEl.value.trim();
+
+    if (!link) {
+        infoEl.style.color = '#dc2626';
+        infoEl.textContent = '❌ Tempelkan link Google Maps terlebih dahulu.';
+        return;
+    }
+
+    // 1) Coba parse langsung di browser dulu (cepat, cukup untuk link Maps versi panjang)
+    const langsung = parseLatLngFromMapsLink(link);
+    if (langsung) {
+        isiKoordinat(mode, langsung.lat, langsung.lng);
+        infoEl.style.color = '#16a34a';
+        infoEl.textContent = `✅ Koordinat ditemukan: ${langsung.lat}, ${langsung.lng}. Periksa kembali sebelum menyimpan.`;
+        return;
+    }
+
+    // 2) Link pendek (maps.app.goo.gl / goo.gl) → minta server menelusuri redirect-nya
+    btnEl.disabled = true;
+    infoEl.style.color = '#64748b';
+    infoEl.textContent = '🔗 Membaca link...';
+
+    try {
+        const res = await fetch('{{ route("admin.instansi.resolveLokasi") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken(),
+            },
+            body: JSON.stringify({ link }),
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            isiKoordinat(mode, data.latitude, data.longitude);
+            infoEl.style.color = '#16a34a';
+            infoEl.textContent = `✅ Koordinat ditemukan: ${data.latitude}, ${data.longitude}. Periksa kembali sebelum menyimpan.`;
+        } else {
+            infoEl.style.color = '#dc2626';
+            infoEl.textContent = '❌ ' + (data.message || 'Koordinat tidak ditemukan pada link tersebut.');
+        }
+    } catch (err) {
+        infoEl.style.color = '#dc2626';
+        infoEl.textContent = '❌ Gagal memproses link. Periksa koneksi internet Anda.';
+    } finally {
+        btnEl.disabled = false;
+    }
+}
+
+function isiKoordinat(mode, lat, lng) {
+    const suffix = mode === 'tambah' ? 't' : 'e';
+    document.getElementById(suffix + 'Lat').value = lat;
+    document.getElementById(suffix + 'Lng').value = lng;
+}
+
+/* Parse berbagai format link Google Maps: @lat,lng / ?q=lat,lng / ?ll=lat,lng / !3dlat!4dlng */
+function parseLatLngFromMapsLink(url) {
+    let m;
+    if ((m = url.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/)))                       return { lat: m[1], lng: m[2] };
+    if ((m = url.match(/[?&](?:q|query)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/)))        return { lat: m[1], lng: m[2] };
+    if ((m = url.match(/[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/)))                 return { lat: m[1], lng: m[2] };
+    if ((m = url.match(/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/)))                   return { lat: m[1], lng: m[2] };
+    return null;
+}
+
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) return meta.content;
+    const input = document.querySelector('input[name="_token"]');
+    return input ? input.value : '';
 }
 </script>
 @endpush

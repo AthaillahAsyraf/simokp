@@ -56,7 +56,7 @@
         @endphp
         <div class="bab-card {{ $state }}"
              @if($clickable)
-             onclick="openVerifikasi({{ $p->id }}, '{{ $p->bab }}', '{{ $state }}', {{ json_encode($p->file_url) }}, {{ json_encode($p->file_asli) }}, {{ json_encode($p->catatan) }})"
+             onclick="openVerifikasi({{ $p->id }}, '{{ $p->bab }}', '{{ $state }}', {{ json_encode($p->file_url) }}, {{ json_encode($p->file_asli) }}, {{ json_encode($p->catatan) }}, {{ json_encode($p->file_dosen_url) }}, {{ json_encode($p->file_dosen_asli) }})"
              @endif>
           <div class="bab-icon">{{ $icon }}</div>
           <div class="bab-num">{{ $p->bab }}</div>
@@ -82,11 +82,20 @@
 
     <a href="#" id="vFileLink" target="_blank" class="file-link">📄 <span id="vFileName"></span></a>
 
-    <form method="POST" id="vForm">
+    <div id="vFileDosenBox" style="display:none">
+      <a href="#" id="vFileDosenLink" target="_blank" class="file-link" style="background:var(--green-50);border-color:var(--green-100);color:var(--green-600)">📎 <span id="vFileDosenName"></span></a>
+    </div>
+
+    <form method="POST" id="vForm" enctype="multipart/form-data">
       @csrf
       <div class="form-group" id="vCatatanGroup">
         <label class="form-label">Catatan <small class="text-muted" id="vCatatanHint">(wajib diisi jika minta revisi)</small></label>
         <textarea name="catatan" id="vCatatanInput" class="form-control" rows="3" placeholder="Tulis masukan untuk mahasiswa..."></textarea>
+      </div>
+      <div class="form-group" id="vFileDosenGroup">
+        <label class="form-label">Kirim File ke Mahasiswa <small class="text-muted">(opsional)</small></label>
+        <input type="file" name="file_dosen" id="vFileDosenInput" class="form-control" accept=".pdf,.doc,.docx,.zip">
+        <p class="form-hint">Opsional — misalnya file koreksi/lampiran tambahan. Format PDF/DOC/DOCX/ZIP, maksimal 10MB.</p>
       </div>
       <div class="modal-footer" id="vFooter">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalVerifikasi')">Tutup</button>
@@ -99,7 +108,7 @@
 
 @push('scripts')
 <script>
-function openVerifikasi(id, bab, state, fileUrl, fileName, catatan) {
+function openVerifikasi(id, bab, state, fileUrl, fileName, catatan, fileDosenUrl, fileDosenName) {
   document.getElementById('vForm').action = `{{ url('dosen-area/progress') }}/${id}/verifikasi`;
   document.getElementById('vTitle').textContent = '🔎 ' + bab;
   document.getElementById('vFileLink').href = fileUrl || '#';
@@ -113,19 +122,32 @@ function openVerifikasi(id, bab, state, fileUrl, fileName, catatan) {
     catBox.style.display = 'none';
   }
 
+  const fileDosenBox = document.getElementById('vFileDosenBox');
+  if (fileDosenUrl) {
+    document.getElementById('vFileDosenLink').href = fileDosenUrl;
+    document.getElementById('vFileDosenName').textContent = 'File terkirim: ' + (fileDosenName || 'lihat file');
+    fileDosenBox.style.display = 'block';
+  } else {
+    fileDosenBox.style.display = 'none';
+  }
+
   const footer  = document.getElementById('vFooter');
   const catGroup = document.getElementById('vCatatanGroup');
+  const fileDosenGroup = document.getElementById('vFileDosenGroup');
   document.getElementById('vCatatanInput').value = '';
+  document.getElementById('vFileDosenInput').value = '';
 
   if (state === 'done') {
     // sudah final, cuma lihat-lihat
     document.getElementById('vBtnRevisi').style.display = 'none';
     document.getElementById('vBtnApprove').style.display = 'none';
     catGroup.style.display = 'none';
+    fileDosenGroup.style.display = 'none';
   } else {
     document.getElementById('vBtnRevisi').style.display = '';
     document.getElementById('vBtnApprove').style.display = '';
     catGroup.style.display = '';
+    fileDosenGroup.style.display = '';
   }
 
   openModal('modalVerifikasi');

@@ -13,10 +13,14 @@ class ProgressBab extends Model {
         'file',
         'file_asli',
         'file_uploaded_at',
+        'file_dosen',
+        'file_dosen_asli',
+        'file_dosen_uploaded_at',
     ];
 
     protected $casts = [
         'file_uploaded_at' => 'datetime',
+        'file_dosen_uploaded_at' => 'datetime',
     ];
 
     public function mahasiswa() { return $this->belongsTo(Mahasiswa::class); }
@@ -33,6 +37,11 @@ class ProgressBab extends Model {
 
     public function getFileUrlAttribute(): ?string {
         return $this->file ? asset('storage/'.$this->file) : null;
+    }
+
+    /** File balasan/lampiran opsional dari dosen ke mahasiswa untuk BAB ini. */
+    public function getFileDosenUrlAttribute(): ?string {
+        return $this->file_dosen ? asset('storage/'.$this->file_dosen) : null;
     }
 
     /**

@@ -9,6 +9,10 @@
   <p>Pantau progress Kerja Praktik Anda di sini.</p>
 </div>
 
+@if(!$mahasiswa->sudahAktifKp())
+  @include('partials.tahapan-kp', ['mahasiswa' => $mahasiswa])
+@endif
+
 <div class="stats-grid stats-2">
   <div class="stat-card c-mhs">
     <div class="stat-label">Progress Laporan</div>
