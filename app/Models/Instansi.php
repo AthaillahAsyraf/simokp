@@ -8,13 +8,12 @@ class Instansi extends Model
 {
     protected $fillable = [
         'user_id', 'nama', 'bidang', 'alamat', 'kontak_person', 'no_hp',
-        'latitude', 'longitude', 'radius_absen',
+        'latitude', 'longitude',
     ];
 
     protected $casts = [
         'latitude'     => 'float',
         'longitude'    => 'float',
-        'radius_absen' => 'integer',
     ];
 
     public function user()

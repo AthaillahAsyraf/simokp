@@ -10,9 +10,15 @@
 <div class="card" style="max-width:480px">
   <div class="card-body">
 
-    @if(session('success'))
+   @if(session('success'))
       <div class="alert alert-success" style="margin-bottom:18px">
         ✅ {{ session('success') }}
+      </div>
+    @endif
+
+    @if(session('force_ganti_password'))
+      <div class="alert alert-warning" style="margin-bottom:18px">
+        🔒 {{ session('force_ganti_password') }}
       </div>
     @endif
 

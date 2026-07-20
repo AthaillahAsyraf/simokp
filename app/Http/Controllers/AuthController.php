@@ -77,17 +77,20 @@ class AuthController extends Controller {
             return back()->withErrors(['password_baru' => 'Password baru tidak boleh sama dengan password lama.']);
         }
 
-        $user->update(['password' => Hash::make($request->password_baru)]);
+        $user->update([
+            'password'             => Hash::make($request->password_baru),
+            'wajib_ganti_password' => false,
+        ]);
 
         return back()->with('success', 'Password berhasil diperbarui.');
     }
 
     public function redirectByRole(string $role): string {
         return match($role) {
-            'admin'    => route('admin.dashboard'),
-            'dosen'    => route('dosen.dashboard'),
-            'instansi' => route('instansi.dashboard'),
-            default    => route('mahasiswa.dashboard'),
+            'admin'               => route('admin.dashboard'),
+            'dosen'               => route('dosen.dashboard'),
+            'pembimbing_lapangan' => route('instansi.dashboard'),
+            default               => route('mahasiswa.dashboard'),
         };
     }
 }

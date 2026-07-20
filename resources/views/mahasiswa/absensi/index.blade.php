@@ -57,7 +57,7 @@
     <div class="card-header">
       <div>
         <h3>🏢 {{ $instansi->nama }}</h3>
-        <p>{{ $instansi->alamat ?? '-' }} • Radius toleransi: <strong>{{ $instansi->radius_absen ?? 100 }} meter</strong></p>
+        <p>{{ $instansi->alamat ?? '-' }}</p>
       </div>
     </div>
   </div>
@@ -218,7 +218,7 @@
 <script>
 const INSTANSI_LAT   = {{ $instansi?->latitude ?? 'null' }};
 const INSTANSI_LNG   = {{ $instansi?->longitude ?? 'null' }};
-const RADIUS_ABSEN   = {{ $instansi?->radius_absen ?? 100 }};
+
 const JAM_MASUK_HARI_INI = @json($absensiHariIni?->jam_masuk); // "HH:mm:ss" atau null
 const DURASI_MINIMAL_JAM = {{ \App\Models\Absensi::DURASI_MINIMAL_JAM }};
 
@@ -316,13 +316,8 @@ function startLocation(){
     const jarak   = Math.round(hitungJarakMeter(pos.coords.latitude, pos.coords.longitude, INSTANSI_LAT, INSTANSI_LNG));
     const akurasi = Math.round(pos.coords.accuracy);
     const loc = document.getElementById('locStatus');
-    if (jarak <= RADIUS_ABSEN){
-      loc.className = 'loc-info ok';
-      loc.textContent = `✅ ${jarak}m dari instansi (akurasi ±${akurasi}m)`;
-    } else {
-      loc.className = 'loc-info bad';
-      loc.textContent = `⚠️ ${jarak}m dari instansi — di luar radius ${RADIUS_ABSEN}m (akurasi ±${akurasi}m)`;
-    }
+    loc.className = 'loc-info ok';
+    loc.textContent = `📍 ${jarak}m dari instansi (akurasi ±${akurasi}m)`;
     updateSubmitState();
   }, () => {
     const loc = document.getElementById('locStatus');

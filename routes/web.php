@@ -46,7 +46,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::get('instansi/{instansi}',     [App\Http\Controllers\Admin\InstansiController::class,'show'])->name('instansi.show');
     Route::put('instansi/{instansi}',     [App\Http\Controllers\Admin\InstansiController::class,'update'])->name('instansi.update');
     Route::delete('instansi/{instansi}',  [App\Http\Controllers\Admin\InstansiController::class,'destroy'])->name('instansi.destroy');
-    Route::post('instansi/resolve-lokasi',[App\Http\Controllers\Admin\InstansiController::class,'resolveLokasi'])->name('instansi.resolveLokasi'); // ← BARU
+    Route::post('instansi/resolve-lokasi',[App\Http\Controllers\Admin\InstansiController::class,'resolveLokasi'])->name('instansi.resolveLokasi');
 
     Route::get('persyaratan',                       [App\Http\Controllers\Admin\PersyaratanController::class,'index'])->name('persyaratan.index');
     Route::post('persyaratan/{mahasiswa}/verifikasi',[App\Http\Controllers\Admin\PersyaratanController::class,'verifikasi'])->name('persyaratan.verifikasi');
@@ -69,12 +69,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::get('absensi/{mahasiswa}',         [App\Http\Controllers\Admin\AbsensiController::class,'show'])->name('absensi.show');
     Route::patch('absensi/catatan/{absensi}', [App\Http\Controllers\Admin\AbsensiController::class,'updateCatatan'])->name('absensi.catatan');
 
-    // ── Surat ── [DITAMBAH: kirim & balas]
+    // ── Surat ──
     Route::get('surat',                  [App\Http\Controllers\Admin\SuratController::class,'index'])->name('surat.index');
-    Route::post('surat/kirim',           [App\Http\Controllers\Admin\SuratController::class,'kirim'])->name('surat.kirim');    // ← BARU
+    Route::post('surat/kirim',           [App\Http\Controllers\Admin\SuratController::class,'kirim'])->name('surat.kirim');
     Route::post('surat/{surat}/approve', [App\Http\Controllers\Admin\SuratController::class,'approve'])->name('surat.approve');
     Route::post('surat/{surat}/reject',  [App\Http\Controllers\Admin\SuratController::class,'reject'])->name('surat.reject');
-    Route::post('surat/{surat}/balas',   [App\Http\Controllers\Admin\SuratController::class,'balas'])->name('surat.balas');   // ← BARU
+    Route::post('surat/{surat}/balas',   [App\Http\Controllers\Admin\SuratController::class,'balas'])->name('surat.balas');
 });
 
 // ─── DOSEN ───────────────────────────────────────────────────────────────────
@@ -99,40 +99,23 @@ Route::prefix('dosen-area')->name('dosen.')->middleware(['auth','role:dosen'])->
     Route::get('absensi/{mahasiswa}',         [App\Http\Controllers\Dosen\AbsensiController::class,'show'])->name('absensi.show');
     Route::patch('absensi/catatan/{absensi}', [App\Http\Controllers\Dosen\AbsensiController::class,'updateCatatan'])->name('absensi.catatan');
 
-    // ── Surat ── [BARU SEMUA]
+    // ── Surat ──
     Route::get('surat',                [App\Http\Controllers\Dosen\SuratController::class,'index'])->name('surat.index');
     Route::post('surat/kirim',         [App\Http\Controllers\Dosen\SuratController::class,'kirim'])->name('surat.kirim');
     Route::post('surat/{surat}/balas', [App\Http\Controllers\Dosen\SuratController::class,'balas'])->name('surat.balas');
 });
 
-// ─── INSTANSI ─────────────────────────────────────────────────────────────────
-Route::prefix('instansi-area')->name('instansi.')->middleware(['auth','role:instansi'])->group(function () {
+// ─── PEMBIMBING LAPANGAN (akun berperan "instansi") ────────────────────────────
+Route::prefix('instansi-area')->name('instansi.')->middleware(['auth','role:pembimbing_lapangan'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\Instansi\DashboardController::class,'index'])->name('dashboard');
-
-    Route::get('mahasiswa',             [App\Http\Controllers\Instansi\MahasiswaController::class,'index'])->name('mahasiswa.index');
-    Route::get('mahasiswa/{mahasiswa}', [App\Http\Controllers\Instansi\MahasiswaController::class,'show'])->name('mahasiswa.show');
 
     Route::get('nilai',                    [App\Http\Controllers\Instansi\NilaiController::class,'index'])->name('nilai.index');
     Route::put('nilai/{mahasiswa}',        [App\Http\Controllers\Instansi\NilaiController::class,'update'])->name('nilai.update');
     Route::get('nilai/{mahasiswa}/cetak',  [App\Http\Controllers\Instansi\NilaiController::class,'cetak'])->name('nilai.cetak');
 
-    Route::get ('chat',              [App\Http\Controllers\Instansi\ChatController::class,'index'])->name('chat.index');
-    Route::get ('chat/baru',         [App\Http\Controllers\Instansi\ChatController::class,'create'])->name('chat.create');
-    Route::post('chat',              [App\Http\Controllers\Instansi\ChatController::class,'store'])->name('chat.store');
-    Route::get ('chat/{chat}',       [App\Http\Controllers\Instansi\ChatController::class,'show'])->name('chat.show');
-    Route::post('chat/{chat}/reply', [App\Http\Controllers\Instansi\ChatController::class,'reply'])->name('chat.reply');
-
-    Route::get('absensi',             [App\Http\Controllers\Instansi\AbsensiController::class,'index'])->name('absensi.index');
-    Route::get('absensi/{mahasiswa}', [App\Http\Controllers\Instansi\AbsensiController::class,'show'])->name('absensi.show');
-
-    // ── Surat ── [DITAMBAH: kirim]
     Route::get('surat',                [App\Http\Controllers\Instansi\SuratController::class,'index'])->name('surat.index');
-    Route::post('surat/kirim',         [App\Http\Controllers\Instansi\SuratController::class,'kirim'])->name('surat.kirim');   // ← BARU
+    Route::post('surat/kirim',         [App\Http\Controllers\Instansi\SuratController::class,'kirim'])->name('surat.kirim');
     Route::post('surat/{surat}/balas', [App\Http\Controllers\Instansi\SuratController::class,'balas'])->name('surat.balas');
-
-    Route::get ('logbook',                   [App\Http\Controllers\Instansi\LogbookController::class,'index'])->name('logbook.index');
-    Route::post('logbook/{logbook}/approve', [App\Http\Controllers\Instansi\LogbookController::class,'approve'])->name('logbook.approve');
-    Route::post('logbook/{logbook}/reject',  [App\Http\Controllers\Instansi\LogbookController::class,'reject'])->name('logbook.reject');
 });
 
 // ─── MAHASISWA ────────────────────────────────────────────────────────────────
@@ -143,7 +126,6 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
     Route::get('profile/edit', [App\Http\Controllers\Mahasiswa\ProfileController::class,'edit'])->name('profile.edit');
     Route::put('profile',      [App\Http\Controllers\Mahasiswa\ProfileController::class,'update'])->name('profile.update');
 
-    // ── Persyaratan KP (tahap paling awal, sesuai Prosedur KP) ──
     // ── Persyaratan KP (tahap paling awal, sesuai Prosedur KP) ──
     Route::get('persyaratan',  [App\Http\Controllers\Mahasiswa\PersyaratanController::class,'index'])->name('persyaratan.index');
     Route::post('persyaratan', [App\Http\Controllers\Mahasiswa\PersyaratanController::class,'upload'])->name('persyaratan.upload');
@@ -185,5 +167,11 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
     Route::middleware('tahap:menunggu_instansi')->group(function () {
         Route::post('surat',                  [App\Http\Controllers\Mahasiswa\SuratController::class,'store'])->name('surat.store');
         Route::post('surat/{surat}/teruskan', [App\Http\Controllers\Mahasiswa\SuratController::class,'teruskan'])->name('surat.teruskan');
+
+        // ── Daftarkan Instansi & Pembimbing Lapangan (tugas mahasiswa,
+        //    dilakukan setelah surat balasan instansi diunggah) ──
+        Route::get('instansi',  [App\Http\Controllers\Mahasiswa\InstansiController::class,'index'])->name('instansi.index');
+        Route::post('instansi', [App\Http\Controllers\Mahasiswa\InstansiController::class,'store'])->name('instansi.store');
+        Route::post('instansi/resolve-lokasi', [App\Http\Controllers\Admin\InstansiController::class,'resolveLokasi'])->name('instansi.resolveLokasi');
     });
 });

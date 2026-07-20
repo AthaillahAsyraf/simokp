@@ -7,6 +7,7 @@ use App\Models\{Instansi, User};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class InstansiController extends Controller
@@ -35,7 +36,6 @@ class InstansiController extends Controller
             'password'      => 'required|min:8',
             'latitude'      => 'nullable|numeric|between:-90,90',
             'longitude'     => 'nullable|numeric|between:-180,180',
-            'radius_absen'  => 'nullable|integer|min:10|max:5000',
         ]);
 
         if ($validator->fails()) {
@@ -48,7 +48,8 @@ class InstansiController extends Controller
                     'name'     => $request->nama,
                     'email'    => $request->email,
                     'password' => Hash::make($request->password),
-                    'role'     => 'instansi',
+                    'role'     => 'pembimbing_lapangan',
+                    'wajib_ganti_password' => true,
                 ]);
 
                 Instansi::create([
@@ -60,7 +61,6 @@ class InstansiController extends Controller
                     'no_hp'         => $request->no_hp,
                     'latitude'      => $request->latitude,
                     'longitude'     => $request->longitude,
-                    'radius_absen'  => $request->radius_absen ?: 100,
                 ]);
             });
         } catch (\Throwable $e) {
@@ -80,7 +80,6 @@ class InstansiController extends Controller
             'no_hp'         => 'nullable|numeric',
             'latitude'      => 'nullable|numeric|between:-90,90',
             'longitude'     => 'nullable|numeric|between:-180,180',
-            'radius_absen'  => 'nullable|integer|min:10|max:5000',
         ]);
 
         if ($validator->fails()) {
@@ -90,7 +89,7 @@ class InstansiController extends Controller
         try {
             $instansi->update($request->only([
                 'nama', 'bidang', 'alamat', 'kontak_person', 'no_hp',
-                'latitude', 'longitude', 'radius_absen',
+                'latitude', 'longitude',
             ]));
         } catch (\Throwable $e) {
             return back()->with('db_error', 'Gagal memperbarui instansi: '.$e->getMessage())
@@ -144,9 +143,32 @@ class InstansiController extends Controller
                 ], 422);
             }
 
-            $finalUrl = $this->resolveFinalUrl($link);
-            if ($finalUrl) {
-                $coords = $this->extractLatLng($finalUrl);
+            $resolved = $this->resolveFinalUrl($link);
+            if (!$resolved['success']) {
+                Log::warning('Gagal menelusuri link Google Maps.', [
+                    'curl_errno' => $resolved['errno'],
+                    'curl_error' => $resolved['error'],
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Link Google Maps tidak dapat ditelusuri saat ini. Periksa koneksi server lalu coba lagi, atau isi koordinat secara manual.',
+                ], 502);
+            }
+
+            if ($resolved) {
+                // Sebagian link pendek me-redirect langsung ke URL yang sudah
+                // mengandung @lat,lng (mis. pin lokasi kosong / "Bagikan posisi").
+                if ($resolved['url']) {
+                    $coords = $this->extractLatLng($resolved['url']);
+                }
+                // Tapi untuk link "Bagikan" sebuah tempat/bisnis, redirect-nya
+                // cuma berisi Place ID (data=!4m2!3m1!1s0x...), koordinat presisi-nya
+                // baru ke-embed di dalam HTML/JSON body halaman hasil redirect-nya.
+                // Jadi kalau URL-nya sendiri gak mengandung koordinat, coba parse body-nya.
+                if (!$coords && $resolved['body']) {
+                    $coords = $this->extractLatLng($resolved['body']);
+                }
             }
         }
 
@@ -166,20 +188,26 @@ class InstansiController extends Controller
 
     private function extractLatLng(string $url): ?array
     {
+        // Link hasil "Salin link" kadang menyandikan koma dan penanda data
+        // sebagai %2C / %21. Decode maksimal dua kali untuk format tersebut.
+        $url = rawurldecode(rawurldecode($url));
+        $number = '-?\\d{1,3}(?:\\.\\d+)?';
+
+        // Koordinat pin tempat didahulukan. @lat,lng hanya pusat tampilan peta.
+        if (preg_match("/!3d({$number})!4d({$number})/", $url, $m)) {
+            return ['lat' => $m[1], 'lng' => $m[2]];
+        }
+
         // Format: .../@-5.4291839,105.2618658,17z
-        if (preg_match('/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/', $url, $m)) {
+        if (preg_match("/@({$number}),({$number})/", $url, $m)) {
             return ['lat' => $m[1], 'lng' => $m[2]];
         }
         // Format: ?q=-5.4291839,105.2618658 atau ?query=-5.4291839,105.2618658
-        if (preg_match('/[?&](?:q|query)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/', $url, $m)) {
+        if (preg_match("/[?&](?:q|query)=({$number}),({$number})/", $url, $m)) {
             return ['lat' => $m[1], 'lng' => $m[2]];
         }
         // Format: ?ll=-5.4291839,105.2618658
-        if (preg_match('/[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/', $url, $m)) {
-            return ['lat' => $m[1], 'lng' => $m[2]];
-        }
-        // Format data-blob Google Maps: !3d-5.4291839!4d105.2618658
-        if (preg_match('/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/', $url, $m)) {
+        if (preg_match("/[?&]ll=({$number}),({$number})/", $url, $m)) {
             return ['lat' => $m[1], 'lng' => $m[2]];
         }
 
@@ -211,10 +239,16 @@ class InstansiController extends Controller
         return false;
     }
 
-    private function resolveFinalUrl(string $url): ?string
+    /**
+     * @return array{success: bool, url: ?string, body: ?string, errno: int, error: ?string}
+     */
+    private function resolveFinalUrl(string $url): array
     {
         if (!function_exists('curl_init')) {
-            return null;
+            return [
+                'success' => false, 'url' => null, 'body' => null,
+                'errno' => 0, 'error' => 'Ekstensi cURL PHP tidak aktif.',
+            ];
         }
 
         $ch = curl_init($url);
@@ -222,19 +256,32 @@ class InstansiController extends Controller
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 10,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_TIMEOUT        => 20,
             CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; KP-System/1.0)',
         ]);
-        curl_exec($ch);
+        $body = curl_exec($ch);
 
-        if (curl_errno($ch)) {
+        $errno = curl_errno($ch);
+        $error = curl_error($ch);
+
+        if ($errno) {
             curl_close($ch);
-            return null;
+            return [
+                'success' => false, 'url' => null, 'body' => null,
+                'errno' => $errno, 'error' => $error ?: null,
+            ];
         }
 
         $finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
         curl_close($ch);
 
-        return $finalUrl ?: null;
+        return [
+            'success' => true,
+            'url'  => $finalUrl ?: null,
+            'body' => $body ?: null,
+            'errno' => 0,
+            'error' => null,
+        ];
     }
 }

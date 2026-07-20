@@ -51,7 +51,7 @@
           </td>
           <td class="text-sm">
             @if($inst->latitude && $inst->longitude)
-              <span class="badge badge-selesai">📍 Diatur ({{ $inst->radius_absen ?? 100 }}m)</span>
+              <span class="badge badge-selesai">📍 Diatur</span>
             @else
               <span class="badge badge-belum">Belum diatur</span>
             @endif
@@ -61,7 +61,7 @@
             <div style="display:flex;gap:4px">
               <a href="{{ route('admin.instansi.show',$inst) }}" class="btn btn-ghost btn-xs">Detail</a>
               <button class="btn btn-outline btn-xs"
-                onclick="openEdit({{ $inst->id }},'{{ addslashes($inst->nama) }}','{{ addslashes($inst->bidang) }}','{{ addslashes($inst->alamat) }}','{{ addslashes($inst->kontak_person) }}','{{ $inst->no_hp }}','{{ $inst->latitude }}','{{ $inst->longitude }}','{{ $inst->radius_absen ?? 100 }}')">Edit</button>
+                onclick="openEdit({{ $inst->id }},'{{ addslashes($inst->nama) }}','{{ addslashes($inst->bidang) }}','{{ addslashes($inst->alamat) }}','{{ addslashes($inst->kontak_person) }}','{{ $inst->no_hp }}','{{ $inst->latitude }}','{{ $inst->longitude }}')">Edit</button>
               <form method="POST" action="{{ route('admin.instansi.destroy',$inst) }}"
                 onsubmit="return confirm('Hapus instansi ini?')" style="display:inline">
                 @csrf @method('DELETE')
@@ -174,14 +174,6 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Radius Toleransi Absen (meter)</label>
-        <input type="number" name="radius_absen"
-               class="form-control @error('radius_absen','tambah') is-invalid @enderror"
-               min="10" max="5000" placeholder="100" value="{{ old('radius_absen', 100) }}">
-        <p class="form-hint">Jarak maksimal dari titik koordinat di atas agar absen dianggap valid. Default 100 meter.</p>
-        @error('radius_absen','tambah')<small style="color:#dc2626">{{ $message }}</small>@enderror
-      </div>
       <hr class="divider">
 
       <div class="form-group">
@@ -298,13 +290,6 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Radius Toleransi Absen (meter)</label>
-        <input type="number" name="radius_absen" id="eRadius"
-               class="form-control @error('radius_absen','edit') is-invalid @enderror"
-               min="10" max="5000" placeholder="100">
-        @error('radius_absen','edit')<small style="color:#dc2626">{{ $message }}</small>@enderror
-      </div>
       <hr class="divider">
 
       <div class="modal-footer">
@@ -333,8 +318,7 @@ window.addEventListener('load', function () {
         '{{ addslashes(old('kontak_person', '')) }}',
         '{{ old('no_hp', '') }}',
         '{{ old('latitude', '') }}',
-        '{{ old('longitude', '') }}',
-        '{{ old('radius_absen', 100) }}'
+        '{{ old('longitude', '') }}'
     );
 });
 @endif
@@ -364,7 +348,7 @@ document.getElementById('formTambah').addEventListener('submit', function (e) {
 });
 
 /* ── Open Edit Modal ── */
-function openEdit(id, nama, bidang, alamat, kontak, hp, lat, lng, radius) {
+function openEdit(id, nama, bidang, alamat, kontak, hp, lat, lng) {
     document.getElementById('editForm').action = `/admin/instansi/${id}`;
     document.getElementById('eNama').value    = nama    || '';
     document.getElementById('eBidang').value  = bidang  || '';
@@ -373,7 +357,6 @@ function openEdit(id, nama, bidang, alamat, kontak, hp, lat, lng, radius) {
     document.getElementById('eHp').value      = hp      || '';
     document.getElementById('eLat').value     = lat     || '';
     document.getElementById('eLng').value     = lng     || '';
-    document.getElementById('eRadius').value  = radius  || 100;
     document.getElementById('eLinkMaps').value = '';
     document.getElementById('linkEditInfo').textContent = '';
     document.getElementById('lokasiEditInfo').textContent = '';

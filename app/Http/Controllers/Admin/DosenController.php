@@ -39,6 +39,7 @@ class DosenController extends Controller {
                     'email'    => $request->email,
                     'password' => Hash::make($request->password),
                     'role'     => 'dosen',
+                    'wajib_ganti_password' => true,
                 ]);
                 Dosen::create([
                     'user_id' => $user->id,

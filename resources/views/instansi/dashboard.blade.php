@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Dashboard Instansi')
+@section('title','Dashboard Pembimbing Lapangan')
 @section('content')
 
 @php
@@ -15,16 +15,9 @@
 @endphp
 
 <div class="page-header">
-  <h1>Dashboard Instansi</h1>
+  <h1>Dashboard Pembimbing Lapangan</h1>
   <p>{{ $instansi->nama }} — Selamat datang!</p>
 </div>
-
-@if($stats['logbook_pending'] > 0)
-  <div class="alert alert-warning">
-    ⚠️ Ada <strong>{{ $stats['logbook_pending'] }} logbook</strong> mahasiswa yang menunggu verifikasi Anda.
-    <a href="{{ route('instansi.logbook.index') }}" style="color:inherit;font-weight:700;margin-left:6px">Verifikasi sekarang →</a>
-  </div>
-@endif
 
 <div class="stats-grid stats-3">
   <div class="stat-card c-inst">
@@ -34,9 +27,9 @@
     <div class="stat-icon">🎓</div>
   </div>
   <div class="stat-card c-inst">
-    <div class="stat-label">Menunggu Verifikasi</div>
-    <div class="stat-val">{{ $stats['logbook_pending'] }}</div>
-    <div class="stat-sub">Logbook belum dicek</div>
+    <div class="stat-label">Sudah Dinilai</div>
+    <div class="stat-val">{{ $stats['sudah_dinilai'] }}</div>
+    <div class="stat-sub">Nilai lapangan sudah diisi</div>
     <div class="stat-icon">📝</div>
   </div>
   <div class="stat-card c-inst">
@@ -52,7 +45,7 @@
   <div class="card">
     <div class="card-header">
       <h3>Perlu Perhatian</h3>
-      <a href="{{ route('instansi.mahasiswa.index') }}" class="btn btn-ghost btn-sm">Lihat Semua →</a>
+      <a href="{{ route('instansi.nilai.index') }}" class="btn btn-ghost btn-sm">Lihat Semua →</a>
     </div>
     <div class="card-body">
       @forelse($perluPerhatian as $m)

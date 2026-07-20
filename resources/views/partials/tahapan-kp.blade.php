@@ -61,8 +61,12 @@
         @case(\App\Models\Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN)
           ✉️ Berkas disetujui! Buat surat permohonan KP melalui <strong>SAIDATA</strong>, kirimkan ke instansi tujuan, lalu unggah <strong>surat balasan</strong> dari instansi tersebut di halaman <a href="{{ route('mahasiswa.surat-balasan.index') }}"><strong>Surat Balasan Instansi</strong></a>.
           @break
-        @case(\App\Models\Mahasiswa::TAHAP_MENUNGGU_INSTANSI)
-          📨 Surat balasan diterima. Admin jurusan akan segera menentukan instansi & dosen pembimbing Anda.
+       @case(\App\Models\Mahasiswa::TAHAP_MENUNGGU_INSTANSI)
+          @if($mahasiswa->instansi_id)
+            📨 Instansi & Pembimbing Lapangan sudah didaftarkan. Menunggu admin jurusan menentukan Dosen Pembimbing Anda.
+          @else
+            🏢 Surat balasan diterima! Sekarang daftarkan instansi tempat KP dan Pembimbing Lapangan Anda di halaman <a href="{{ route('mahasiswa.instansi.index') }}"><strong>Daftarkan Instansi</strong></a>.
+          @endif
           @break
         @case(\App\Models\Mahasiswa::TAHAP_AKTIF_KP)
           🚀 Anda resmi memulai KP di <strong>{{ $mahasiswa->instansi->nama ?? '-' }}</strong> dengan pembimbing <strong>{{ $mahasiswa->dosen->nama ?? '-' }}</strong>. Absensi, laporan BAB, dan seminar sudah bisa diakses.

@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->alias([
         'role'  => \App\Http\Middleware\RoleMiddleware::class,
         'tahap' => \App\Http\Middleware\CekTahapKp::class,
+        'force-ganti-password' => \App\Http\Middleware\ForceGantiPassword::class,
+    ]);
+    $middleware->web(append: [
+        \App\Http\Middleware\ForceGantiPassword::class,
     ]);
 })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Validator;
 
 class AbsensiController extends Controller
 {
-    /** Radius default (meter) jika instansi belum mengatur radius_absen sendiri */
-    private const DEFAULT_RADIUS = 100;
-
     public function index(Request $request)
     {
         $mahasiswa = auth()->user()->mahasiswa;
@@ -83,8 +80,9 @@ class AbsensiController extends Controller
             (float) $instansi->latitude,
             (float) $instansi->longitude
         );
-        $radius = $instansi->radius_absen ?: self::DEFAULT_RADIUS;
-        $status = $jarak <= $radius ? 'valid' : 'diluar_radius';
+        // Jarak tetap dihitung & dicatat untuk transparansi/audit, tapi TIDAK
+        // lagi dipakai untuk menggagalkan absen — status selalu "valid".
+        $status = 'valid';
 
         $path = $request->file('foto')->store('absensi/'.$mahasiswa->id, 'public');
 
@@ -110,14 +108,9 @@ class AbsensiController extends Controller
             return back()->with('error', 'Gagal menyimpan absen masuk. Silakan coba lagi.');
         }
 
-        if ($status === 'valid') {
-            return redirect()->route('mahasiswa.absensi.index')
-                ->with('success', 'Absen masuk berhasil dicatat pukul '.now()->format('H:i').
-                    " WIB. Jarak Anda dari instansi: {$jarak} meter.");
-        }
-
         return redirect()->route('mahasiswa.absensi.index')
-            ->with('error', "Absen masuk tercatat, namun lokasi Anda berada {$jarak} meter dari instansi (maksimal {$radius} meter). Absensi ini akan ditandai untuk ditinjau dosen pembimbing.");
+            ->with('success', 'Absen masuk berhasil dicatat pukul '.now()->format('H:i').
+                " WIB. Jarak Anda dari instansi: {$jarak} meter.");
     }
 
     public function checkOut(Request $request)
@@ -163,8 +156,9 @@ class AbsensiController extends Controller
             (float) $instansi->latitude,
             (float) $instansi->longitude
         );
-        $radius = $instansi->radius_absen ?: self::DEFAULT_RADIUS;
-        $status = $jarak <= $radius ? 'valid' : 'diluar_radius';
+        // Jarak tetap dihitung & dicatat untuk transparansi/audit, tapi TIDAK
+        // lagi dipakai untuk menggagalkan absen — status selalu "valid".
+        $status = 'valid';
 
         $path = $request->file('foto')->store('absensi/'.$mahasiswa->id, 'public');
 
@@ -187,13 +181,8 @@ class AbsensiController extends Controller
             return back()->with('error', 'Gagal menyimpan absen pulang. Silakan coba lagi.');
         }
 
-        if ($status === 'valid') {
-            return redirect()->route('mahasiswa.absensi.index')
-                ->with('success', 'Absen pulang berhasil dicatat pukul '.now()->format('H:i').' WIB.');
-        }
-
         return redirect()->route('mahasiswa.absensi.index')
-            ->with('error', "Absen pulang tercatat, namun lokasi Anda berada {$jarak} meter dari instansi (maksimal {$radius} meter).");
+            ->with('success', 'Absen pulang berhasil dicatat pukul '.now()->format('H:i').' WIB.');
     }
 
     /**

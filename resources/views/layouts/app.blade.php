@@ -287,7 +287,16 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
 <body>
 
 {{-- ── SIDEBAR ─────────────────────────────────────────────────── --}}
-@php $role = auth()->user()->role; @endphp
+@php
+  $role = auth()->user()->role;
+  // Peta emoji & label per-role. Key HARUS sama persis dengan nilai kolom users.role
+  // (sejak migrasi rename 'instansi' -> 'pembimbing_lapangan').
+  $roleEmoji = ['admin'=>'🛡️','dosen'=>'👨‍🏫','pembimbing_lapangan'=>'🏢','mahasiswa'=>'🎓'];
+  $roleLabel = ['admin'=>'Administrator','dosen'=>'Dosen Pembimbing','pembimbing_lapangan'=>'Pembimbing Lapangan','mahasiswa'=>'Mahasiswa'];
+  // Class CSS (role-admin, role-dosen, role-instansi, role-mahasiswa) sengaja TIDAK
+  // ikut di-rename, jadi untuk pembimbing_lapangan tetap pakai slug "instansi".
+  $roleSlug  = $role === 'pembimbing_lapangan' ? 'instansi' : $role;
+@endphp
 <aside class="sidebar">
   <div class="sb-logo">
     <div class="sb-logo-icon">🎓</div>
@@ -297,9 +306,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
     </div>
   </div>
 
-  <div class="sb-role-badge role-{{ $role }}">
-    <span>{{ ['admin'=>'🛡️','dosen'=>'👨‍🏫','instansi'=>'🏢','mahasiswa'=>'🎓'][$role] }}</span>
-    <span>{{ ['admin'=>'Administrator','dosen'=>'Dosen Pembimbing','instansi'=>'Pihak Instansi','mahasiswa'=>'Mahasiswa'][$role] }}</span>
+  <div class="sb-role-badge role-{{ $roleSlug }}">
+    <span>{{ $roleEmoji[$role] ?? '👤' }}</span>
+    <span>{{ $roleLabel[$role] ?? ucfirst($role) }}</span>
   </div>
 
   <nav class="sb-nav">
@@ -363,26 +372,16 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
   <span class="nav-icon">✉️</span> Surat
 </a>
 
-    @elseif($role === 'instansi')
-      <div class="nav-section">Utama</div>
+@elseif($role === 'pembimbing_lapangan')
+      <div class="nav-section">Pembimbing Lapangan</div>
       <a href="{{ route('instansi.dashboard') }}" class="nav-item {{ request()->routeIs('instansi.dashboard') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">📊</span> Dashboard
-      </a>
-      <div class="nav-section">Data KP</div>
-      <a href="{{ route('instansi.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('instansi.mahasiswa*') ? 'active role-instansi' : '' }}">
-        <span class="nav-icon">🎓</span> Mahasiswa KP
       </a>
       <a href="{{ route('instansi.nilai.index') }}" class="nav-item {{ request()->routeIs('instansi.nilai*') ? 'active role-instansi' : '' }}">
         <span class="nav-icon">📝</span> Nilai Lapangan
       </a>
-      <a href="{{ route('instansi.absensi.index') }}" class="nav-item {{ request()->routeIs('instansi.absensi*') ? 'active role-instansi' : '' }}">
-        <span class="nav-icon">📋</span> Absensi Mahasiswa
-      </a>
       <a href="{{ route('instansi.surat.index') }}" class="nav-item {{ request()->routeIs('instansi.surat*') ? 'active role-instansi' : '' }}">
-  <span class="nav-icon">✉️</span> Surat
-</a>
-      <a href="{{ route('instansi.chat.index') }}" class="nav-item {{ request()->routeIs('instansi.chat*') ? 'active role-instansi' : '' }}">
-        <span class="nav-icon">💬</span> Chat Dosen
+        <span class="nav-icon">✉️</span> Surat
       </a>
 
     @elseif($role === 'mahasiswa')
@@ -400,6 +399,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       </a>
       <a href="{{ route('mahasiswa.surat-balasan.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.surat-balasan*') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">✉️</span> Surat Balasan Instansi
+      </a>
+      <a href="{{ route('mahasiswa.instansi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.instansi*') ? 'active role-mahasiswa' : '' }}">
+        <span class="nav-icon">🏢</span> Daftarkan Instansi
       </a>
       <div class="nav-section">KP Saya</div>
       @if($aktifKp)
@@ -457,13 +459,13 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
           <img src="{{ $mhsFoto }}" alt="Foto Profil"
                style="width:32px;height:32px;object-fit:cover;border-radius:8px;display:block">
         @else
-          {{ ['admin'=>'🛡️','dosen'=>'👨‍🏫','instansi'=>'🏢','mahasiswa'=>'🎓'][$role] }}
+          {{ $roleEmoji[$role] ?? '👤' }}
         @endif
       </div>
 
       <div>
         <div class="user-name">{{ Str::limit(auth()->user()->name, 16) }}</div>
-        <div class="user-role">{{ ucfirst($role) }}</div>
+        <div class="user-role">{{ $roleLabel[$role] ?? ucfirst($role) }}</div>
       </div>
       <form method="POST" action="{{ route('logout') }}" style="margin-left:auto">
         @csrf
