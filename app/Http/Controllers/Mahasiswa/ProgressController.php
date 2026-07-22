@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProgressBab;
+use App\Models\Bimbingan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -14,57 +13,51 @@ class ProgressController extends Controller
 {
     public function index()
     {
-        $mahasiswa = Auth::user()->mahasiswa->load('progressBabs');
+        $mahasiswa = Auth::user()->mahasiswa->load('bimbingans');
         return view('mahasiswa.progress.index', compact('mahasiswa'));
     }
 
-    /**
-     * Mahasiswa upload soft file laporan untuk satu BAB.
-     * Hanya boleh kalau BAB sebelumnya sudah approved (sequential).
-     */
-    public function upload(Request $request, ProgressBab $progressBab)
+    public function upload(Request $request)
     {
-        $mahasiswa = Auth::user()->mahasiswa;
-        abort_if($progressBab->mahasiswa_id !== $mahasiswa->id, 403);
-
-        if (!$progressBab->bisaDiupload()) {
-            return back()->with('error', "Selesaikan dan tunggu persetujuan {$progressBab->babSebelumnya()} terlebih dahulu sebelum mengupload {$progressBab->bab}.");
-        }
-
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:pdf,doc,docx|max:10240',
-        ], [
-            'file.required' => 'File laporan wajib dipilih.',
-            'file.mimes'    => 'File harus berformat PDF, DOC, atau DOCX.',
-            'file.max'      => 'Ukuran file maksimal 10MB.',
+            'keterangan' => 'required|string|max:1000',
         ]);
+        if ($validator->fails()) return back()->withErrors($validator, 'upload')->withInput();
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator, 'upload')->withInput()->with('upload_bab_id', $progressBab->id);
-        }
-
+        $mahasiswa = Auth::user()->mahasiswa;
         try {
-            DB::transaction(function () use ($request, $progressBab) {
-                // Hapus file lama kalau ada (re-upload / revisi)
-                if ($progressBab->file) {
-                    Storage::disk('public')->delete($progressBab->file);
-                }
-
-                $uploaded = $request->file('file');
-                $path = $uploaded->store('laporan_bab/'.$progressBab->mahasiswa_id, 'public');
-
-                $progressBab->update([
-                    'file'              => $path,
-                    'file_asli'         => $uploaded->getClientOriginalName(),
-                    'file_uploaded_at'  => now(),
-                    'verifikasi_status' => 'menunggu',
-                    // status tetap 'belum' sampai dosen approve
-                ]);
-            });
+            $uploaded = $request->file('file');
+            $path = $uploaded->store('bimbingan/'.$mahasiswa->id, 'public');
+            Bimbingan::create([
+                'mahasiswa_id' => $mahasiswa->id,
+                'jenis' => Bimbingan::JENIS_LAPORAN,
+                'keterangan' => $request->keterangan,
+                'file' => $path,
+                'file_asli' => $uploaded->getClientOriginalName(),
+            ]);
         } catch (\Throwable $e) {
-            return back()->with('db_error', 'Gagal mengupload file laporan. Silakan coba lagi.');
+            return back()->with('db_error', 'Gagal mengupload file bimbingan. Silakan coba lagi.');
         }
 
-        return back()->with('success', "File {$progressBab->bab} berhasil diupload, menunggu verifikasi dosen pembimbing.");
+        return back()->with('success', 'File bimbingan berhasil dikirim, menunggu tanggapan dosen pembimbing.');
+    }
+
+    public function mintaAccSeminar()
+    {
+        $mahasiswa = Auth::user()->mahasiswa;
+        $sudahAda = $mahasiswa->bimbingans()->where('jenis', Bimbingan::JENIS_ACC_SEMINAR)
+            ->whereIn('status', [Bimbingan::STATUS_MENUNGGU, Bimbingan::STATUS_DISETUJUI])->exists();
+        if ($sudahAda) return back()->with('error', 'Permintaan ACC seminar Anda sudah dikirim atau sudah disetujui.');
+        if (!$mahasiswa->bimbingans()->where('jenis', Bimbingan::JENIS_LAPORAN)->exists()) {
+            return back()->with('error', 'Unggah laporan final terlebih dahulu sebelum meminta ACC seminar.');
+        }
+
+        Bimbingan::create([
+            'mahasiswa_id' => $mahasiswa->id,
+            'jenis' => Bimbingan::JENIS_ACC_SEMINAR,
+            'keterangan' => 'Mahasiswa menyatakan laporan telah mencapai BAB V/final dan meminta ACC untuk mendaftar seminar.',
+        ]);
+        return back()->with('success', 'Permintaan ACC seminar telah dikirim ke dosen pembimbing.');
     }
 }

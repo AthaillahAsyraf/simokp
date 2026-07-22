@@ -292,9 +292,9 @@
           <textarea name="keterangan" class="form-control" rows="4" placeholder="Tulis isi surat..." required>{{ old('keterangan') }}</textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Lampiran <span style="color:var(--gray-400);font-weight:400">(opsional)</span></label>
-          <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-          <p class="file-hint">PDF, DOC/DOCX, atau gambar — maks 10 MB</p>
+          <label class="form-label">Lampiran <span style="color:var(--gray-400);font-weight:400">(opsional, maksimal 10 file)</span></label>
+          <input type="file" name="files[]" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+          <p class="file-hint">PDF, DOC/DOCX, atau gambar — maksimal 10 MB per file. Semua lampiran dikirim ke setiap mahasiswa pada mode kirim ke semua.</p>
         </div>
         <button type="submit" class="btn btn-primary">Kirim Surat</button>
       </form>
@@ -353,7 +353,13 @@
             <td class="text-sm text-muted">{{ $s->pengirim_nama }}</td>
             <td class="text-sm text-muted">{{ $s->penerima_nama }}</td>
             <td class="text-sm">{{ $s->jenis_label }}</td>
-            <td>@if($s->file)<a href="{{ $s->file_url }}" target="_blank" class="file-link">📄 Lihat</a>@else<span class="text-muted">–</span>@endif</td>
+            <td>
+              @forelse($s->lampiran_list as $lampiran)
+                <a href="{{ $lampiran->file_url }}" target="_blank" class="file-link" style="margin:2px">📄 {{ $lampiran->nama_asli }}</a>
+              @empty
+                <span class="text-muted">–</span>
+              @endforelse
+            </td>
             <td>
               @if($s->jenis === \App\Models\Surat::JENIS_PERMOHONAN)
                 <span class="badge {{ $s->status === 'disetujui' ? 'badge-selesai' : ($s->status === 'ditolak' ? '' : 'badge-proses') }}"

@@ -15,7 +15,7 @@ class DosenController extends Controller {
     }
 
     public function show(Dosen $dosen) {
-        $dosen->load(['mahasiswas.instansi','mahasiswas.progressBabs']);
+        $dosen->load(['mahasiswas.instansi','mahasiswas.bimbingans']);
         return view('admin.dosen.show', compact('dosen'));
     }
 

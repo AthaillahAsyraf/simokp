@@ -34,7 +34,13 @@ class SuratController extends Controller
         $listMahasiswa = Mahasiswa::where('instansi_id', $instansi->id)
             ->orderBy('nama')->get();
 
-        $listDosen = Dosen::orderBy('nama')->get();
+        // Hanya dosen yang benar-benar sudah ditetapkan admin sebagai
+        // pembimbing mahasiswa di instansi ini yang boleh dihubungi.
+        $listDosen = Dosen::whereHas('mahasiswas', fn ($query) => $query
+            ->where('instansi_id', $instansi->id)
+            ->whereNotNull('dosen_id'))
+            ->orderBy('nama')
+            ->get();
 
         return view('instansi.surat.index', compact(
             'suratMasuk',
@@ -86,7 +92,8 @@ class SuratController extends Controller
     }
 
     /**
-     * Instansi kirim surat bebas ke mahasiswa / admin / dosen.
+     * Instansi kirim surat bebas ke mahasiswa / admin / dosen pembimbing
+     * mahasiswa yang ditempatkan di instansinya.
      */
     public function kirim(Request $request)
     {
@@ -108,9 +115,20 @@ class SuratController extends Controller
             return back()->withErrors($validator, 'kirim')->withInput();
         }
 
+        if ($request->tujuan_role === 'mahasiswa' && ! Mahasiswa::where('id', $request->tujuan_mahasiswa_id)
+            ->where('instansi_id', $instansi->id)->exists()) {
+            return back()->with('error', 'Mahasiswa tujuan tidak terdaftar di instansi Anda.')->withInput();
+        }
+
+        if ($request->tujuan_role === 'dosen' && ! Mahasiswa::where('instansi_id', $instansi->id)
+            ->where('dosen_id', $request->tujuan_dosen_id)->exists()) {
+            return back()->with('error', 'Dosen tujuan belum ditetapkan sebagai pembimbing mahasiswa di instansi Anda.')->withInput();
+        }
+
         [$penerimaRole, $penerimaId, $mahasiswaId] = match ($request->tujuan_role) {
             'mahasiswa' => ['mahasiswa', (int) $request->tujuan_mahasiswa_id, (int) $request->tujuan_mahasiswa_id],
-            'dosen'     => ['dosen',     (int) $request->tujuan_dosen_id,     null],
+            'dosen'     => ['dosen',     (int) $request->tujuan_dosen_id,
+                Mahasiswa::where('instansi_id', $instansi->id)->where('dosen_id', $request->tujuan_dosen_id)->value('id')],
             'admin'     => ['admin',     null,                                 null],
         };
 

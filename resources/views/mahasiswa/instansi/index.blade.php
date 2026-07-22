@@ -45,7 +45,7 @@
       @endif
 
       <div class="form-group">
-        <label class="form-label">Instansi & Pembimbing Lapangan *</label>
+         <label class="form-label">Instansi & Pembimbing Lapangan *</label>
         <select name="instansi_id" class="form-control" required>
           <option value="">— Pilih Instansi —</option>
           @foreach($instansis as $inst)
@@ -67,7 +67,7 @@
     </form>
 
     {{-- ── MODE: TAMBAH INSTANSI BARU ── --}}
-    <form method="POST" action="{{ route('mahasiswa.instansi.store') }}" id="formBaru" style="display:none">
+   <form method="POST" action="{{ route('mahasiswa.instansi.store') }}" id="formBaru" style="display:none">
       @csrf
       <input type="hidden" name="mode" value="baru">
 
@@ -79,7 +79,7 @@
 
       <div class="form-group">
         <label class="form-label">Nama Instansi *</label>
-        <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" placeholder="cth: PT Teknologi Nusantara" required>
+       <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" placeholder="cth: PT Teknologi Nusantara" required>
       </div>
 
       <div class="form-group">

@@ -23,7 +23,7 @@ class SuratController extends Controller
         $semuaSurat = Surat::where('mahasiswa_id', $mahasiswa->id)
             ->orWhere(fn ($q) => $q->where('penerima_role', 'mahasiswa')->where('penerima_id', $mahasiswa->id))
             ->orWhere(fn ($q) => $q->where('pengirim_role', 'mahasiswa')->where('pengirim_id', $mahasiswa->id))
-            ->with('parent', 'balasan')
+            ->with(['parent.lampirans', 'balasan.lampirans', 'lampirans'])
             ->latest()
             ->get()
             ->unique('id');

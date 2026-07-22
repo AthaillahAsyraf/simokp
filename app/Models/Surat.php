@@ -34,6 +34,25 @@ class Surat extends Model
     public function mahasiswa() { return $this->belongsTo(Mahasiswa::class); }
     public function parent()    { return $this->belongsTo(Surat::class, 'parent_id'); }
     public function balasan()   { return $this->hasMany(Surat::class, 'parent_id'); }
+    public function lampirans() { return $this->hasMany(SuratLampiran::class); }
+
+    /** Semua lampiran surat; tetap menampilkan lampiran lama yang tersimpan di kolom `file`. */
+    public function getLampiranListAttribute()
+    {
+        $lampirans = $this->relationLoaded('lampirans')
+            ? $this->lampirans
+            : $this->lampirans()->get();
+
+        if ($lampirans->isNotEmpty() || !$this->file) {
+            return $lampirans;
+        }
+
+        return collect([(object) [
+            'file' => $this->file,
+            'nama_asli' => basename($this->file),
+            'file_url' => $this->file_url,
+        ]]);
+    }
 
     // ── Accessor: URL file ───────────────────────────────────────────────────
     public function getFileUrlAttribute(): ?string

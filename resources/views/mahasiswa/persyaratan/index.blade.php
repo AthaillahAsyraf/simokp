@@ -50,7 +50,8 @@
 
     @php $bisaEdit = in_array($mahasiswa->tahap, ['lengkapi_berkas','revisi_berkas']); @endphp
 
-    <form method="POST" action="{{ route('mahasiswa.persyaratan.upload') }}" enctype="multipart/form-data">
+    <div id="uploadPersyaratanInfo" class="alert alert-warning" style="display:none;margin-bottom:14px"></div>
+    <form method="POST" id="formUploadPersyaratan" action="{{ route('mahasiswa.persyaratan.upload') }}" enctype="multipart/form-data">
       @csrf
       @foreach(\App\Models\SyaratAdministrasi::BERKAS as $field => $label)
         <div class="berkas-row">
@@ -64,7 +65,7 @@
           </div>
           @if($bisaEdit)
             <div>
-              <input type="file" name="{{ $field }}" class="form-control" accept=".pdf,.jpg,.jpeg,.png" style="max-width:220px">
+              <input type="file" name="{{ $field }}" class="form-control" accept=".pdf,.jpg,.jpeg,.png" data-existing="{{ $syarat->$field ? '1' : '0' }}" style="max-width:220px">
             </div>
           @endif
         </div>
@@ -72,7 +73,7 @@
 
       @if($bisaEdit)
         <div style="margin-top:18px;text-align:right">
-          <button type="submit" class="btn btn-primary">{{ $syarat->exists ? 'Simpan / Kirim Ulang' : 'Kirim Berkas' }}</button>
+          <button type="button" class="btn btn-primary" onclick="kirimBerkasPersyaratan()">{{ $syarat->exists ? 'Simpan / Kirim Ulang' : 'Kirim Berkas' }}</button>
         </div>
       @else
         <div class="alert alert-info" style="margin-top:16px">
@@ -83,3 +84,26 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function kirimBerkasPersyaratan() {
+  const form = document.getElementById('formUploadPersyaratan');
+  const info = document.getElementById('uploadPersyaratanInfo');
+  const wajib = @json(array_keys(\App\Models\SyaratAdministrasi::BERKAS));
+  const belumDipilih = wajib.filter(field => {
+    const input = form.querySelector(`[name="${field}"]`);
+    return input && !input.files.length && input.dataset.existing !== '1';
+  });
+
+  if (belumDipilih.length) {
+    info.textContent = 'Pilih seluruh berkas persyaratan terlebih dahulu sebelum mengirim.';
+    info.style.display = 'block';
+    return;
+  }
+
+  info.style.display = 'none';
+  form.requestSubmit();
+}
+</script>
+@endpush

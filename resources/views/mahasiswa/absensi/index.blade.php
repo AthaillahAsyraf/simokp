@@ -32,7 +32,7 @@
   <div class="page-header-row">
     <div>
       <h1>📍 Absensi KP</h1>
-      <p>{{ now()->translatedFormat('l, d F Y') }} — absen wajib dilakukan di lokasi instansi</p>
+      <p>{{ now()->locale('id')->translatedFormat('l, d F Y') }} — absen wajib dilakukan di lokasi instansi</p>
     </div>
   </div>
 </div>
@@ -104,6 +104,7 @@
 <div class="card">
   <div class="card-header">
     <div><h3>📋 Riwayat Absensi</h3></div>
+    <a href="{{ route('mahasiswa.absensi.cetak') }}" target="_blank" class="btn btn-outline btn-sm">🖨️ Cetak Rekap</a>
   </div>
   <div class="table-wrap">
     <table>
@@ -116,7 +117,7 @@
       <tbody>
         @forelse($riwayat as $r)
         <tr>
-          <td>{{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</td>
+          <td>{{ \Carbon\Carbon::parse($r->tanggal)->locale('id')->translatedFormat('d M Y') }}</td>
           <td>{{ $r->jam_masuk ? \Carbon\Carbon::parse($r->jam_masuk)->format('H:i') : '-' }}</td>
           <td>{{ $r->jarak_masuk !== null ? $r->jarak_masuk.'m' : '-' }}</td>
           <td>
@@ -178,6 +179,7 @@
     <div class="cam-actions">
       <button type="button" class="btn btn-outline" id="btnRetake" style="display:none" onclick="retakePhoto()">🔄 Ambil Ulang</button>
       <button type="button" class="btn btn-primary" id="btnCapture" onclick="capturePhoto()">📸 Ambil Foto</button>
+      <button type="button" class="btn btn-outline" id="btnRetryCamera" style="display:none" onclick="startCamera()">↻ Coba Kamera Lagi</button>
     </div>
 
     {{-- ← BARU: catatan kegiatan (rencana saat masuk, realisasi saat pulang) --}}
@@ -272,6 +274,7 @@ function openAbsenModal(mode){
   document.getElementById('btnSubmitAbsen').textContent = 'Kirim Absen';
   document.getElementById('btnRetake').style.display = 'none';
   document.getElementById('btnCapture').style.display = 'inline-flex';
+  document.getElementById('btnRetryCamera').style.display = 'none';
 
   // ← BARU: reset & sesuaikan label textarea catatan sesuai mode
   const inputCatatan = document.getElementById('inputCatatan');
@@ -328,12 +331,40 @@ function startLocation(){
 
 function startCamera(){
   const video = document.getElementById('camVideo');
+  const hint = document.getElementById('camHint');
   video.style.display = 'block';
   document.getElementById('camCanvas').style.display = 'none';
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
-    .then(stream => { cameraStream = stream; video.srcObject = stream; })
-    .catch(() => {
-      document.getElementById('camHint').textContent = '❌ Gagal mengakses kamera. Izinkan akses kamera pada browser Anda.';
+  document.getElementById('btnRetryCamera').style.display = 'none';
+  hint.textContent = 'Menghubungkan kamera...';
+
+  // Kamera browser hanya diizinkan pada HTTPS atau localhost. Pada HTTP biasa
+  // browser akan menolak request tanpa menampilkan pop-up izin.
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+    hint.textContent = '❌ Kamera memerlukan alamat HTTPS atau localhost. Buka aplikasi melalui http://localhost, bukan alamat IP atau HTTP biasa.';
+    document.getElementById('btnCapture').style.display = 'none';
+    document.getElementById('btnRetryCamera').style.display = 'inline-flex';
+    return;
+  }
+
+  stopCamera();
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'user' } }, audio: false })
+    .then(stream => {
+      cameraStream = stream;
+      video.srcObject = stream;
+      hint.textContent = 'Pastikan wajah Anda terlihat jelas pada foto.';
+      document.getElementById('btnCapture').style.display = 'inline-flex';
+      document.getElementById('btnRetryCamera').style.display = 'none';
+    })
+    .catch(error => {
+      const messages = {
+        NotAllowedError: '❌ Izin kamera ditolak atau diblokir. Izinkan kamera pada ikon gembok browser, lalu klik Coba Kamera Lagi.',
+        NotFoundError: '❌ Kamera tidak ditemukan. Sambungkan atau aktifkan kamera perangkat Anda.',
+        NotReadableError: '❌ Kamera sedang dipakai aplikasi lain. Tutup Zoom, Teams, atau aplikasi kamera lalu coba lagi.',
+        SecurityError: '❌ Browser memblokir kamera karena pengaturan keamanan situs.',
+      };
+      hint.textContent = messages[error.name] ?? `❌ Kamera tidak dapat digunakan (${error.name || 'kesalahan tidak diketahui'}).`;
+      document.getElementById('btnCapture').style.display = 'none';
+      document.getElementById('btnRetryCamera').style.display = 'inline-flex';
     });
 }
 
@@ -344,6 +375,11 @@ function stopCamera(){
 function capturePhoto(){
   const video  = document.getElementById('camVideo');
   const canvas = document.getElementById('camCanvas');
+  if (!cameraStream || !video.videoWidth) {
+    document.getElementById('camHint').textContent = '❌ Kamera belum siap. Klik Coba Kamera Lagi dan izinkan akses kamera.';
+    document.getElementById('btnRetryCamera').style.display = 'inline-flex';
+    return;
+  }
   canvas.width  = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
@@ -369,6 +405,7 @@ function capturePhoto(){
   canvas.toBlob(blob => { capturedBlob = blob; updateSubmitState(); }, 'image/jpeg', 0.85);
 
   document.getElementById('btnCapture').style.display = 'none';
+  document.getElementById('btnRetryCamera').style.display = 'none';
   document.getElementById('btnRetake').style.display = 'inline-flex';
 }
 
@@ -376,6 +413,7 @@ function retakePhoto(){
   capturedBlob = null;
   document.getElementById('btnRetake').style.display = 'none';
   document.getElementById('btnCapture').style.display = 'inline-flex';
+  document.getElementById('btnRetryCamera').style.display = 'none';
   startCamera();
   updateSubmitState();
 }

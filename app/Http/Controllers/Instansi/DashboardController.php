@@ -12,7 +12,7 @@ class DashboardController extends Controller
     public function index()
     {
         $instansi   = Auth::user()->instansi;
-        $mahasiswas = $instansi->mahasiswas()->with(['dosen','progressBabs'])->get();
+        $mahasiswas = $instansi->mahasiswas()->with(['dosen', 'bimbingans'])->get();
 
         // TOTAL MAHASISWA
         $total = $mahasiswas->count();

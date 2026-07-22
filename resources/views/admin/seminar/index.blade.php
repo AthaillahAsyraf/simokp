@@ -115,15 +115,7 @@
         <div class="form-group"><label class="form-label">Jam Selesai *</label><input type="time" name="jam_selesai" class="form-control" value="{{ old('jam_selesai') }}" required></div>
       </div>
       <div class="form-group"><label class="form-label">Ruangan *</label><input type="text" name="ruangan" class="form-control" list="daftarRuangan" placeholder="Pilih atau ketik ruangan baru" value="{{ old('ruangan') }}" required></div>
-      <div class="form-group">
-        <label class="form-label">Dosen Penguji *</label>
-        <select name="dosen_penguji_id" class="form-control" required>
-          <option value="">-- Pilih Dosen Penguji --</option>
-          @foreach($dosens as $d)
-            <option value="{{ $d->id }}" {{ old('dosen_penguji_id')==$d->id?'selected':'' }}>{{ $d->nama }}</option>
-          @endforeach
-        </select>
-      </div>
+      <div class="alert alert-info">Dosen pembimbing mahasiswa akan otomatis ditetapkan sebagai dosen penguji.</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalTambah')">Batal</button>
         <button type="submit" class="btn btn-primary">Simpan</button>
@@ -150,13 +142,7 @@
         <div class="form-group"><label class="form-label">Jam Selesai *</label><input type="time" name="jam_selesai" id="apJamSelesai" class="form-control" required></div>
       </div>
       <div class="form-group"><label class="form-label">Ruangan *</label><input type="text" name="ruangan" id="apRuangan" class="form-control" list="daftarRuangan" placeholder="Pilih atau ketik ruangan baru" required></div>
-      <div class="form-group">
-        <label class="form-label">Dosen Penguji *</label>
-        <select name="dosen_penguji_id" class="form-control" required>
-          <option value="">-- Pilih Dosen Penguji --</option>
-          @foreach($dosens as $d)<option value="{{ $d->id }}">{{ $d->nama }}</option>@endforeach
-        </select>
-      </div>
+      <div class="alert alert-info">Dosen pembimbing otomatis menjadi dosen penguji.</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalApprove')">Batal</button>
         <button type="submit" class="btn btn-success">Setujui & Jadwalkan</button>
@@ -200,13 +186,7 @@
         <div class="form-group"><label class="form-label">Jam Selesai</label><input type="time" name="jam_selesai" id="eJamSelesai" class="form-control"></div>
       </div>
       <div class="form-group"><label class="form-label">Ruangan</label><input type="text" name="ruangan" id="eRuang" class="form-control" list="daftarRuangan" placeholder="Pilih atau ketik ruangan baru"></div>
-      <div class="form-group">
-        <label class="form-label">Dosen Penguji</label>
-        <select name="dosen_penguji_id" id="ePenguji" class="form-control">
-          <option value="">-- Pilih Dosen Penguji --</option>
-          @foreach($dosens as $d)<option value="{{ $d->id }}">{{ $d->nama }}</option>@endforeach
-        </select>
-      </div>
+      <div class="alert alert-info">Dosen pembimbing tetap otomatis menjadi dosen penguji.</div>
       <div class="form-group">
         <label class="form-label">Status</label>
         <select name="status" id="eStatus" class="form-control">
@@ -247,7 +227,6 @@ function openEdit(id, tgl, jamMulai, jamSelesai, ruang, pengujiId, status, catat
   document.getElementById('eJamMulai').value   = jamMulai || '';
   document.getElementById('eJamSelesai').value = jamSelesai || '';
   document.getElementById('eRuang').value      = ruang || '';
-  document.getElementById('ePenguji').value    = pengujiId || '';
   document.getElementById('eStatus').value     = status === 'selesai' ? 'selesai' : 'terjadwal';
   document.getElementById('eCatatan').value    = catatan || '';
   openModal('modalEdit');

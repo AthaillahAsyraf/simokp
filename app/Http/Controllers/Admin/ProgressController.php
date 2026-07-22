@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 class ProgressController extends Controller {
 
     public function index(Request $request) {
+        return redirect()->route('admin.dashboard')
+            ->with('error', 'Monitoring progress per BAB sudah tidak digunakan. Gunakan menu Laporan untuk melihat bimbingan mahasiswa.');
+
         $query = Mahasiswa::with(['progressBabs','instansi','dosen']);
         if ($request->filled('search')) {
             $q = $request->search;

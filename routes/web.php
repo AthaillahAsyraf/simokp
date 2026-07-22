@@ -52,6 +52,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::post('persyaratan/{mahasiswa}/verifikasi',[App\Http\Controllers\Admin\PersyaratanController::class,'verifikasi'])->name('persyaratan.verifikasi');
 
     Route::get('progress', [App\Http\Controllers\Admin\ProgressController::class,'index'])->name('progress.index');
+    Route::get('proposal-rencana-kerja', [App\Http\Controllers\Admin\ProposalRencanaKerjaController::class,'index'])->name('proposal-rencana-kerja.index');
 
     Route::get('nilai', [App\Http\Controllers\Admin\NilaiController::class,'index'])->name('nilai.index');
 
@@ -82,9 +83,15 @@ Route::prefix('dosen-area')->name('dosen.')->middleware(['auth','role:dosen'])->
     Route::get('dashboard', [App\Http\Controllers\Dosen\DashboardController::class,'index'])->name('dashboard');
 
     Route::get('progress',                           [App\Http\Controllers\Dosen\ProgressController::class,'index'])->name('progress.index');
-    Route::post('progress/{progressBab}/verifikasi', [App\Http\Controllers\Dosen\ProgressController::class,'verifikasi'])->name('progress.verifikasi');
+    Route::post('progress/{bimbingan}/verifikasi', [App\Http\Controllers\Dosen\ProgressController::class,'verifikasi'])->name('progress.verifikasi');
+    Route::get('proposal-rencana-kerja', [App\Http\Controllers\Dosen\ProposalRencanaKerjaController::class,'index'])->name('proposal-rencana-kerja.index');
+    Route::post('proposal-rencana-kerja/{proposal}/verifikasi', [App\Http\Controllers\Dosen\ProposalRencanaKerjaController::class,'verifikasi'])->name('proposal-rencana-kerja.verifikasi');
+    Route::get('form-kesediaan-pembimbing', [App\Http\Controllers\Dosen\FormKesediaanPembimbingController::class,'index'])->name('form-kesediaan-pembimbing.index');
+    Route::get('form-kesediaan-pembimbing/{form}', [App\Http\Controllers\Dosen\FormKesediaanPembimbingController::class,'show'])->name('form-kesediaan-pembimbing.show');
+    Route::post('form-kesediaan-pembimbing/{form}/setujui', [App\Http\Controllers\Dosen\FormKesediaanPembimbingController::class,'setujui'])->name('form-kesediaan-pembimbing.setujui');
 
     Route::get('seminar', [App\Http\Controllers\Dosen\SeminarController::class,'index'])->name('seminar.index');
+    Route::post('seminar/{seminar}/verifikasi-acc', [App\Http\Controllers\Dosen\SeminarController::class,'verifikasiAcc'])->name('seminar.verifikasi-acc');
 
     Route::get('nilai',                     [App\Http\Controllers\Dosen\NilaiController::class,'index'])->name('nilai.index');
     Route::put('nilai/{mahasiswa}/seminar', [App\Http\Controllers\Dosen\NilaiController::class,'updateSeminar'])->name('nilai.updateSeminar');
@@ -135,12 +142,17 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
     //    hanya mengunggah surat balasan dari instansi. ──
     Route::get('surat-balasan',  [App\Http\Controllers\Mahasiswa\SuratBalasanController::class,'index'])->name('surat-balasan.index');
     Route::post('surat-balasan', [App\Http\Controllers\Mahasiswa\SuratBalasanController::class,'upload'])->name('surat-balasan.upload');
+    Route::get('form-kesediaan-pembimbing', [App\Http\Controllers\Mahasiswa\FormKesediaanPembimbingController::class,'index'])->name('form-kesediaan-pembimbing.index');
+    Route::post('form-kesediaan-pembimbing/teruskan', [App\Http\Controllers\Mahasiswa\FormKesediaanPembimbingController::class,'teruskan'])->name('form-kesediaan-pembimbing.teruskan');
 
     // ── Fitur di bawah ini baru bisa diakses setelah mahasiswa aktif KP
     //    (berkas disetujui admin + instansi & dosen pembimbing sudah ditentukan) ──
     Route::middleware('tahap:aktif_kp')->group(function () {
+        Route::get('proposal-rencana-kerja', [App\Http\Controllers\Mahasiswa\ProposalRencanaKerjaController::class,'index'])->name('proposal-rencana-kerja.index');
+        Route::get('proposal-rencana-kerja/template', [App\Http\Controllers\Mahasiswa\ProposalRencanaKerjaController::class,'template'])->name('proposal-rencana-kerja.template');
+        Route::post('proposal-rencana-kerja', [App\Http\Controllers\Mahasiswa\ProposalRencanaKerjaController::class,'upload'])->name('proposal-rencana-kerja.upload');
         Route::get('progress',                        [App\Http\Controllers\Mahasiswa\ProgressController::class,'index'])->name('progress.index');
-        Route::post('progress/{progressBab}/upload',  [App\Http\Controllers\Mahasiswa\ProgressController::class,'upload'])->name('progress.upload');
+        Route::post('progress/upload',                 [App\Http\Controllers\Mahasiswa\ProgressController::class,'upload'])->name('progress.upload');
 
         Route::get('logbook',              [App\Http\Controllers\Mahasiswa\LogbookController::class,'index'])->name('logbook.index');
         Route::post('logbook',             [App\Http\Controllers\Mahasiswa\LogbookController::class,'store'])->name('logbook.store');
@@ -148,12 +160,14 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
 
         Route::get('seminar',  [App\Http\Controllers\Mahasiswa\SeminarController::class,'index'])->name('seminar.index');
         Route::post('seminar', [App\Http\Controllers\Mahasiswa\SeminarController::class,'store'])->name('seminar.store');
+        Route::post('seminar/minta-acc', [App\Http\Controllers\Mahasiswa\SeminarController::class,'mintaAcc'])->name('seminar.minta-acc');
 
         Route::get('nilai',               [App\Http\Controllers\Mahasiswa\NilaiController::class,'index'])->name('nilai.index');
         Route::get('nilai/cetak',         [App\Http\Controllers\Mahasiswa\NilaiController::class,'cetak'])->name('nilai.cetak');
         Route::get('nilai/cetak-lapangan',[App\Http\Controllers\Mahasiswa\NilaiController::class,'cetakLapangan'])->name('nilai.cetakLapangan');
 
         Route::get('absensi',         [App\Http\Controllers\Mahasiswa\AbsensiController::class,'index'])->name('absensi.index');
+        Route::get('absensi/cetak',   [App\Http\Controllers\Mahasiswa\AbsensiController::class,'cetak'])->name('absensi.cetak');
         Route::post('absensi/masuk',  [App\Http\Controllers\Mahasiswa\AbsensiController::class,'checkIn'])->name('absensi.checkin');
         Route::post('absensi/pulang', [App\Http\Controllers\Mahasiswa\AbsensiController::class,'checkOut'])->name('absensi.checkout');
     });

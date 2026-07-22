@@ -1,77 +1,46 @@
 <?php
 namespace App\Http\Controllers\Mahasiswa;
+
 use App\Http\Controllers\Controller;
 use App\Models\Seminar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
 class SeminarController extends Controller {
     public function index() {
-        $mahasiswa   = Auth::user()->mahasiswa->load(['seminar.dosenPenguji', 'progressBabs', 'nilai']);
-        $ruanganList = Seminar::daftarRuangan();
-        $jadwalTerisi = Seminar::jadwalTerisi($mahasiswa->seminar?->id);
-        return view('mahasiswa.seminar.index', compact('mahasiswa', 'ruanganList', 'jadwalTerisi'));
+        $mahasiswa = Auth::user()->mahasiswa->load(['seminar', 'bimbingans', 'dosen']);
+        return view('mahasiswa.seminar.index', ['mahasiswa' => $mahasiswa, 'ruanganList' => Seminar::daftarRuangan(), 'jadwalTerisi' => Seminar::jadwalTerisi($mahasiswa->seminar?->id)]);
     }
-
-    /**
-     * Mahasiswa mengajukan jadwal seminar (tanggal/jam/ruangan). Dosen penguji
-     * BELUM diisi di sini — itu ditentukan admin saat approve, supaya admin yang
-     * berwenang menugaskan penguji, bukan mahasiswa yang memilih sendiri.
-     * Status awal: menunggu_persetujuan, baru jadi 'terjadwal' setelah admin setuju.
-     *
-     * Ruangan & jam otomatis dicek bentrok terhadap pengajuan mahasiswa lain
-     * (baik yang masih menunggu maupun yang sudah terjadwal) — jadi begitu satu
-     * mahasiswa klaim slot, mahasiswa lain tidak bisa ambil slot yang sama lagi.
-     */
-    public function store(Request $request) {
-        $mahasiswa = Auth::user()->mahasiswa->load(['progressBabs', 'seminar']);
-
-        if (!$mahasiswa->allBabSelesai()) {
-            return back()->with('error', 'Seminar baru bisa diajukan setelah semua BAB laporan disetujui dosen pembimbing.');
-        }
-
-        $seminarLama = $mahasiswa->seminar;
-        if ($seminarLama && !$seminarLama->isDitolak()) {
-            return back()->with('error', 'Anda sudah punya pengajuan/jadwal seminar yang aktif.');
-        }
-
-        $validator = Validator::make($request->all(), [
-            'judul_kp'    => 'required|string|max:255',
-            'tanggal'     => 'required|date|after_or_equal:today',
-            'jam_mulai'   => 'required',
+    public function mintaAcc(Request $request) {
+        $mahasiswa = Auth::user()->mahasiswa;
+        $data = $request->validate([
+            'judul_kp' => 'required|string|max:255',
+            'tanggal' => 'required|date|after_or_equal:today',
+            'jam_mulai' => 'required',
             'jam_selesai' => 'required|after:jam_mulai',
-            'ruangan'     => 'required|string|max:100',
-        ], [], ['jam_selesai' => 'jam selesai', 'judul_kp' => 'judul KP/PKL']);
+            'ruangan' => 'required|string|max:100',
+        ]);
+        if (!$mahasiswa->bimbingans()->where('jenis', 'laporan')->exists()) return back()->with('error', 'Unggah laporan final terlebih dahulu.');
+        $lama = $mahasiswa->seminar;
+        if ($lama && $lama->status !== 'acc_ditolak_dospem') return back()->with('error', 'Permintaan seminar masih aktif.');
+        $bentrok = Seminar::cekBentrok($data['tanggal'], $data['jam_mulai'], $data['jam_selesai'], $data['ruangan'], $mahasiswa->dosen_id, $mahasiswa->dosen_id, $lama?->id);
+        if ($bentrok) return back()->withErrors([$bentrok])->withInput();
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator, 'daftar')->withInput();
-        }
-
-        $bentrok = Seminar::cekBentrok(
-            $request->tanggal, $request->jam_mulai, $request->jam_selesai,
-            $request->ruangan, null, $mahasiswa->dosen_id,
-            $seminarLama?->id
-        );
-        if ($bentrok) {
-            return back()->withErrors([$bentrok], 'daftar')->withInput();
-        }
-
-        Seminar::updateOrCreate(
-            ['mahasiswa_id' => $mahasiswa->id],
-            [
-                'judul_kp'         => $request->judul_kp,
-                'tanggal'          => $request->tanggal,
-                'jam_mulai'        => $request->jam_mulai,
-                'jam_selesai'      => $request->jam_selesai,
-                'ruangan'          => $request->ruangan,
-                'dosen_penguji_id' => null,
-                'status'           => 'menunggu_persetujuan',
-                'diajukan_oleh'    => 'mahasiswa',
-                'catatan'          => null,
-            ]
-        );
-
-        return back()->with('success', 'Pengajuan jadwal seminar terkirim, menunggu persetujuan admin.');
+        Seminar::updateOrCreate(['mahasiswa_id' => $mahasiswa->id], array_merge($data, [
+            'dosen_penguji_id' => $mahasiswa->dosen_id,
+            'status' => Seminar::STATUS_MENUNGGU_ACC_DOSPEM,
+            'diajukan_oleh' => 'mahasiswa',
+            'catatan' => null,
+        ]));
+        return back()->with('success', 'Permintaan ACC dan pilihan jadwal dikirim ke dosen pembimbing. Slot tersebut kini dikunci sementara.');
+    }
+    public function store(Request $request) {
+        $mahasiswa = Auth::user()->mahasiswa; $seminar = $mahasiswa->seminar;
+        if (!$seminar || $seminar->status !== 'acc_dospem') return back()->with('error', 'Menunggu ACC dosen pembimbing.');
+        $data = $request->validate(['tanggal' => 'required|date|after_or_equal:today', 'jam_mulai' => 'required', 'jam_selesai' => 'required|after:jam_mulai', 'ruangan' => 'required|string|max:100']);
+        $bentrok = Seminar::cekBentrok($data['tanggal'], $data['jam_mulai'], $data['jam_selesai'], $data['ruangan'], $mahasiswa->dosen_id, $mahasiswa->dosen_id, $seminar->id);
+        if ($bentrok) return back()->withErrors([$bentrok], 'daftar')->withInput();
+        $seminar->update(array_merge($data, ['dosen_penguji_id' => $mahasiswa->dosen_id, 'status' => Seminar::STATUS_MENUNGGU, 'catatan' => null]));
+        return back()->with('success', 'Jadwal dikirim ke admin.');
     }
 }

@@ -18,7 +18,6 @@ class DashboardController extends Controller {
             'seminar' => $mahasiswas->where('status','seminar')->count(),
             'selesai' => $mahasiswas->where('status','selesai')->count(),
         ];
-
         // Antrian verifikasi — laporan BAB yang masih menunggu approve dosen
         $pendingVerifikasi = ProgressBab::whereIn('mahasiswa_id', $mahasiswas->pluck('id'))
             ->where('verifikasi_status', 'menunggu')

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title','Mahasiswa KP')
 @section('content')
+@if(false) {{-- Tampilan monitoring per BAB lama. --}}
 
 <div class="page-header">
   <h1>🎓 Mahasiswa KP</h1>
@@ -90,4 +91,20 @@
     <span style="color:var(--gray-300)">○ Belum</span>
   </div>
 </div>
+@endif
+
+<div class="page-header">
+  <h1>Mahasiswa KP</h1>
+  <p>Daftar mahasiswa yang dibimbing di instansi Anda.</p>
+</div>
+<div class="card"><div class="table-wrap"><table>
+  <thead><tr><th>Mahasiswa</th><th>Dosen Pembimbing</th><th>Status KP</th><th>Seminar</th></tr></thead>
+  <tbody>
+    @forelse($mahasiswas as $m)
+      <tr><td><strong>{{ $m->nama }}</strong><div class="text-sm text-muted">{{ $m->nim }}</div></td><td class="text-sm">{{ $m->dosen?->nama ?? '-' }}</td><td><span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span></td><td class="text-sm text-muted">{{ $m->seminar ? 'Terjadwal' : '-' }}</td></tr>
+    @empty
+      <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">Tidak ada mahasiswa KP di instansi ini.</td></tr>
+    @endforelse
+  </tbody>
+</table></div></div>
 @endsection

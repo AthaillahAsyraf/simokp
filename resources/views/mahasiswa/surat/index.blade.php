@@ -40,7 +40,7 @@
 @section('content')
 <div class="page-header">
   <h1>Surat</h1>
-  <p>Kirim & kelola korespondensi dengan admin, dosen, dan instansi</p>
+ 
 </div>
 
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
@@ -73,40 +73,11 @@
     <div class="err-box"><strong>⚠️ Kesalahan:</strong><ul>@foreach($errors->permohonan->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
   @endif
 
-  {{-- Form permohonan surat pengantar ke admin --}}
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-header">
-      <h3>📋 Permohonan Surat Pengantar ke Admin</h3>
-      <p>Khusus untuk meminta surat pengantar KP resmi dari kampus</p>
-    </div>
-    <div class="card-body">
-      @if($adaPending)
-        <div class="alert alert-info">🕓 Permohonan Anda sedang menunggu diproses admin.</div>
-      @else
-        <form method="POST" action="{{ route('mahasiswa.surat.store') }}">
-          @csrf
-          <div class="form-group">
-            <label class="form-label">Perihal *</label>
-            <input type="text" name="perihal" class="form-control"
-              placeholder="cth: Permohonan Surat Pengantar KP"
-              value="{{ old('perihal') }}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Keterangan / Keperluan *</label>
-            <textarea name="keterangan" class="form-control" rows="3"
-              placeholder="Jelaskan keperluan surat pengantar ini..." required>{{ old('keterangan') }}</textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Kirim Permohonan</button>
-        </form>
-      @endif
-    </div>
-  </div>
 
   {{-- Form kirim surat bebas --}}
   <div class="card">
     <div class="card-header">
-      <h3>✉️ Kirim Surat ke Dosen / Instansi / Admin</h3>
-      <p>Korespondensi langsung tanpa permohonan resmi</p>
+      <h3>✉️ Kirim Surat ke Admin</h3>
     </div>
     <div class="card-body">
       <form method="POST" action="{{ route('mahasiswa.surat.kirim') }}" enctype="multipart/form-data">
@@ -120,24 +91,12 @@
                 {{ old('tujuan_role') === 'admin' ? 'checked' : '' }} required>
               🏛️ Admin
             </label>
-            <label class="recipient-card {{ old('tujuan_role') === 'dosen' ? 'selected' : '' }}"
-              onclick="selectRecipient(this)">
-              <input type="radio" name="tujuan_role" value="dosen"
-                {{ old('tujuan_role') === 'dosen' ? 'checked' : '' }}>
-              👨‍🏫 Dosen Pembimbing
-            </label>
-            <label class="recipient-card {{ old('tujuan_role') === 'instansi' ? 'selected' : '' }}"
-              onclick="selectRecipient(this)">
-              <input type="radio" name="tujuan_role" value="instansi"
-                {{ old('tujuan_role') === 'instansi' ? 'checked' : '' }}>
-              🏢 Instansi KP
-            </label>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Perihal *</label>
           <input type="text" name="perihal" class="form-control"
-            placeholder="cth: Konfirmasi Jadwal Bimbingan"
+            placeholder="cth: Pengumpulan Soft File Lengkap"
             value="{{ old('perihal') }}" required>
         </div>
         <div class="form-group">
@@ -207,7 +166,13 @@
             </div>
             <div class="thread-route">Dari: <strong>{{ $s->pengirim_nama }}</strong> &middot; {{ $s->jenis_label }}</div>
             @if($s->keterangan)<p class="text-sm" style="margin-top:6px">{{ $s->keterangan }}</p>@endif
-            @if($s->file)<a href="{{ $s->file_url }}" target="_blank" class="file-link">📄 Lihat Lampiran</a>@endif
+            @if($s->lampiran_list->isNotEmpty())
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+                @foreach($s->lampiran_list as $lampiran)
+                  <a href="{{ $lampiran->file_url }}" target="_blank" class="file-link">📄 {{ $lampiran->nama_asli }}</a>
+                @endforeach
+              </div>
+            @endif
             <div style="margin-top:10px">
               <button class="btn btn-outline btn-sm"
                 onclick="openBalas({{ $s->id }}, {{ json_encode($s->pengirim_nama) }}, {{ json_encode($s->perihal) }})">

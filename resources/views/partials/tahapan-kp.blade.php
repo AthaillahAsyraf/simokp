@@ -9,7 +9,8 @@
         ['key' => 1, 'label' => 'Verifikasi Admin', 'icon' => '🔍'],
         ['key' => 2, 'label' => 'Surat Balasan', 'icon' => '✉️'],
         ['key' => 3, 'label' => 'Instansi & Dosen', 'icon' => '🏢'],
-        ['key' => 4, 'label' => 'Aktif KP', 'icon' => '🚀'],
+        ['key' => 4, 'label' => 'Kesediaan Dosen', 'icon' => '📋'],
+        ['key' => 5, 'label' => 'Aktif KP', 'icon' => '🚀'],
     ];
 @endphp
 <div class="card">
@@ -68,8 +69,11 @@
             🏢 Surat balasan diterima! Sekarang daftarkan instansi tempat KP dan Pembimbing Lapangan Anda di halaman <a href="{{ route('mahasiswa.instansi.index') }}"><strong>Daftarkan Instansi</strong></a>.
           @endif
           @break
+        @case(\App\Models\Mahasiswa::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING)
+          📋 Admin telah menetapkan dosen pembimbing. Silakan buka <a href="{{ route('mahasiswa.form-kesediaan-pembimbing.index') }}"><strong>Form Kesediaan Pembimbing</strong></a>, lalu teruskan kepada dosen untuk disetujui.
+          @break
         @case(\App\Models\Mahasiswa::TAHAP_AKTIF_KP)
-          🚀 Anda resmi memulai KP di <strong>{{ $mahasiswa->instansi->nama ?? '-' }}</strong> dengan pembimbing <strong>{{ $mahasiswa->dosen->nama ?? '-' }}</strong>. Absensi, laporan BAB, dan seminar sudah bisa diakses.
+          🚀 Anda resmi memulai KP di <strong>{{ $mahasiswa->instansi->nama ?? '-' }}</strong> dengan pembimbing <strong>{{ $mahasiswa->dosen->nama ?? '-' }}</strong>. Absensi, laporan, dan seminar sudah bisa diakses.
           @break
       @endswitch
     </div>

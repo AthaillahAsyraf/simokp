@@ -37,7 +37,7 @@
           <h3>🗂️ Persyaratan KP Butuh Tindakan</h3>
           <p>{{ $menungguBerkas->count() }} menunggu verifikasi &middot; {{ $siapDitempatkan->count() }} siap ditempatkan</p>
         </div>
-        <a href="{{ route('admin.persyaratan.index') }}" class="btn btn-outline btn-sm">Kelola</a>
+        <a href="{{ route('admin.mahasiswa.index', ['tahap' => 'menunggu_verifikasi']) }}" class="btn btn-outline btn-sm">Kelola</a>
       </div>
       <div class="card-body">
         @forelse($menungguBerkas as $m)

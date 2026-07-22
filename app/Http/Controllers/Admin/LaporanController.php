@@ -10,7 +10,7 @@ class LaporanController extends Controller
 {
     public function index()
     {
-        $mahasiswas = Mahasiswa::with(['dosen', 'instansi', 'nilai', 'progressBabs'])->get();
+        $mahasiswas = Mahasiswa::with(['dosen', 'instansi', 'nilai', 'bimbingans'])->get();
         $instansis  = Instansi::withCount('mahasiswas')->get();
 
         $stats = [

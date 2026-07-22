@@ -23,7 +23,10 @@ class SuratBalasanController extends Controller
         $mahasiswa = Auth::user()->mahasiswa;
         $syarat    = $mahasiswa->syaratAdministrasi;
 
-        abort_if(!$syarat, 404);
+        if (!$syarat || !$mahasiswa->sudahMencapaiTahap(Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN)) {
+            return redirect()->route('mahasiswa.persyaratan.index')
+                ->with('error', 'Surat balasan instansi dapat diunggah setelah persyaratan KP dilengkapi dan disetujui oleh admin.');
+        }
 
         return view('mahasiswa.surat-balasan.index', compact('mahasiswa', 'syarat'));
     }
@@ -33,7 +36,10 @@ class SuratBalasanController extends Controller
         $mahasiswa = Auth::user()->mahasiswa;
         $syarat    = $mahasiswa->syaratAdministrasi;
 
-        abort_if(!$syarat, 404);
+        if (!$syarat || !$mahasiswa->sudahMencapaiTahap(Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN)) {
+            return redirect()->route('mahasiswa.persyaratan.index')
+                ->with('error', 'Surat balasan instansi belum dapat diunggah. Lengkapi persyaratan KP terlebih dahulu.');
+        }
 
         if ($mahasiswa->tahap !== Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN) {
             return back()->with('error', 'Tahap ini sudah selesai atau belum bisa diakses.');

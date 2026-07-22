@@ -31,7 +31,7 @@ class DashboardController extends Controller {
             ->take(6)
             ->get();
 
-        // Mahasiswa yang sudah siap seminar (semua BAB approved) tapi BELUM
+        // Mahasiswa yang sudah siap seminar (ACC seminar disetujui) tapi BELUM
         // punya jadwal seminar sama sekali. Ini gap paling actionable buat
         // admin — progress sudah 100% tapi belum di-book.
         $siapBelumJadwal = Mahasiswa::with(['dosen','instansi'])
@@ -42,7 +42,7 @@ class DashboardController extends Controller {
 
         // Mahasiswa yang masih proses tapi progress-nya paling rendah /
         // paling lama tidak ada update — kandidat "perlu ditindaklanjuti".
-        $perluPerhatian = Mahasiswa::with(['progressBabs'])
+        $perluPerhatian = Mahasiswa::with(['bimbingans'])
             ->where('status', 'proses')
             ->get()
             ->sortBy(fn($m) => $m->progressPersen())

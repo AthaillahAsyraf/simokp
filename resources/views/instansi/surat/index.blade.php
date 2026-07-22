@@ -125,14 +125,19 @@
             <label class="recipient-card {{ old('tujuan_role') === 'admin' ? 'selected' : '' }}"
               onclick="selectRecipient(this,'admin')">
               <input type="radio" name="tujuan_role" value="admin" {{ old('tujuan_role') === 'admin' ? 'checked' : '' }}>
-              🏛️ Admin
+              🏛️ Jurusan
             </label>
+            @if($listDosen->isNotEmpty())
             <label class="recipient-card {{ old('tujuan_role') === 'dosen' ? 'selected' : '' }}"
               onclick="selectRecipient(this,'dosen')">
               <input type="radio" name="tujuan_role" value="dosen" {{ old('tujuan_role') === 'dosen' ? 'checked' : '' }}>
               👨‍🏫 Dosen
             </label>
+            @endif
           </div>
+          @if($listDosen->isEmpty())
+            <p class="file-hint">Dosen pembimbing akan tersedia sebagai tujuan setelah admin menetapkannya untuk mahasiswa di instansi Anda.</p>
+          @endif
           <div class="specific-recipient {{ old('tujuan_role') === 'mahasiswa' ? 'visible' : '' }}" id="dropMahasiswa">
             <label class="form-label" style="font-size:12px;margin-top:8px">Pilih Mahasiswa *</label>
             <select name="tujuan_mahasiswa_id" class="form-control">

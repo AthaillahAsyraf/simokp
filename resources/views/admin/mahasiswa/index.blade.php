@@ -1,13 +1,23 @@
 @extends('layouts.app')
 @section('title','Data Mahasiswa')
+@push('styles')
+<style>
+.mhs-block{border:1px solid var(--gray-200);border-radius:var(--radius);padding:18px;margin-bottom:16px;background:var(--white)}
+.mhs-block-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.mhs-block-head h4{font-size:14px;font-weight:700;color:var(--gray-900)}
+.mhs-block-head p{font-size:12px;color:var(--gray-500);margin-top:2px}
+.berkas-mini{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border-radius:8px;margin:0 6px 6px 0}
+.berkas-mini.ada{background:var(--blue-50);color:var(--blue-600);border:1px solid var(--blue-100)}
+.berkas-mini.kosong{background:var(--gray-50);color:var(--gray-400);border:1px solid var(--gray-100)}
+</style>
+@endpush
 @section('content')
 
 <div class="page-header page-header-row">
   <div>
     <h1>Daftar Mahasiswa</h1>
-    <p>{{ $mahasiswas->total() }} mahasiswa terdaftar</p>
+    <p>{{ $mahasiswas->count() }} mahasiswa terdaftar</p>
   </div>
-  <button class="btn btn-primary" onclick="openModal('modalTambah')">+ Tambah Mahasiswa</button>
 </div>
 
 {{-- Flash success --}}
@@ -28,6 +38,12 @@
         <option value="seminar" {{ request('status')=='seminar' ?'selected':'' }}>Seminar</option>
         <option value="selesai" {{ request('status')=='selesai' ?'selected':'' }}>Selesai</option>
       </select>
+      <select name="tahap" class="form-control" style="width:220px">
+        <option value="">Semua Tahap KP</option>
+        @foreach($tahapans as $kodeTahap => $labelTahap)
+          <option value="{{ $kodeTahap }}" {{ request('tahap') === $kodeTahap ? 'selected' : '' }}>{{ $labelTahap }}</option>
+        @endforeach
+      </select>
       <select name="dosen_id" class="form-control" style="width:190px">
         <option value="">Semua Dosen</option>
         @foreach($dosens as $d)
@@ -46,14 +62,62 @@
   </div>
 </div>
 
-<div class="card">
+@if(request('tahap') === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI)
+  <div class="page-header" style="margin-top:4px">
+    <h2>Persyaratan KP Masuk</h2>
+    <p>Hanya mahasiswa yang sudah mengirim berkas lengkap dan menunggu verifikasi admin.</p>
+  </div>
+  <div class="card"><div class="card-header"><h3>Menunggu Verifikasi ({{ $mahasiswas->count() }})</h3></div><div class="card-body">
+    @forelse($mahasiswas as $m)
+      @include('admin.persyaratan._row', ['m' => $m, 'bisaVerifikasi' => true])
+    @empty
+      <div class="empty-state" style="padding:32px;text-align:center;color:var(--gray-400)">Tidak ada berkas persyaratan yang menunggu verifikasi.</div>
+    @endforelse
+  </div></div>
+
+  <div class="modal-bg" id="modalVerifikasi"><div class="modal-box"><div class="modal-title" id="vTitle"></div><form method="POST" id="vForm">@csrf
+    <div class="form-group"><label class="form-label">Keputusan *</label><select name="keputusan" id="vKeputusan" class="form-control" required onchange="toggleCatatan()"><option value="disetujui">Setujui — lanjut ke tahap instansi</option><option value="revisi">Minta revisi</option></select></div>
+    <div class="form-group" id="vCatatanGroup" style="display:none"><label class="form-label">Catatan Revisi *</label><textarea name="catatan" class="form-control" rows="3" placeholder="Jelaskan berkas yang perlu diperbaiki..."></textarea></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('modalVerifikasi')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+  </form></div></div>
+  @push('scripts')
+  <script>
+  function bukaVerifikasi(id, nama) { document.getElementById('vForm').action = `{{ url('admin/persyaratan') }}/${id}/verifikasi`; document.getElementById('vTitle').textContent = 'Verifikasi Berkas — ' + nama; document.getElementById('vKeputusan').value = 'disetujui'; toggleCatatan(); openModal('modalVerifikasi'); }
+  function toggleCatatan() { document.getElementById('vCatatanGroup').style.display = document.getElementById('vKeputusan').value === 'revisi' ? '' : 'none'; }
+  </script>
+  @endpush
+@else
+  <div class="info-box" style="margin-bottom:16px">Data mahasiswa dikelompokkan otomatis berdasarkan tahapan KP. Gunakan filter tahap untuk menampilkan kelompok yang diperlukan.</div>
+
+@php
+  // Saat filter tahap dipilih, tampilkan hanya tahap tersebut. Tanpa filter,
+  // admin tetap melihat seluruh mahasiswa yang dikelompokkan per tahap.
+  $tahapansDitampilkan = request('tahap')
+    ? collect($tahapans)->only(request('tahap'))
+    : collect($tahapans);
+@endphp
+
+@foreach($tahapansDitampilkan as $kodeTahap => $labelTahap)
+@php
+  $mahasiswaTahap = $mahasiswas->where('tahap', $kodeTahap);
+@endphp
+<div class="card" style="margin-bottom:16px">
+  <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h3>{{ $labelTahap }}</h3>
+      <p style="margin:3px 0 0;font-size:12px;color:var(--gray-500)">Mahasiswa pada tahapan ini</p>
+    </div>
+    <span class="badge {{ $kodeTahap === 'revisi_berkas' ? 'badge-rejected' : ($kodeTahap === 'aktif_kp' ? 'badge-proses' : 'badge-belum') }}">
+      {{ $mahasiswaTahap->count() }} mahasiswa
+    </span>
+  </div>
   <div class="table-wrap">
     <table>
       <thead>
         <tr><th>Mahasiswa</th><th>Angkatan</th><th>Instansi</th><th>Dosen Pembimbing</th><th>Progress</th><th>Status</th><th>Aksi</th></tr>
       </thead>
       <tbody>
-        @forelse($mahasiswas as $m)
+        @forelse($mahasiswaTahap as $m)
         @php $pct = $m->progressPersen(); @endphp
         <tr>
           <td>
@@ -111,13 +175,14 @@
           </td>
         </tr>
         @empty
-          <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8">Tidak ada data mahasiswa.</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8">Tidak ada mahasiswa pada tahap ini.</td></tr>
         @endforelse
       </tbody>
     </table>
   </div>
-  <div style="padding:14px 18px">{{ $mahasiswas->links() }}</div>
 </div>
+@endforeach
+@endif
 
 {{-- MODAL TAMBAH --}}
 <div class="modal-bg" id="modalTambah">
@@ -246,11 +311,6 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Tanggal Mulai</label>
-          <input type="date" name="tanggal_mulai" class="form-control" value="{{ old('tanggal_mulai') }}">
-        </div>
-
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalTambah')">Batal</button>
@@ -276,7 +336,6 @@
             <option value="selesai">Selesai</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Tanggal Mulai</label><input type="date" name="tanggal_mulai" id="eTglMulai" class="form-control"></div>
         <div class="form-group"><label class="form-label">Dosen Pembimbing</label>
           <select name="dosen_id" id="eDosen" class="form-control">
             <option value="">-- Pilih --</option>
@@ -291,7 +350,7 @@
         </div>
       </div>
       <div class="alert alert-warning" id="eHintBerkas" style="display:none;margin-top:4px">
-        ⚠️ Berkas persyaratan mahasiswa ini belum disetujui (menu <a href="{{ route('admin.persyaratan.index') }}">Persyaratan KP</a>). Dosen/Instansi baru bisa ditentukan setelah berkas disetujui.
+        ⚠️ Berkas persyaratan mahasiswa ini belum disetujui. Dosen/instansi baru bisa ditentukan setelah berkas disetujui.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalEdit')">Batal</button>
@@ -347,7 +406,6 @@ function openEdit(id, nama, angkatan, status, dosenId, instansiId, tglMulai, sia
   document.getElementById('eStatus').value    = status;
   document.getElementById('eDosen').value     = dosenId    || '';
   document.getElementById('eInstansi').value  = instansiId || '';
-  document.getElementById('eTglMulai').value  = tglMulai   || '';
   document.getElementById('eHintBerkas').style.display = siapDitempatkan ? 'none' : '';
   openModal('modalEdit');
 }

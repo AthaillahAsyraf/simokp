@@ -1,0 +1,8 @@
+@extends('layouts.app')
+@section('title','Verifikasi Proposal Rencana Kerja')
+@section('content')
+<div class="page-header"><h1>Verifikasi Proposal Rencana Kerja</h1><p>Periksa proposal dari mahasiswa bimbingan Anda.</p></div>
+<div class="card"><div class="table-wrap"><table><thead><tr><th>Mahasiswa</th><th>Instansi</th><th>File</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+@forelse($proposals as $proposal)<tr><td><strong>{{ $proposal->mahasiswa->nama }}</strong><br><span class="text-muted">{{ $proposal->mahasiswa->nim }}</span></td><td>{{ $proposal->mahasiswa->instansi?->nama ?? '-' }}</td><td><a href="{{ $proposal->file_url }}" target="_blank">{{ $proposal->file_asli }}</a><br><small>{{ $proposal->uploaded_at?->format('d M Y H:i') }}</small></td><td><span class="badge {{ ['menunggu'=>'badge-proses','disetujui'=>'badge-selesai','revisi'=>'badge-rejected'][$proposal->status] }}">{{ ucfirst($proposal->status) }}</span>@if($proposal->catatan)<br><small>{{ $proposal->catatan }}</small>@endif</td><td>@if($proposal->status === 'menunggu')<form method="POST" action="{{ route('dosen.proposal-rencana-kerja.verifikasi', $proposal) }}">@csrf<textarea class="form-control" name="catatan" rows="2" placeholder="Catatan (wajib jika revisi)" style="min-width:180px;margin-bottom:6px"></textarea><button class="btn btn-danger btn-xs" name="keputusan" value="revisi">Minta Revisi</button> <button class="btn btn-success btn-xs" name="keputusan" value="disetujui">Setujui</button></form>@else <span class="text-muted">Sudah diverifikasi</span>@endif</td></tr>@empty <tr><td colspan="5" style="text-align:center;padding:28px">Belum ada proposal dari mahasiswa bimbingan.</td></tr>@endforelse
+</tbody></table></div></div>
+@endsection

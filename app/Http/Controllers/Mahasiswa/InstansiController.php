@@ -63,6 +63,7 @@ class InstansiController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'instansi_id' => 'required|exists:instansis,id',
+            
         ], [
             'instansi_id.required' => 'Silakan pilih instansi & pembimbing lapangan terlebih dahulu.',
         ]);
@@ -70,8 +71,8 @@ class InstansiController extends Controller
         if ($validator->fails()) {
             return back()->withErrors($validator, 'daftarInstansi')->withInput();
         }
-
         $instansi = Instansi::findOrFail($request->instansi_id);
+       
 
         $mahasiswa->update([
             'instansi_id'                 => $instansi->id,
@@ -83,7 +84,7 @@ class InstansiController extends Controller
         $mahasiswa->cekMajukanKeAktifKp();
 
         return redirect()->route('mahasiswa.dashboard')
-            ->with('success', "Instansi & Pembimbing Lapangan ({$instansi->nama}) berhasil didaftarkan.");
+        ->with('success', "Instansi & Pembimbing Lapangan ({$instansi->nama}) berhasil didaftarkan.");
     }
 
     private function simpanDenganInstansiBaru(Request $request, Mahasiswa $mahasiswa)

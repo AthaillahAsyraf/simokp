@@ -80,9 +80,13 @@
 </div>
 
 {{-- ============ TAB: PEMBIMBING LAPANGAN ============ --}}
-<div class="tab-panel" id="panelLapangan">
+<div class="tab-panel" id="panelLapanganLegacy">
+@if(false)
 
-  <p style="color:var(--gray-500);font-size:13px;margin-bottom:14px">{{ $mahasiswas->count() }} mahasiswa sudah ditempatkan di instansi</p>
+  <div class="page-header-row" style="margin-bottom:14px">
+    <p style="color:var(--gray-500);font-size:13px">{{ $instansis->count() }} pembimbing lapangan terdaftar</p>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modalTambahLapangan')">+ Tambah Pembimbing Lapangan</button>
+  </div>
 
   <div class="card" style="margin-bottom:16px">
     <div class="card-body" style="padding:14px 18px">
@@ -98,9 +102,9 @@
   <div class="card">
     <div class="table-wrap">
       <table>
-        <thead><tr><th>NIM</th><th>Mahasiswa</th><th>Instansi</th><th>Pembimbing Lapangan</th><th>Jabatan</th><th>No. HP</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Instansi</th><th>Pembimbing Lapangan</th><th>Bidang</th><th>Lokasi</th><th>Kontak</th><th>Mhs Dibimbing</th><th>Aksi</th></tr></thead>
         <tbody>
-          @forelse($mahasiswas as $m)
+          @forelse($instansis as $inst)
           <tr>
             <td><code>{{ $m->nim }}</code></td>
             <td><strong>{{ $m->nama }}</strong></td>
@@ -121,6 +125,34 @@
     </div>
   </div>
 </div>
+
+@endif
+</div>
+
+{{-- ============ TAB BARU: PEMBIMBING LAPANGAN ============ --}}
+<div class="tab-panel" id="panelLapangan">
+  <div class="page-header-row" style="margin-bottom:14px">
+    <p style="color:var(--gray-500);font-size:13px">{{ $instansis->count() }} pembimbing lapangan terdaftar</p>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modalTambahLapangan')">+ Tambah Pembimbing Lapangan</button>
+  </div>
+  <div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:14px 18px">
+    <form method="GET" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input type="hidden" name="tab" value="lapangan"><input type="text" name="search_lapangan" value="{{ request('search_lapangan') }}" placeholder="Cari instansi / pembimbing / lokasi..." class="form-control" style="width:280px"><button type="submit" class="btn btn-outline btn-sm">Filter</button><a href="{{ route('admin.pembimbing.index',['tab'=>'lapangan']) }}" class="btn btn-outline btn-sm">Reset</a></form>
+  </div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Instansi</th><th>Pembimbing Lapangan</th><th>Email</th><th>No. HP</th><th>Mhs Dibimbing</th><th>Aksi</th></tr></thead><tbody>
+    @forelse($instansis as $inst)<tr>
+      <td><strong>{{ $inst->nama }}</strong></td><td class="text-sm">{{ $inst->kontak_person ?? '-' }}</td><td class="text-sm text-muted">{{ $inst->user?->email ?? '-' }}</td><td class="text-sm text-muted">{{ $inst->no_hp ?? '-' }}</td><td><span class="badge badge-proses">{{ $inst->mahasiswas->count() }} mhs</span></td>
+      <td><div style="display:flex;gap:4px"><a href="{{ route('admin.instansi.show',$inst) }}" class="btn btn-ghost btn-xs">Detail</a><button type="button" class="btn btn-outline btn-xs" onclick="openEditInstansi({{ $inst->id }}, @json($inst->nama), @json($inst->bidang), @json($inst->alamat), @json($inst->kontak_person), @json($inst->no_hp), @json($inst->latitude), @json($inst->longitude))">Edit</button><form method="POST" action="{{ route('admin.instansi.destroy',$inst) }}" onsubmit="return confirm('Hapus pembimbing lapangan ini?')">@csrf @method('DELETE')<button class="btn btn-danger btn-xs">Hapus</button></form></div></td>
+    </tr>@empty<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--gray-400)">Belum ada pembimbing lapangan.</td></tr>@endforelse
+  </tbody></table></div></div>
+</div>
+
+<div class="modal-bg" id="modalTambahLapangan"><div class="modal-box"><div class="modal-title">Tambah Pembimbing Lapangan</div>@if($errors->instansiTambah->any())<div class="err-box"><ul>@foreach($errors->instansiTambah->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif<form method="POST" action="{{ route('admin.instansi.store') }}">@csrf
+  <div class="form-group"><label class="form-label">Nama Instansi *</label><input class="form-control" name="nama" required></div><div class="form-group"><label class="form-label">Nama Pembimbing Lapangan *</label><input class="form-control" name="kontak_person" required></div><div class="form-group"><label class="form-label">Bidang / Jabatan</label><input class="form-control" name="bidang"></div><div class="form-group"><label class="form-label">Lokasi / Alamat</label><textarea class="form-control" name="alamat" rows="2"></textarea></div><div class="form-grid"><div class="form-group"><label class="form-label">No. HP</label><input class="form-control" name="no_hp"></div><div class="form-group"><label class="form-label">Email Login *</label><input class="form-control" type="email" name="email" required></div></div><div class="form-grid"><div class="form-group"><label class="form-label">Latitude</label><input class="form-control" name="latitude"></div><div class="form-group"><label class="form-label">Longitude</label><input class="form-control" name="longitude"></div></div><div class="form-group"><label class="form-label">Password *</label><input class="form-control" type="password" name="password" minlength="8" required></div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('modalTambahLapangan')">Batal</button><button class="btn btn-primary">Simpan</button></div>
+</form></div></div>
+
+<div class="modal-bg" id="modalEditInstansi"><div class="modal-box"><div class="modal-title">Edit Pembimbing Lapangan</div>@if($errors->instansiEdit->any())<div class="err-box"><ul>@foreach($errors->instansiEdit->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif<form method="POST" id="editFormInstansi">@csrf @method('PUT')
+  <div class="form-group"><label class="form-label">Nama Instansi *</label><input class="form-control" name="nama" id="eiNama" required></div><div class="form-group"><label class="form-label">Nama Pembimbing Lapangan</label><input class="form-control" name="kontak_person" id="eiKontak"></div><div class="form-group"><label class="form-label">Bidang / Jabatan</label><input class="form-control" name="bidang" id="eiBidang"></div><div class="form-group"><label class="form-label">Lokasi / Alamat</label><textarea class="form-control" name="alamat" id="eiAlamat" rows="2"></textarea></div><div class="form-grid"><div class="form-group"><label class="form-label">No. HP</label><input class="form-control" name="no_hp" id="eiHp"></div><div class="form-group"><label class="form-label">Latitude</label><input class="form-control" name="latitude" id="eiLat"></div><div class="form-group"><label class="form-label">Longitude</label><input class="form-control" name="longitude" id="eiLng"></div></div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('modalEditInstansi')">Batal</button><button class="btn btn-primary">Simpan Perubahan</button></div>
+</form></div></div>
 
 {{-- ============ MODAL TAMBAH DOSEN ============ --}}
 <div class="modal-bg" id="modalTambah">
@@ -247,6 +279,15 @@
 
 @push('scripts')
 <script>
+@if($errors->instansiTambah->any())
+window.addEventListener('load', function () { switchTab('lapangan'); openModal('modalTambahLapangan'); });
+@endif
+@if($errors->instansiEdit->any() && session('edit_instansi_id'))
+window.addEventListener('load', function () {
+  switchTab('lapangan');
+  openEditInstansi({{ session('edit_instansi_id') }}, @json(old('nama')), @json(old('bidang')), @json(old('alamat')), @json(old('kontak_person')), @json(old('no_hp')), @json(old('latitude')), @json(old('longitude')));
+});
+@endif
 function switchTab(tab) {
   const isLapangan = tab === 'lapangan';
   document.getElementById('panelDosen').classList.toggle('active', !isLapangan);
@@ -265,6 +306,18 @@ function openEditDosen(id, nama, nip, hp) {
   document.getElementById('eNip').value  = nip || '';
   document.getElementById('eHp').value   = hp  || '';
   openModal('modalEditDosen');
+}
+
+function openEditInstansi(id, nama, bidang, alamat, kontak, hp, lat, lng) {
+  document.getElementById('editFormInstansi').action = `{{ url('admin/instansi') }}/${id}`;
+  document.getElementById('eiNama').value = nama || '';
+  document.getElementById('eiBidang').value = bidang || '';
+  document.getElementById('eiAlamat').value = alamat || '';
+  document.getElementById('eiKontak').value = kontak || '';
+  document.getElementById('eiHp').value = hp || '';
+  document.getElementById('eiLat').value = lat || '';
+  document.getElementById('eiLng').value = lng || '';
+  openModal('modalEditInstansi');
 }
 
 function openEditLapangan(id, namaMhs, nama, jabatan, hp) {

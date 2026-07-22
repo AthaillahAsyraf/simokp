@@ -63,8 +63,9 @@
     </div>
   </div>
 
-  {{-- Progress + Seminar --}}
+  {{-- Seminar --}}
   <div>
+    @if(false) {{-- Progress per BAB sudah tidak digunakan. --}}
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
         <div><h3>Progress BAB</h3></div>
@@ -89,6 +90,7 @@
       </div>
     </div>
 
+    @endif
     {{-- Seminar --}}
     <div class="card">
       <div class="card-header"><h3>🎤 Seminar KP</h3></div>

@@ -10,6 +10,9 @@ class Seminar extends Model {
     ];
 
     const STATUS_MENUNGGU  = 'menunggu_persetujuan';
+    const STATUS_MENUNGGU_ACC_DOSPEM = 'menunggu_acc_dospem';
+    const STATUS_ACC_DOSPEM = 'acc_dospem';
+    const STATUS_ACC_DITOLAK = 'acc_ditolak_dospem';
     const STATUS_TERJADWAL = 'terjadwal';
     const STATUS_DITOLAK   = 'ditolak';
     const STATUS_SELESAI   = 'selesai';
@@ -18,6 +21,9 @@ class Seminar extends Model {
     public function dosenPenguji() { return $this->belongsTo(Dosen::class, 'dosen_penguji_id'); }
 
     public function isPending(): bool   { return $this->status === self::STATUS_MENUNGGU; }
+    public function isMenungguAccDospem(): bool { return $this->status === self::STATUS_MENUNGGU_ACC_DOSPEM; }
+    public function isAccDospem(): bool { return $this->status === self::STATUS_ACC_DOSPEM; }
+    public function isAccDitolakDospem(): bool { return $this->status === self::STATUS_ACC_DITOLAK; }
     public function isTerjadwal(): bool { return $this->status === self::STATUS_TERJADWAL; }
     public function isSelesai(): bool   { return $this->status === self::STATUS_SELESAI; }
     public function isDitolak(): bool   { return $this->status === self::STATUS_DITOLAK; }
@@ -37,7 +43,12 @@ class Seminar extends Model {
      * mahasiswa lain (privasi).
      */
     public static function jadwalTerisi(?int $kecualiId = null) {
-        $q = self::whereIn('status', [self::STATUS_MENUNGGU, self::STATUS_TERJADWAL])
+        $q = self::whereIn('status', [
+                self::STATUS_MENUNGGU_ACC_DOSPEM,
+                self::STATUS_ACC_DOSPEM,
+                self::STATUS_MENUNGGU,
+                self::STATUS_TERJADWAL,
+            ])
             ->where('tanggal', '>=', now()->toDateString())
             ->orderBy('tanggal')->orderBy('jam_mulai');
         if ($kecualiId) $q->where('id', '!=', $kecualiId);
@@ -61,9 +72,16 @@ class Seminar extends Model {
         ?int $excludeId = null
     ): ?string {
         // --- 1) Cek ruangan ---
+        $statusAktif = [
+            self::STATUS_MENUNGGU_ACC_DOSPEM,
+            self::STATUS_ACC_DOSPEM,
+            self::STATUS_MENUNGGU,
+            self::STATUS_TERJADWAL,
+        ];
+
         $queryRuangan = self::with('mahasiswa')
             ->where('tanggal', $tanggal)
-            ->whereIn('status', [self::STATUS_MENUNGGU, self::STATUS_TERJADWAL])
+            ->whereIn('status', $statusAktif)
             ->where('jam_mulai', '<', $jamSelesai)
             ->where('jam_selesai', '>', $jamMulai)
             ->whereRaw('LOWER(TRIM(ruangan)) = ?', [mb_strtolower(trim($ruangan))]);
@@ -79,7 +97,7 @@ class Seminar extends Model {
         if ($dosenPengujiId || $dosenPembimbingId) {
             $queryDosen = self::with('mahasiswa')
                 ->where('tanggal', $tanggal)
-                ->where('status', self::STATUS_TERJADWAL)
+                ->whereIn('status', $statusAktif)
                 ->where('jam_mulai', '<', $jamSelesai)
                 ->where('jam_selesai', '>', $jamMulai);
 

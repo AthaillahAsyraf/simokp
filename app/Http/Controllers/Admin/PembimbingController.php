@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Dosen, Mahasiswa};
+use App\Models\{Dosen, Instansi, Mahasiswa};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,16 +23,19 @@ class PembimbingController extends Controller
         }
         $dosens = $dosenQuery->latest()->get();
 
-        $lapanganQuery = Mahasiswa::with('instansi')->whereNotNull('instansi_id');
+        $lapanganQuery = Instansi::with(['user', 'mahasiswas']);
         if ($request->filled('search_lapangan')) {
             $q = $request->search_lapangan;
-            $lapanganQuery->where(fn ($q2) => $q2->where('nama', 'like', "%$q%")->orWhere('nim', 'like', "%$q%"));
+            $lapanganQuery->where(fn ($q2) => $q2
+                ->where('nama', 'like', "%$q%")
+                ->orWhere('kontak_person', 'like', "%$q%")
+                ->orWhere('alamat', 'like', "%$q%"));
         }
-        $mahasiswas = $lapanganQuery->latest()->get();
+        $instansis = $lapanganQuery->latest()->get();
 
         $tab = $request->get('tab', 'dosen');
 
-        return view('admin.pembimbing.index', compact('dosens', 'mahasiswas', 'tab'));
+        return view('admin.pembimbing.index', compact('dosens', 'instansis', 'tab'));
     }
 
     /**

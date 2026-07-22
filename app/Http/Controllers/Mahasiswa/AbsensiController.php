@@ -34,6 +34,25 @@ class AbsensiController extends Controller
         return view('mahasiswa.absensi.index', compact('instansi', 'absensiHariIni', 'riwayat'));
     }
 
+    /** Rekap A4 absensi mahasiswa untuk dicetak atau disimpan sebagai PDF. */
+    public function cetak()
+    {
+        $mahasiswa = auth()->user()->mahasiswa;
+
+        if (!$mahasiswa) {
+            return redirect()->route('mahasiswa.dashboard')
+                ->with('error', 'Data mahasiswa tidak ditemukan untuk akun Anda.');
+        }
+
+        $mahasiswa->load(['dosen', 'instansi']);
+        $absensis = Absensi::where('mahasiswa_id', $mahasiswa->id)
+            ->whereNotNull('jam_masuk')
+            ->orderBy('tanggal')
+            ->get();
+
+        return view('mahasiswa.absensi.cetak', compact('mahasiswa', 'absensis'));
+    }
+
     public function checkIn(Request $request)
     {
         $validator = Validator::make($request->all(), [

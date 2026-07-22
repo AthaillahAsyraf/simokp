@@ -14,13 +14,12 @@ class InstansiController extends Controller
 {
     public function index()
     {
-        $instansis = Instansi::with(['user', 'mahasiswas'])->latest()->get();
-        return view('admin.instansi.index', compact('instansis'));
+        return redirect()->route('admin.pembimbing.index', ['tab' => 'lapangan']);
     }
 
     public function show(Instansi $instansi)
     {
-        $instansi->load(['mahasiswas.dosen', 'mahasiswas.progressBabs']);
+        $instansi->load(['mahasiswas.dosen', 'mahasiswas.bimbingans']);
         return view('admin.instansi.show', compact('instansi'));
     }
 
@@ -39,7 +38,7 @@ class InstansiController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator, 'tambah')->withInput();
+            return back()->withErrors($validator, 'instansiTambah')->withInput();
         }
 
         try {
@@ -67,7 +66,7 @@ class InstansiController extends Controller
             return back()->with('db_error', 'Gagal menyimpan instansi: '.$e->getMessage())->withInput();
         }
 
-        return redirect()->route('admin.instansi.index')->with('success', 'Instansi berhasil ditambahkan.');
+        return redirect()->route('admin.pembimbing.index', ['tab' => 'lapangan'])->with('success', 'Instansi dan pembimbing lapangan berhasil ditambahkan.');
     }
 
     public function update(Request $request, Instansi $instansi)
@@ -83,7 +82,7 @@ class InstansiController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator, 'edit')->withInput()->with('edit_id', $instansi->id);
+            return back()->withErrors($validator, 'instansiEdit')->withInput()->with('edit_instansi_id', $instansi->id);
         }
 
         try {
@@ -96,7 +95,7 @@ class InstansiController extends Controller
                 ->withInput()->with('edit_id', $instansi->id);
         }
 
-        return redirect()->route('admin.instansi.index')->with('success', 'Data instansi diperbarui.');
+        return redirect()->route('admin.pembimbing.index', ['tab' => 'lapangan'])->with('success', 'Data pembimbing lapangan diperbarui.');
     }
 
     public function destroy(Instansi $instansi)
@@ -110,7 +109,7 @@ class InstansiController extends Controller
             return back()->with('db_error', 'Gagal menghapus instansi: '.$e->getMessage());
         }
 
-        return redirect()->route('admin.instansi.index')->with('success', 'Instansi berhasil dihapus.');
+        return redirect()->route('admin.pembimbing.index', ['tab' => 'lapangan'])->with('success', 'Pembimbing lapangan berhasil dihapus.');
     }
 
     /**

@@ -16,7 +16,7 @@ class SuratController extends Controller
 {
     public function index(Request $request)
     {
-        $permohonanMasuk = Surat::with('mahasiswa')
+        $permohonanMasuk = Surat::with(['mahasiswa', 'lampirans'])
             ->where('penerima_role', 'admin')
             ->where('jenis', Surat::JENIS_PERMOHONAN)
             ->latest()->get();
@@ -28,7 +28,11 @@ class SuratController extends Controller
 
         // Surat masuk non-permohonan (dari mahasiswa/dosen/instansi ke admin),
         // sekaligus muat seluruh riwayat balasannya (thread) secara berjenjang.
-        $suratMasuk = Surat::with(['mahasiswa', 'balasan.mahasiswa', 'balasan.balasan.mahasiswa'])
+        $suratMasuk = Surat::with([
+            'mahasiswa', 'lampirans',
+            'balasan.mahasiswa', 'balasan.lampirans',
+            'balasan.balasan.mahasiswa', 'balasan.balasan.lampirans',
+        ])
             ->where('penerima_role', 'admin')
             ->where('jenis', '!=', Surat::JENIS_PERMOHONAN)
             ->when($searchMasuk !== '', function ($q) use ($searchMasuk) {
@@ -55,7 +59,7 @@ class SuratController extends Controller
 
         // Semua riwayat lintas aktor untuk monitoring, termasuk data induk
         // supaya balasan bisa ditelusuri balik ke surat asalnya saat dicari.
-        $semuaRiwayat = Surat::with(['mahasiswa', 'parent'])
+        $semuaRiwayat = Surat::with(['mahasiswa', 'parent', 'lampirans'])
             ->when($searchRiwayat !== '', function ($q) use ($searchRiwayat) {
                 $q->where(function ($qq) use ($searchRiwayat) {
                     $qq->where('perihal', 'like', "%{$searchRiwayat}%")
@@ -167,7 +171,8 @@ class SuratController extends Controller
             'tujuan_instansi_id'  => 'required_if:tujuan_role,instansi|nullable|exists:instansis,id',
             'perihal'             => 'required|string|max:255',
             'keterangan'          => 'required|string|max:2000',
-            'file'                => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'files'               => 'nullable|array|max:10',
+            'files.*'             => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ];
 
         // Mahasiswa tujuan hanya wajib dipilih kalau bukan mode "kirim ke semua".
@@ -193,13 +198,10 @@ class SuratController extends Controller
                 return back()->withErrors(['kirim' => 'Belum ada data mahasiswa.'], 'kirim')->withInput();
             }
 
-            $path = null;
-            if ($request->hasFile('file')) {
-                $path = $request->file('file')->store('surat/admin', 'public');
-            }
+            $lampirans = $this->simpanLampirans($request, 'surat/admin');
 
             foreach ($listMahasiswa as $m) {
-                Surat::create([
+                $surat = Surat::create([
                     'mahasiswa_id'  => $m->id,
                     'pengirim_role' => 'admin',
                     'pengirim_id'   => null,
@@ -208,12 +210,13 @@ class SuratController extends Controller
                     'perihal'       => $request->perihal,
                     'jenis'         => Surat::JENIS_UMUM,
                     'keterangan'    => $request->keterangan,
-                    'file'          => $path,
+                    'file'          => $lampirans[0]['file'] ?? null,
                     'status'        => Surat::STATUS_TERKIRIM,
                 ]);
+                $surat->lampirans()->createMany($lampirans);
             }
 
-            return back()->with('success', "Surat berhasil dikirim ke {$listMahasiswa->count()} mahasiswa.");
+            return back()->with('success', "Surat beserta {$this->labelJumlahLampiran(count($lampirans))} berhasil dikirim ke {$listMahasiswa->count()} mahasiswa.");
         }
 
         [$penerimaRole, $penerimaId, $mahasiswaId] = match ($request->tujuan_role) {
@@ -222,13 +225,10 @@ class SuratController extends Controller
             'instansi'  => ['instansi',  (int) $request->tujuan_instansi_id,  null],
         };
 
-        $path = null;
-        if ($request->hasFile('file')) {
-            $folder = $mahasiswaId ? 'surat/' . $mahasiswaId : 'surat/admin';
-            $path   = $request->file('file')->store($folder, 'public');
-        }
+        $folder = $mahasiswaId ? 'surat/' . $mahasiswaId : 'surat/admin';
+        $lampirans = $this->simpanLampirans($request, $folder);
 
-        Surat::create([
+        $surat = Surat::create([
             'mahasiswa_id'  => $mahasiswaId,
             'pengirim_role' => 'admin',
             'pengirim_id'   => null,
@@ -237,11 +237,28 @@ class SuratController extends Controller
             'perihal'       => $request->perihal,
             'jenis'         => Surat::JENIS_UMUM,
             'keterangan'    => $request->keterangan,
-            'file'          => $path,
+            'file'          => $lampirans[0]['file'] ?? null,
             'status'        => Surat::STATUS_TERKIRIM,
         ]);
+        $surat->lampirans()->createMany($lampirans);
 
         return back()->with('success', 'Surat berhasil dikirim.');
+    }
+
+    /** Simpan lampiran sekali saja; file yang sama dapat dilampirkan ke seluruh surat broadcast. */
+    private function simpanLampirans(Request $request, string $folder): array
+    {
+        return collect($request->file('files', []))
+            ->map(fn ($file) => [
+                'file'      => $file->store($folder, 'public'),
+                'nama_asli' => $file->getClientOriginalName(),
+            ])
+            ->all();
+    }
+
+    private function labelJumlahLampiran(int $jumlah): string
+    {
+        return $jumlah === 1 ? '1 lampiran' : "{$jumlah} lampiran";
     }
 
     /**

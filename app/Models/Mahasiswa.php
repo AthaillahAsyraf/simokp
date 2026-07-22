@@ -20,6 +20,7 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
     const TAHAP_REVISI_BERKAS        = 'revisi_berkas';
     const TAHAP_UNGGAH_SURAT_BALASAN = 'unggah_surat_balasan';
     const TAHAP_MENUNGGU_INSTANSI    = 'menunggu_instansi';
+    const TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING = 'menunggu_kesediaan_pembimbing';
     const TAHAP_AKTIF_KP             = 'aktif_kp';
 
     const URUTAN_TAHAP = [
@@ -28,7 +29,8 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
         self::TAHAP_REVISI_BERKAS        => 1,
         self::TAHAP_UNGGAH_SURAT_BALASAN => 2,
         self::TAHAP_MENUNGGU_INSTANSI    => 3,
-        self::TAHAP_AKTIF_KP             => 4,
+        self::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING => 4,
+        self::TAHAP_AKTIF_KP             => 5,
     ];
 
     const LABEL_TAHAP = [
@@ -37,13 +39,17 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
         self::TAHAP_REVISI_BERKAS        => 'Perlu Revisi Berkas',
         self::TAHAP_UNGGAH_SURAT_BALASAN => 'Unggah Surat Balasan Instansi',
         self::TAHAP_MENUNGGU_INSTANSI    => 'Menunggu Penempatan Instansi & Dosen',
+        self::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING => 'Menunggu Persetujuan Dosen Pembimbing',
         self::TAHAP_AKTIF_KP             => 'Aktif Melaksanakan KP',
     ];
 
     public function user()         { return $this->belongsTo(User::class); }
     public function dosen()        { return $this->belongsTo(Dosen::class); }
     public function instansi()     { return $this->belongsTo(Instansi::class); }
+    public function proposalRencanaKerja() { return $this->hasOne(ProposalRencanaKerja::class); }
+    public function formKesediaanPembimbing() { return $this->hasOne(FormKesediaanPembimbing::class); }
     public function progressBabs() { return $this->hasMany(ProgressBab::class)->orderBy('id'); }
+    public function bimbingans()    { return $this->hasMany(Bimbingan::class)->latest(); }
     public function seminar()      { return $this->hasOne(Seminar::class); }
     public function nilai()        { return $this->hasOne(Nilai::class); }
     public function syaratAdministrasi() { return $this->hasOne(SyaratAdministrasi::class); }
@@ -67,16 +73,20 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
     }
 
     /**
-     * Dipanggil admin setelah mengisi dosen_id & instansi_id. Kalau keduanya
-     * sudah terisi dan mahasiswa sebelumnya sudah lolos verifikasi berkas,
-     * otomatis majukan tahap ke aktif_kp (mahasiswa resmi mulai KP).
+     * Dipanggil setelah dosen dan instansi terisi. Sistem menerbitkan form
+     * kesediaan pembimbing; mahasiswa baru aktif KP setelah dosen menyetujuinya.
      */
     public function cekMajukanKeAktifKp(): void
     {
         if ($this->dosen_id && $this->instansi_id
             && $this->tahap !== self::TAHAP_AKTIF_KP
             && $this->sudahMencapaiTahap(self::TAHAP_MENUNGGU_INSTANSI)) {
-            $this->update(['tahap' => self::TAHAP_AKTIF_KP]);
+            $this->formKesediaanPembimbing()->firstOrCreate([], [
+                'dosen_id'    => $this->dosen_id,
+                'status'      => FormKesediaanPembimbing::STATUS_DITERBITKAN,
+                'diterbitkan_at' => now(),
+            ]);
+            $this->update(['tahap' => self::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING]);
         }
     }
 
@@ -96,15 +106,25 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
     }
 
     public function progressPersen(): int {
-        $babs = $this->relationLoaded('progressBabs')
-            ? $this->progressBabs
-            : $this->progressBabs()->get();
+        $bimbingans = $this->relationLoaded('bimbingans')
+            ? $this->bimbingans
+            : $this->bimbingans()->get();
 
-        $total = $babs->count();
-        if ($total === 0) return 0;
+        // Progress mengikuti alur bimbingan terbaru, bukan lagi BAB I-V:
+        // tiap laporan yang disetujui dosen bernilai 20% (maks. 80%),
+        // sedangkan ACC seminar yang disetujui menandakan laporan tuntas.
+        if ($bimbingans->contains(fn ($b) =>
+            $b->jenis === Bimbingan::JENIS_ACC_SEMINAR && $b->isDisetujui()
+        )) {
+            return 100;
+        }
 
-        $selesai = $babs->where('status', 'selesai')->count();
-        return (int) round(($selesai / $total) * 100);
+        $laporanDisetujui = $bimbingans
+            ->where('jenis', Bimbingan::JENIS_LAPORAN)
+            ->where('status', Bimbingan::STATUS_DISETUJUI)
+            ->count();
+
+        return min($laporanDisetujui, 4) * 20;
     }
 
     public function allBabSelesai(): bool {
@@ -113,6 +133,11 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
             : $this->progressBabs()->get();
 
         return $babs->where('status', 'belum')->isEmpty();
+    }
+
+    public function seminarSudahDiacc(): bool {
+        $bimbingans = $this->relationLoaded('bimbingans') ? $this->bimbingans : $this->bimbingans()->get();
+        return $bimbingans->contains(fn ($b) => $b->jenis === Bimbingan::JENIS_ACC_SEMINAR && $b->isDisetujui());
     }
 
     public function selesaikanSampaiUrutan(int $babOrder, ?string $catatan = null): void {
