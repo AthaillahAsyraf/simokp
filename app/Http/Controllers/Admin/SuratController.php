@@ -16,18 +16,13 @@ class SuratController extends Controller
 {
     public function index(Request $request)
     {
-        $permohonanMasuk = Surat::with(['mahasiswa', 'lampirans'])
-            ->where('penerima_role', 'admin')
-            ->where('jenis', Surat::JENIS_PERMOHONAN)
-            ->latest()->get();
-
         // ── Filter untuk tab "Surat Masuk" ──────────────────────────────────
         $searchMasuk = trim((string) $request->query('search_masuk'));
         $jenisMasuk  = $request->query('jenis_masuk');
         $statusMasuk = $request->query('status_masuk'); // dibalas / belum
 
-        // Surat masuk non-permohonan (dari mahasiswa/dosen/instansi ke admin),
-        // sekaligus muat seluruh riwayat balasannya (thread) secara berjenjang.
+        // Surat masuk dari mahasiswa/dosen/instansi ke admin, sekaligus muat
+        // seluruh riwayat balasannya (thread) secara berjenjang.
         $suratMasuk = Surat::with([
             'mahasiswa', 'lampirans',
             'balasan.mahasiswa', 'balasan.lampirans',
@@ -60,6 +55,7 @@ class SuratController extends Controller
         // Semua riwayat lintas aktor untuk monitoring, termasuk data induk
         // supaya balasan bisa ditelusuri balik ke surat asalnya saat dicari.
         $semuaRiwayat = Surat::with(['mahasiswa', 'parent', 'lampirans'])
+            ->where('jenis', '!=', Surat::JENIS_PERMOHONAN)
             ->when($searchRiwayat !== '', function ($q) use ($searchRiwayat) {
                 $q->where(function ($qq) use ($searchRiwayat) {
                     $qq->where('perihal', 'like', "%{$searchRiwayat}%")
@@ -77,7 +73,6 @@ class SuratController extends Controller
         $listInstansi  = Instansi::orderBy('nama')->get();
 
         return view('admin.surat.index', compact(
-            'permohonanMasuk',
             'suratMasuk',
             'semuaRiwayat',
             'listMahasiswa',
@@ -91,71 +86,6 @@ class SuratController extends Controller
             'statusRiwayat',
             'dariRiwayat',
         ));
-    }
-
-    /**
-     * Admin setujui permohonan & (opsional) upload file surat pengantar resmi.
-     * Otomatis buat surat pengantar baru (admin → mahasiswa) supaya mahasiswa
-     * bisa meneruskannya ke instansi.
-     */
-    public function approve(Request $request, Surat $surat)
-    {
-        abort_unless(
-            $surat->jenis === Surat::JENIS_PERMOHONAN && $surat->status === Surat::STATUS_PENDING,
-            422,
-            'Permohonan ini sudah diproses.'
-        );
-
-        $validator = Validator::make($request->all(), [
-            'file'       => 'nullable|file|extensions:pdf,doc,docx|max:10240',
-            'keterangan' => 'nullable|string|max:1000',
-        ], [
-            'file.extensions' => 'File harus berformat PDF, DOC, atau DOCX.',
-        ]);
-        if ($validator->fails()) {
-            return back()->withErrors($validator, 'approve')->withInput()->with('approve_id', $surat->id);
-        }
-
-        $path = null;
-        if ($request->hasFile('file')) {
-            $path = $request->file('file')->store('surat/' . $surat->mahasiswa_id, 'public');
-        }
-
-        $surat->update(['status' => Surat::STATUS_DISETUJUI]);
-
-        Surat::create([
-            'mahasiswa_id'  => $surat->mahasiswa_id,
-            'pengirim_role' => 'admin',
-            'pengirim_id'   => null,
-            'penerima_role' => 'mahasiswa',
-            'penerima_id'   => $surat->mahasiswa_id,
-            'parent_id'     => $surat->id,
-            'perihal'       => $surat->perihal,
-            'jenis'         => Surat::JENIS_PENGANTAR,
-            'keterangan'    => $request->input('keterangan'),
-            'file'          => $path,
-            'status'        => Surat::STATUS_TERKIRIM,
-        ]);
-
-        return back()->with('success', 'Permohonan disetujui & surat pengantar dikirim ke mahasiswa.');
-    }
-
-    public function reject(Request $request, Surat $surat)
-    {
-        abort_unless(
-            $surat->jenis === Surat::JENIS_PERMOHONAN && $surat->status === Surat::STATUS_PENDING,
-            422,
-            'Permohonan ini sudah diproses.'
-        );
-
-        $request->validate(
-            ['catatan' => 'required|string|max:500'],
-            ['catatan.required' => 'Alasan penolakan wajib diisi.']
-        );
-
-        $surat->update(['status' => Surat::STATUS_DITOLAK, 'catatan' => $request->catatan]);
-
-        return back()->with('success', 'Permohonan surat ditolak.');
     }
 
     /**

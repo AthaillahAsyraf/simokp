@@ -56,71 +56,18 @@
 @section('content')
 <div class="page-header">
   <h1>Surat</h1>
-  <p>Kelola permohonan surat pengantar & kirim korespondensi ke semua pihak</p>
+  <p>Kelola surat dan pesan dari semua pihak</p>
 </div>
 
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
 @if(session('error'))<div class="alert alert-warning">⚠️ {{ session('error') }}</div>@endif
 
 <div class="tab-bar">
-  <button type="button" class="tab-btn" id="tabBtnPermohonan" onclick="switchTab('permohonan')">
-    📥 Permohonan
-    @if($permohonanMasuk->where('status','pending')->count())
-      <span class="badge badge-proses" style="margin-left:4px">{{ $permohonanMasuk->where('status','pending')->count() }}</span>
-    @endif
-  </button>
   <button type="button" class="tab-btn" id="tabBtnMasuk"       onclick="switchTab('masuk')">📨 Surat Masuk
     @if($suratMasuk->count())<span class="badge badge-proses" style="margin-left:4px">{{ $suratMasuk->count() }}</span>@endif
   </button>
   <button type="button" class="tab-btn" id="tabBtnKirim"       onclick="switchTab('kirim')">✉️ Kirim Surat</button>
   <button type="button" class="tab-btn" id="tabBtnRiwayat"     onclick="switchTab('riwayat')">🗂️ Semua Riwayat</button>
-</div>
-
-{{-- ══ TAB PERMOHONAN ══ --}}
-<div class="tab-panel" id="panelPermohonan">
-  @if($errors->approve->any())
-    <div class="err-box"><ul>@foreach($errors->approve->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
-  @endif
-  <div class="card">
-    <div class="card-header"><h3>Permohonan Surat Pengantar</h3><p>{{ $permohonanMasuk->count() }} permohonan</p></div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Mahasiswa</th><th>Perihal</th><th>Keterangan</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr>
-        </thead>
-        <tbody>
-          @forelse($permohonanMasuk as $s)
-          <tr>
-            <td><strong>{{ $s->mahasiswa?->nama }}</strong><br><code class="text-sm">{{ $s->mahasiswa?->nim }}</code></td>
-            <td class="text-sm">{{ $s->perihal }}</td>
-            <td class="text-sm text-muted">{{ \Illuminate\Support\Str::limit($s->keterangan, 60) }}</td>
-            <td class="text-sm text-muted">{{ $s->created_at->format('d M Y') }}</td>
-            <td>
-              <span class="badge {{ $s->status === 'disetujui' ? 'badge-selesai' : ($s->status === 'ditolak' ? '' : 'badge-proses') }}"
-                @if($s->status === 'ditolak') style="background:var(--red-100);color:var(--red-600)" @endif>
-                {{ ucfirst($s->status) }}
-              </span>
-            </td>
-            <td>
-              @if($s->status === 'pending')
-                <div style="display:flex;gap:4px;flex-wrap:wrap">
-                  <button class="btn btn-success btn-xs"
-                    onclick="openApprove({{ $s->id }}, {{ json_encode($s->mahasiswa?->nama) }}, {{ json_encode($s->perihal) }})">✅ Setujui</button>
-                  <button class="btn btn-danger btn-xs"
-                    onclick="openReject({{ $s->id }}, {{ json_encode($s->mahasiswa?->nama) }})">✖️ Tolak</button>
-                </div>
-              @else
-                <span class="text-sm text-muted">Selesai</span>
-              @endif
-            </td>
-          </tr>
-          @empty
-            <tr><td colspan="6" style="text-align:center;padding:28px;color:var(--gray-400)">Belum ada permohonan.</td></tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 {{-- ══ TAB SURAT MASUK ══ --}}
@@ -310,7 +257,6 @@
     <input type="text" name="search_riwayat" class="form-control" placeholder="🔍 Cari perihal/isi/mahasiswa..." value="{{ $searchRiwayat }}">
     <select name="jenis_riwayat" class="form-control">
       <option value="">Semua Jenis</option>
-      <option value="{{ \App\Models\Surat::JENIS_PERMOHONAN }}" {{ $jenisRiwayat === \App\Models\Surat::JENIS_PERMOHONAN ? 'selected' : '' }}>Permohonan</option>
       <option value="{{ \App\Models\Surat::JENIS_PENGANTAR }}" {{ $jenisRiwayat === \App\Models\Surat::JENIS_PENGANTAR ? 'selected' : '' }}>Pengantar</option>
       <option value="{{ \App\Models\Surat::JENIS_BALASAN }}" {{ $jenisRiwayat === \App\Models\Surat::JENIS_BALASAN ? 'selected' : '' }}>Balasan</option>
       <option value="{{ \App\Models\Surat::JENIS_UMUM }}" {{ $jenisRiwayat === \App\Models\Surat::JENIS_UMUM ? 'selected' : '' }}>Umum</option>
@@ -360,14 +306,7 @@
                 <span class="text-muted">–</span>
               @endforelse
             </td>
-            <td>
-              @if($s->jenis === \App\Models\Surat::JENIS_PERMOHONAN)
-                <span class="badge {{ $s->status === 'disetujui' ? 'badge-selesai' : ($s->status === 'ditolak' ? '' : 'badge-proses') }}"
-                  @if($s->status === 'ditolak') style="background:var(--red-100);color:var(--red-600)" @endif>
-                  {{ ucfirst($s->status) }}
-                </span>
-              @else<span class="text-muted text-sm">–</span>@endif
-            </td>
+            <td><span class="text-muted text-sm">–</span></td>
             <td class="text-sm text-muted">{{ $s->created_at->format('d M Y, H:i') }}</td>
           </tr>
           @empty
@@ -376,47 +315,6 @@
         </tbody>
       </table>
     </div>
-  </div>
-</div>
-
-{{-- MODAL APPROVE --}}
-<div class="modal-bg" id="modalApprove">
-  <div class="modal-box">
-    <div class="modal-title" id="apTitle">✅ Setujui & Upload Surat Pengantar</div>
-    <form method="POST" id="approveForm" enctype="multipart/form-data">
-      @csrf
-      <div class="form-group">
-        <label class="form-label">File Surat Pengantar <span style="color:var(--gray-400);font-weight:400">(opsional)</span></label>
-        <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx">
-        <p class="file-hint">Upload file surat pengantar resmi bila sudah tersedia — PDF/DOC/DOCX maks 10 MB</p>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Catatan untuk Mahasiswa <span style="color:var(--gray-400);font-weight:400">(opsional)</span></label>
-        <textarea name="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan..."></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline" onclick="closeModal('modalApprove')">Batal</button>
-        <button type="submit" class="btn btn-success">Setujui & Kirim</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-{{-- MODAL REJECT --}}
-<div class="modal-bg" id="modalReject">
-  <div class="modal-box">
-    <div class="modal-title" id="rjTitle">✖️ Tolak Permohonan</div>
-    <form method="POST" id="rejectForm">
-      @csrf
-      <div class="form-group">
-        <label class="form-label">Alasan Penolakan *</label>
-        <textarea name="catatan" class="form-control" rows="3" placeholder="Tulis alasan penolakan..." required></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline" onclick="closeModal('modalReject')">Batal</button>
-        <button type="submit" class="btn btn-danger">Tolak</button>
-      </div>
-    </form>
   </div>
 </div>
 
@@ -446,7 +344,7 @@
 @push('scripts')
 <script>
 function switchTab(tab) {
-  ['permohonan','masuk','kirim','riwayat'].forEach(t => {
+  ['masuk','kirim','riwayat'].forEach(t => {
     const c = t[0].toUpperCase() + t.slice(1);
     document.getElementById('panel' + c).classList.toggle('active', t === tab);
     document.getElementById('tabBtn'  + c).classList.toggle('active', t === tab);
@@ -464,8 +362,8 @@ function toggleThread(id, btn) {
   const params = new URLSearchParams(window.location.search);
   const hashTab = window.location.hash.replace('#', '');
   const tabFromQuery = params.get('tab');
-  const initialTab = tabFromQuery || hashTab || 'permohonan';
-  switchTab(['permohonan','masuk','kirim','riwayat'].includes(initialTab) ? initialTab : 'permohonan');
+  const initialTab = tabFromQuery || hashTab || 'masuk';
+  switchTab(['masuk','kirim','riwayat'].includes(initialTab) ? initialTab : 'masuk');
 })();
 
 function selectRecipient(el, role) {
@@ -496,24 +394,11 @@ function toggleKirimSemua(checkbox) {
   if (cb && cb.checked) toggleKirimSemua(cb);
 })();
 
-function openApprove(id, nama, perihal) {
-  document.getElementById('approveForm').action = `{{ url('admin/surat') }}/${id}/approve`;
-  document.getElementById('apTitle').textContent  = '✅ Setujui — ' + nama + ' (' + perihal + ')';
-  openModal('modalApprove');
-}
-function openReject(id, nama) {
-  document.getElementById('rejectForm').action = `{{ url('admin/surat') }}/${id}/reject`;
-  document.getElementById('rjTitle').textContent  = '✖️ Tolak — ' + nama;
-  openModal('modalReject');
-}
 function openBalas(id, nama, perihal) {
   document.getElementById('balasForm').action = `{{ url('admin/surat') }}/${id}/balas`;
   document.getElementById('balasTitle').textContent = '↩️ Balas — ' + nama + ' (' + perihal + ')';
   openModal('modalBalas');
 }
-@if($errors->approve->any())
-  window.addEventListener('load', () => { openModal('modalApprove'); switchTab('permohonan'); });
-@endif
 @if($errors->balas->any())
   window.addEventListener('load', () => { openModal('modalBalas'); switchTab('masuk'); });
 @endif

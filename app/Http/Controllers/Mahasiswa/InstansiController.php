@@ -9,8 +9,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 /**
  * Mahasiswa mendaftarkan instansi tempat KP beserta Pembimbing Lapangannya.
@@ -96,7 +97,6 @@ class InstansiController extends Controller
             'kontak_person' => 'required|string|max:255',
             'no_hp'         => 'nullable|string|max:20',
             'email'         => 'required|email|unique:users,email',
-            'password'      => 'required|min:8|confirmed',
             'latitude'      => 'required|numeric|between:-90,90',
             'longitude'     => 'required|numeric|between:-180,180',
         ], [
@@ -110,14 +110,19 @@ class InstansiController extends Controller
             return back()->withErrors($validator, 'daftarInstansiBaru')->withInput();
         }
 
+        $tokenAktivasi = Str::random(64);
+
         try {
-            $instansi = DB::transaction(function () use ($request) {
+            $instansi = DB::transaction(function () use ($request, $tokenAktivasi) {
                 $user = User::create([
                     'name'                 => $request->kontak_person,
                     'email'                => $request->email,
-                    'password'             => Hash::make($request->password),
+                    // Password ditentukan pembimbing melalui tautan aktivasi.
+                    'password'             => Str::random(64),
                     'role'                 => 'pembimbing_lapangan',
                     'wajib_ganti_password' => true,
+                    'activation_token'     => hash('sha256', $tokenAktivasi),
+                    'activation_expires_at' => now()->addDays(7),
                 ]);
 
                 return Instansi::create([
@@ -144,7 +149,23 @@ class InstansiController extends Controller
 
         $mahasiswa->cekMajukanKeAktifKp();
 
+        $undanganTerkirim = true;
+        try {
+            Mail::send('emails.undangan-pembimbing', [
+                'nama' => $instansi->kontak_person,
+                'instansi' => $instansi->nama,
+                'urlAktivasi' => route('aktivasi-pembimbing.show', $tokenAktivasi),
+            ], function ($message) use ($request, $instansi) {
+                $message->to($request->email)->subject('Aktivasi Akun Pembimbing Lapangan - '.$instansi->nama);
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            $undanganTerkirim = false;
+        }
+
         return redirect()->route('mahasiswa.dashboard')
-            ->with('success', "Instansi {$instansi->nama} & akun Pembimbing Lapangan berhasil dibuat. Sampaikan email ({$request->email}) dan password yang tadi Anda buat kepada pembimbing lapangan Anda secara langsung — mereka wajib menggantinya saat login pertama.");
+            ->with($undanganTerkirim ? 'success' : 'error', $undanganTerkirim
+                ? "Instansi {$instansi->nama} berhasil didaftarkan. Tautan aktivasi akun telah dikirim ke email Pembimbing Lapangan ({$request->email})."
+                : "Instansi {$instansi->nama} berhasil didaftarkan, tetapi undangan aktivasi tidak dapat dikirim. Hubungi admin KP.");
     }
 }

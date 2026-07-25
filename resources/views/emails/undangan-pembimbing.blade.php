@@ -1,0 +1,1 @@
+<h2>Undangan Aktivasi Akun Pembimbing Lapangan</h2><p>Halo {{ $nama }},</p><p>Anda didaftarkan sebagai Pembimbing Lapangan untuk kerja praktik di {{ $instansi }}. Silakan aktifkan akun dan tentukan password Anda sendiri:</p><p><a href="{{ $urlAktivasi }}">Aktifkan akun saya</a></p><p>Tautan ini berlaku selama 7 hari dan hanya dapat digunakan satu kali.</p>

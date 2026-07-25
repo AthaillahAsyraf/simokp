@@ -3,7 +3,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Login — SiMoKP Unila</title>
+<title>Login — SIMKAP Unila</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -48,12 +48,12 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
       <div class="brand">
         <div class="brand-icon">🎓</div>
         <div>
-          <h1>SiMoKP</h1>
+          <h1>SIMKAP</h1>
           <p>Ilmu Komputer — Unila</p>
         </div>
       </div>
       <div class="tagline">
-        <h2>Sistem Monitoring Progress Kerja Praktik</h2>
+        <h2>Sistem Monitoring Kerja Praktik</h2>
         <p>Platform terpadu untuk memantau perkembangan KP mahasiswa secara real-time dengan 4 aktor yang terintegrasi.</p>
       </div>
     </div>
@@ -61,11 +61,14 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
   </div>
 
   <div class="right">
-    <h2>Selamat Datang 👋</h2>
+    <h2>Selamat Datang!</h2>
     <p class="sub">Masuk ke akun Anda untuk mulai monitoring</p>
 
     @if($errors->any())
       <div class="err">{{ $errors->first() }}</div>
+    @endif
+    @if(session('success'))
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:13px;color:#15803d;margin-bottom:16px">{{ session('success') }}</div>
     @endif
 
     <form method="POST" action="{{ route('login.post') }}">

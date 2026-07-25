@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title','SiMoKP') — Ilmu Komputer Unila</title>
+<title>@yield('title','SIMKAP') — Ilmu Komputer Unila</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -111,6 +111,17 @@ a{color:inherit;text-decoration:none}
 .nav-item.active.role-instansi{background:var(--amber-50);color:var(--amber-600)}
 .nav-item.active.role-mahasiswa{background:var(--purple-50);color:var(--purple-600)}
 .nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-group{margin:3px 0}
+.nav-group summary{list-style:none}
+.nav-group summary::-webkit-details-marker{display:none}
+.nav-group-summary{justify-content:space-between}
+.nav-group-summary-main{display:flex;align-items:center;gap:9px}
+.nav-group-caret{font-size:11px;transition:transform .15s}
+.nav-group[open] .nav-group-caret{transform:rotate(90deg)}
+.nav-submenu{margin:2px 0 5px 18px;padding-left:8px;border-left:1px solid var(--gray-200)}
+.nav-submenu .nav-item{font-size:12px;padding:7px 9px}
+.nav-step{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--purple-100);color:var(--purple-600);font-size:10px;font-weight:700;flex-shrink:0}
+.nav-submenu .nav-item.is-locked{opacity:.48;cursor:not-allowed}
 
 .sb-footer{padding:12px 14px;border-top:1px solid var(--gray-100)}
 .user-card{
@@ -301,7 +312,7 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
   <div class="sb-logo">
     <div class="sb-logo-icon">🎓</div>
     <div>
-      <h2>SiMoKP</h2>
+      <h2>SIMKAP</h2>
       <p>Ilmu Komputer Unila</p>
     </div>
   </div>
@@ -346,7 +357,7 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">📋</span> Absensi Mahasiswa
       </a>
       <a href="{{ route('admin.surat.index') }}" class="nav-item {{ request()->routeIs('admin.surat*') ? 'active role-admin' : '' }}">
-  <span class="nav-icon">✉️</span> Surat
+  <span class="nav-icon">✉️</span> Surat/Pesan
 </a>
 
     @elseif($role === 'dosen')
@@ -402,20 +413,49 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('mahasiswa.profile.show') }}" class="nav-item {{ request()->routeIs('mahasiswa.profile*') ? 'active role-mahasiswa' : '' }}">
         <span class="nav-icon">👤</span> Profil Saya
       </a>
-      <a href="{{ route('mahasiswa.persyaratan.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.persyaratan*') ? 'active role-mahasiswa' : '' }}">
-        <span class="nav-icon">🗂️</span> Persyaratan KP
-      </a>
-      <a href="{{ route('mahasiswa.surat-balasan.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.surat-balasan*') ? 'active role-mahasiswa' : '' }}">
-        <span class="nav-icon">✉️</span> Surat Balasan Instansi
-      </a>
-      <a href="{{ route('mahasiswa.instansi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.instansi*') ? 'active role-mahasiswa' : '' }}">
-        <span class="nav-icon">🏢</span> Daftarkan Instansi
-      </a>
-      @if($mhsNav?->formKesediaanPembimbing)
-        <a href="{{ route('mahasiswa.form-kesediaan-pembimbing.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.form-kesediaan-pembimbing*') ? 'active role-mahasiswa' : '' }}">
-          <span class="nav-icon">📋</span> Form Kesediaan Pembimbing
-        </a>
-      @endif
+      @php
+        $administrasiKpActive = request()->routeIs(
+          'mahasiswa.persyaratan*',
+          'mahasiswa.surat-balasan*',
+          'mahasiswa.instansi*',
+          'mahasiswa.form-kesediaan-pembimbing*'
+        );
+        $bisaUnggahBalasan = $mhsNav?->sudahMencapaiTahap(\App\Models\Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN);
+        $bisaDaftarInstansi = $mhsNav?->sudahMencapaiTahap(\App\Models\Mahasiswa::TAHAP_MENUNGGU_INSTANSI);
+        $bisaLihatKesediaan = (bool) $mhsNav?->formKesediaanPembimbing;
+      @endphp
+      <details class="nav-group" {{ $administrasiKpActive ? 'open' : '' }}>
+        <summary class="nav-item nav-group-summary {{ $administrasiKpActive ? 'active role-mahasiswa' : '' }}">
+          <span class="nav-group-summary-main"><span class="nav-icon">🗂️</span> Administrasi KP</span>
+          <span class="nav-group-caret">›</span>
+        </summary>
+        <div class="nav-submenu">
+          <a href="{{ route('mahasiswa.persyaratan.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.persyaratan*') ? 'active role-mahasiswa' : '' }}">
+            <span class="nav-step">1</span> Persyaratan KP
+          </a>
+          @if($bisaUnggahBalasan)
+            <a href="{{ route('mahasiswa.surat-balasan.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.surat-balasan*') ? 'active role-mahasiswa' : '' }}">
+              <span class="nav-step">2</span> Surat Balasan Instansi
+            </a>
+          @else
+            <span class="nav-item is-locked" title="Selesaikan dan tunggu persetujuan Persyaratan KP terlebih dahulu"><span class="nav-step">2</span> Surat Balasan Instansi</span>
+          @endif
+          @if($bisaDaftarInstansi)
+            <a href="{{ route('mahasiswa.instansi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.instansi*') ? 'active role-mahasiswa' : '' }}">
+              <span class="nav-step">3</span> Daftarkan Instansi
+            </a>
+          @else
+            <span class="nav-item is-locked" title="Unggah surat balasan instansi terlebih dahulu"><span class="nav-step">3</span> Daftarkan Instansi</span>
+          @endif
+          @if($bisaLihatKesediaan)
+            <a href="{{ route('mahasiswa.form-kesediaan-pembimbing.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.form-kesediaan-pembimbing*') ? 'active role-mahasiswa' : '' }}">
+              <span class="nav-step">4</span> Kesediaan Pembimbing
+            </a>
+          @else
+            <span class="nav-item is-locked" title="Selesaikan pendaftaran instansi dan penetapan dosen pembimbing terlebih dahulu"><span class="nav-step">4</span> Kesediaan Pembimbing</span>
+          @endif
+        </div>
+      </details>
       <div class="nav-section">KP Saya</div>
       @if($aktifKp)
         <a href="{{ route('mahasiswa.absensi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.absensi*') ? 'active role-mahasiswa' : '' }}">

@@ -6,9 +6,9 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable {
     use HasFactory, Notifiable;
-    protected $fillable = ['name', 'email', 'password', 'role', 'wajib_ganti_password'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'wajib_ganti_password', 'activation_token', 'activation_expires_at'];
     protected $hidden   = ['password', 'remember_token'];
-    protected $casts    = ['password' => 'hashed', 'wajib_ganti_password' => 'boolean'];
+    protected $casts    = ['password' => 'hashed', 'wajib_ganti_password' => 'boolean', 'activation_expires_at' => 'datetime'];
 
     public function dosen()     { return $this->hasOne(Dosen::class); }
     public function instansi()  { return $this->hasOne(Instansi::class); }

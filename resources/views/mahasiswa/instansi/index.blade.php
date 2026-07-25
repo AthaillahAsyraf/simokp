@@ -145,25 +145,13 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Email (untuk akun login Pembimbing Lapangan) *</label>
+        <label class="form-label">Email Pembimbing Lapangan *</label>
         <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="email@instansi.com" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Password Awal *</label>
-        <input type="password" name="password" class="form-control" placeholder="Minimal 8 karakter" required>
-        <div style="font-size:12px;color:var(--gray-500);margin-top:4px">
-          Sampaikan password ini ke pembimbing lapangan Anda. Mereka akan diminta menggantinya saat login pertama.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Konfirmasi Password *</label>
-        <input type="password" name="password_confirmation" class="form-control" placeholder="Ulangi password" required>
+        <div style="font-size:12px;color:var(--gray-500);margin-top:4px">Sistem akan mengirim tautan aktivasi ke alamat ini.</div>
       </div>
 
       <div style="text-align:right;margin-top:18px">
-        <button type="submit" class="btn btn-primary">Daftarkan & Buat Akun</button>
+        <button type="submit" class="btn btn-primary">Daftarkan & Kirim Undangan</button>
       </div>
     </form>
 

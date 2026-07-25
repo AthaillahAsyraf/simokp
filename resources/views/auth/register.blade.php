@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Daftar — SiMoKP Unila</title>
+<title>Daftar — SIMKAP Unila</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -32,7 +32,7 @@ input.touched:invalid{border-color:#fca5a5;background:#fef9f9}
   <div class="header">
     <div class="logo">🎓</div>
     <h2>Daftar Akun Mahasiswa</h2>
-    <p class="sub">SiMoKP — Sistem Monitoring Kerja Praktik</p>
+    <p class="sub">SIMKAP — Sistem Monitoring Kerja Praktik</p>
   </div>
 
   @if($errors->any())

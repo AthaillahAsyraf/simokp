@@ -17,6 +17,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/register',  [AuthController::class,'showRegister'])->name('register');
     Route::post('/register', [AuthController::class,'register'])->name('register.post');
 });
+Route::get('/aktivasi-pembimbing/{token}', [\App\Http\Controllers\AktivasiPembimbingController::class, 'show'])->name('aktivasi-pembimbing.show');
+Route::post('/aktivasi-pembimbing/{token}', [\App\Http\Controllers\AktivasiPembimbingController::class, 'store'])->name('aktivasi-pembimbing.store');
 Route::post('/logout', [AuthController::class,'logout'])->name('logout')->middleware('auth');
 
 // Ganti Password (dosen, instansi, mahasiswa)
@@ -73,8 +75,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     // ── Surat ──
     Route::get('surat',                  [App\Http\Controllers\Admin\SuratController::class,'index'])->name('surat.index');
     Route::post('surat/kirim',           [App\Http\Controllers\Admin\SuratController::class,'kirim'])->name('surat.kirim');
-    Route::post('surat/{surat}/approve', [App\Http\Controllers\Admin\SuratController::class,'approve'])->name('surat.approve');
-    Route::post('surat/{surat}/reject',  [App\Http\Controllers\Admin\SuratController::class,'reject'])->name('surat.reject');
     Route::post('surat/{surat}/balas',   [App\Http\Controllers\Admin\SuratController::class,'balas'])->name('surat.balas');
 });
 
