@@ -22,7 +22,7 @@
   </div>
 
   @if($chat->status === 'open')
-  <form action="{{ route('dosen.chat.close', $chat) }}" method="POST" onsubmit="return confirm('Tandai chat ini sebagai selesai?')">
+  <form action="{{ route('dosen.chat.close', $chat) }}" method="POST" data-confirm="Tandai chat ini sebagai selesai?">
     @csrf @method('PATCH')
     <button class="btn btn-outline btn-sm">✅ Tandai Selesai</button>
   </form>

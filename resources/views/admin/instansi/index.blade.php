@@ -63,7 +63,7 @@
               <button class="btn btn-outline btn-xs"
                 onclick="openEdit({{ $inst->id }},'{{ addslashes($inst->nama) }}','{{ addslashes($inst->bidang) }}','{{ addslashes($inst->alamat) }}','{{ addslashes($inst->kontak_person) }}','{{ $inst->no_hp }}','{{ $inst->latitude }}','{{ $inst->longitude }}')">Edit</button>
               <form method="POST" action="{{ route('admin.instansi.destroy',$inst) }}"
-                onsubmit="return confirm('Hapus instansi ini?')" style="display:inline">
+                data-confirm="Hapus instansi ini?" style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-xs">Hapus</button>
               </form>

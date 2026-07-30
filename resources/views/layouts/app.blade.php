@@ -275,9 +275,6 @@ textarea.form-control{resize:vertical;min-height:80px}
 .modal-title{font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:18px}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-100)}
 
-/* ── FLASH ────────────────────────────────────────────────────── */
-.flash{position:fixed;bottom:20px;right:20px;z-index:9999;padding:12px 18px;border-radius:9px;font-size:13px;font-weight:600;background:var(--white);border:1px solid var(--gray-200);border-left:4px solid var(--green-500);box-shadow:var(--shadow-lg);max-width:320px;animation:fIn .3s ease}
-.flash-err{border-left-color:var(--red-500)}
 @keyframes fIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── DIVIDER ──────────────────────────────────────────────────── */
@@ -518,18 +515,11 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
 
 {{-- ── MAIN ──────────────────────────────────────────────────────── --}}
 <main class="main">
-  @if(session('success'))
-    <div class="flash" id="flashMsg">✅ {{ session('success') }}</div>
-  @endif
-  @if(session('error'))
-    <div class="flash flash-err" id="flashMsg">❌ {{ session('error') }}</div>
-  @endif
-
   @yield('content')
 </main>
 
+@include('partials.sweet-alert')
 <script>
-setTimeout(() => { const f=document.getElementById('flashMsg'); if(f){f.style.opacity='0';f.style.transform='translateY(8px)';f.style.transition='all .4s';} }, 3000);
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.addEventListener('DOMContentLoaded',()=>{

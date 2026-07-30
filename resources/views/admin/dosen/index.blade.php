@@ -52,7 +52,7 @@
               <button class="btn btn-outline btn-xs"
                 onclick="openEdit({{ $d->id }},'{{ addslashes($d->nama) }}','{{ $d->nip }}','{{ $d->no_hp }}')">Edit</button>
               <form method="POST" action="{{ route('admin.dosen.destroy',$d) }}"
-                onsubmit="return confirm('Hapus dosen ini?')" style="display:inline">
+                data-confirm="Hapus dosen ini?" style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-xs">Hapus</button>
               </form>

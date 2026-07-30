@@ -64,13 +64,6 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
     <h2>Selamat Datang!</h2>
     <p class="sub">Masuk ke akun Anda untuk mulai monitoring</p>
 
-    @if($errors->any())
-      <div class="err">{{ $errors->first() }}</div>
-    @endif
-    @if(session('success'))
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:13px;color:#15803d;margin-bottom:16px">{{ session('success') }}</div>
-    @endif
-
     <form method="POST" action="{{ route('login.post') }}">
       @csrf
       <div class="fg">
@@ -87,5 +80,6 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
     <div class="reg-link">Mahasiswa baru? <a href="{{ route('register') }}">Daftar di sini</a></div>
   </div>
 </div>
+@include('partials.sweet-alert')
 </body>
 </html>

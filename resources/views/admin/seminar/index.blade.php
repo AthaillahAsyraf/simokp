@@ -73,7 +73,7 @@
               @else
                 <button class="btn btn-outline btn-xs" onclick="openEdit({{ $s->id }}, {{ json_encode($s->tanggal) }}, {{ json_encode($s->jam_mulai) }}, {{ json_encode($s->jam_selesai) }}, {{ json_encode($s->ruangan) }}, {{ json_encode($s->dosen_penguji_id) }}, {{ json_encode($s->status) }}, {{ json_encode($s->catatan) }})">Edit</button>
               @endif
-              <form method="POST" action="{{ route('admin.seminar.destroy',$s) }}" onsubmit="return confirm('Hapus jadwal ini?')" style="display:inline">
+              <form method="POST" action="{{ route('admin.seminar.destroy',$s) }}" data-confirm="Hapus jadwal ini?" style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-xs">Hapus</button>
               </form>

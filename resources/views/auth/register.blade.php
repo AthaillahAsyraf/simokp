@@ -140,5 +140,6 @@ input.touched:invalid{border-color:#fca5a5;background:#fef9f9}
     el.value = el.value.replace(/[^A-Za-z\s]/g, '');
   }
 </script>
+@include('partials.sweet-alert')
 </body>
 </html>

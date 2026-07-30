@@ -161,12 +161,12 @@
               <a href="{{ route('admin.mahasiswa.show',$m) }}" class="btn btn-ghost btn-xs">Detail</a>
               @if($m->tahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN && $m->syaratAdministrasi?->file_surat_balasan)
                 <a href="{{ $m->syaratAdministrasi->urlBerkas('file_surat_balasan') }}" target="_blank" class="btn btn-primary btn-xs">Lihat Surat</a>
-                <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:inline">@csrf<input type="hidden" name="keputusan" value="disetujui"><button type="submit" class="btn btn-success btn-xs" onclick="return confirm('Setujui surat balasan ini?')">Setujui</button></form>
+                <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:inline" data-confirm="Setujui surat balasan ini?">@csrf<input type="hidden" name="keputusan" value="disetujui"><button type="submit" class="btn btn-success btn-xs">Setujui</button></form>
                 <button type="button" class="btn btn-outline btn-xs" onclick="openRevisiSurat({{ $m->id }}, @json($m->nama))">Revisi</button>
               @endif
               @php($akunPembimbing = $m->instansi?->user)
               @if($m->instansi && $akunPembimbing?->wajib_ganti_password)
-                <form method="POST" action="{{ route('admin.instansi.kirimUndangan', $m->instansi) }}" style="display:inline" onsubmit="return confirm('{{ $akunPembimbing->activation_token ? 'Kirim ulang tautan aktivasi? Tautan sebelumnya akan tidak berlaku.' : 'Kirim undangan aktivasi ke email pembimbing lapangan ini?' }}')">
+                <form method="POST" action="{{ route('admin.instansi.kirimUndangan', $m->instansi) }}" style="display:inline" data-confirm="{{ $akunPembimbing->activation_token ? 'Kirim ulang tautan aktivasi? Tautan sebelumnya akan tidak berlaku.' : 'Kirim undangan aktivasi ke email pembimbing lapangan ini?' }}">
                   @csrf
                   <button type="submit" class="btn btn-primary btn-xs">{{ $akunPembimbing->activation_token ? 'Kirim Ulang Undangan' : 'Kirim Undangan Pembimbing' }}</button>
                 </form>
@@ -175,7 +175,7 @@
                 <button type="button" class="btn btn-primary btn-xs" onclick='openTetapkanDosen({{ $m->id }}, @json($m->nama), @json($m->instansi?->nama))'>Isi Dosen Pembimbing</button>
               @endif
               <button class="btn btn-outline btn-xs" onclick="openEdit({{ $m->id }},'{{ addslashes($m->nama) }}','{{ $m->angkatan }}','{{ $m->status }}')">Edit</button>
-              <form method="POST" action="{{ route('admin.mahasiswa.destroy',$m) }}" onsubmit="return confirm('Hapus mahasiswa ini?')" style="display:inline">
+              <form method="POST" action="{{ route('admin.mahasiswa.destroy',$m) }}" data-confirm="Hapus mahasiswa ini?" style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-xs">Hapus</button>
               </form>
