@@ -28,6 +28,18 @@
 </form>
 
 <div class="card">
+  <div class="card-header"><h3>Surat Balasan Menunggu Verifikasi ({{ $menungguSuratBalasan->count() }})</h3></div>
+  <div class="card-body">
+    @forelse($menungguSuratBalasan as $m)
+      @php($suratBalasan = $m->syaratAdministrasi)
+      <div class="mhs-block"><div class="mhs-block-head"><div><h4>{{ $m->nama }} <span style="color:var(--gray-400);font-weight:500">— {{ $m->nim }}</span></h4><p>Periksa keaslian surat sebelum menyetujui.</p></div><a href="{{ $suratBalasan->urlBerkas('file_surat_balasan') }}" target="_blank" class="btn btn-outline btn-sm">Lihat Berkas</a></div>
+        <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">@csrf<div class="form-group" style="margin:0"><label class="form-label">Keputusan</label><select name="keputusan" class="form-control"><option value="disetujui">Setujui</option><option value="revisi">Minta Revisi</option></select></div><div class="form-group" style="margin:0;min-width:260px;flex:1"><label class="form-label">Catatan (wajib jika revisi)</label><input name="catatan" class="form-control" placeholder="Contoh: Surat tidak mencantumkan identitas instansi"></div><button class="btn btn-primary btn-sm">Simpan</button></form>
+      </div>
+    @empty<div class="empty-state">Tidak ada surat balasan yang menunggu verifikasi.</div>@endforelse
+  </div>
+</div>
+
+<div class="card">
   <div class="card-header"><h3>🕓 Menunggu Verifikasi ({{ $menungguVerifikasi->count() }})</h3></div>
   <div class="card-body">
     @forelse($menungguVerifikasi as $m)

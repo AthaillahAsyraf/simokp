@@ -114,11 +114,10 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Mahasiswa</th><th>Angkatan</th><th>Instansi</th><th>Dosen Pembimbing</th><th>Progress</th><th>Status</th><th>Aksi</th></tr>
+        <tr><th>Mahasiswa</th><th>Angkatan</th><th>Instansi</th><th>Dosen Pembimbing</th><th>Status</th><th>Aksi</th></tr>
       </thead>
       <tbody>
         @forelse($mahasiswaTahap as $m)
-        @php $pct = $m->progressPersen(); @endphp
         <tr>
           <td>
             <div style="display:flex;align-items:center;gap:10px">
@@ -151,12 +150,6 @@
             @else <span class="text-muted">–</span>
             @endif
           </td>
-          <td style="min-width:110px">
-            <div class="prog-wrap" style="height:6px;margin-bottom:3px">
-              <div class="prog-bar prog-bar-{{ $pct==100?'green':($pct>0?'amber':'blue') }}" style="width:{{ $pct }}%"></div>
-            </div>
-            <div class="text-sm text-muted">{{ $pct }}%</div>
-          </td>
           <td>
             <span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span>
             @if($m->tahap !== 'aktif_kp')
@@ -166,7 +159,22 @@
           <td>
             <div style="display:flex;gap:4px;flex-wrap:wrap">
               <a href="{{ route('admin.mahasiswa.show',$m) }}" class="btn btn-ghost btn-xs">Detail</a>
-              <button class="btn btn-outline btn-xs" onclick="openEdit({{ $m->id }},'{{ addslashes($m->nama) }}','{{ $m->angkatan }}','{{ $m->status }}','{{ $m->dosen_id }}','{{ $m->instansi_id }}','{{ $m->tanggal_mulai }}',{{ $m->sudahMencapaiTahap('menunggu_instansi') ? 'true' : 'false' }})">Edit</button>
+              @if($m->tahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN && $m->syaratAdministrasi?->file_surat_balasan)
+                <a href="{{ $m->syaratAdministrasi->urlBerkas('file_surat_balasan') }}" target="_blank" class="btn btn-primary btn-xs">Lihat Surat</a>
+                <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:inline">@csrf<input type="hidden" name="keputusan" value="disetujui"><button type="submit" class="btn btn-success btn-xs" onclick="return confirm('Setujui surat balasan ini?')">Setujui</button></form>
+                <button type="button" class="btn btn-outline btn-xs" onclick="openRevisiSurat({{ $m->id }}, @json($m->nama))">Revisi</button>
+              @endif
+              @php($akunPembimbing = $m->instansi?->user)
+              @if($m->instansi && $akunPembimbing?->wajib_ganti_password)
+                <form method="POST" action="{{ route('admin.instansi.kirimUndangan', $m->instansi) }}" style="display:inline" onsubmit="return confirm('{{ $akunPembimbing->activation_token ? 'Kirim ulang tautan aktivasi? Tautan sebelumnya akan tidak berlaku.' : 'Kirim undangan aktivasi ke email pembimbing lapangan ini?' }}')">
+                  @csrf
+                  <button type="submit" class="btn btn-primary btn-xs">{{ $akunPembimbing->activation_token ? 'Kirim Ulang Undangan' : 'Kirim Undangan Pembimbing' }}</button>
+                </form>
+              @endif
+              @if(!$m->dosen_id && $m->sudahMencapaiTahap(\App\Models\Mahasiswa::TAHAP_MENUNGGU_INSTANSI))
+                <button type="button" class="btn btn-primary btn-xs" onclick='openTetapkanDosen({{ $m->id }}, @json($m->nama), @json($m->instansi?->nama))'>Isi Dosen Pembimbing</button>
+              @endif
+              <button class="btn btn-outline btn-xs" onclick="openEdit({{ $m->id }},'{{ addslashes($m->nama) }}','{{ $m->angkatan }}','{{ $m->status }}')">Edit</button>
               <form method="POST" action="{{ route('admin.mahasiswa.destroy',$m) }}" onsubmit="return confirm('Hapus mahasiswa ini?')" style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-xs">Hapus</button>
@@ -175,14 +183,38 @@
           </td>
         </tr>
         @empty
-          <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8">Tidak ada mahasiswa pada tahap ini.</td></tr>
-        @endforelse
+          <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8">Tidak ada mahasiswa pada tahap ini.</td></tr>
+@endforelse
       </tbody>
     </table>
   </div>
 </div>
 @endforeach
 @endif
+
+{{-- MODAL PENETAPAN DOSEN --}}
+<div class="modal-bg" id="modalTetapkanDosen">
+  <div class="modal-box">
+    <div class="modal-title">Tetapkan Dosen Pembimbing</div>
+    <p class="text-sm text-muted" id="tetapkanDosenInfo" style="margin:0 0 16px"></p>
+    <form method="POST" id="tetapkanDosenForm">
+      @csrf @method('PATCH')
+      <div class="form-group">
+        <label class="form-label" for="tetapkanDosenId">Dosen Pembimbing *</label>
+        <select name="dosen_id" id="tetapkanDosenId" class="form-control" required>
+          <option value="">-- Pilih dosen pembimbing --</option>
+          @foreach($dosens as $d)
+            <option value="{{ $d->id }}">{{ $d->nama }}{{ $d->nip ? ' · '.$d->nip : '' }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalTetapkanDosen')">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Dosen Pembimbing</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 {{-- MODAL TAMBAH --}}
 <div class="modal-bg" id="modalTambah">
@@ -291,26 +323,6 @@
           @enderror
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Dosen Pembimbing</label>
-          <select name="dosen_id" class="form-control">
-            <option value="">-- Pilih Dosen --</option>
-            @foreach($dosens as $d)
-              <option value="{{ $d->id }}" {{ old('dosen_id')==$d->id?'selected':'' }}>{{ $d->nama }}</option>
-            @endforeach
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Instansi KP</label>
-          <select name="instansi_id" class="form-control">
-            <option value="">-- Pilih Instansi --</option>
-            @foreach($instansis as $inst)
-              <option value="{{ $inst->id }}" {{ old('instansi_id')==$inst->id?'selected':'' }}>{{ $inst->nama }}</option>
-            @endforeach
-          </select>
-        </div>
-
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalTambah')">Batal</button>
@@ -336,21 +348,6 @@
             <option value="selesai">Selesai</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Dosen Pembimbing</label>
-          <select name="dosen_id" id="eDosen" class="form-control">
-            <option value="">-- Pilih --</option>
-            @foreach($dosens as $d)<option value="{{ $d->id }}">{{ $d->nama }}</option>@endforeach
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Instansi</label>
-          <select name="instansi_id" id="eInstansi" class="form-control">
-            <option value="">-- Pilih --</option>
-            @foreach($instansis as $inst)<option value="{{ $inst->id }}">{{ $inst->nama }}</option>@endforeach
-          </select>
-        </div>
-      </div>
-      <div class="alert alert-warning" id="eHintBerkas" style="display:none;margin-top:4px">
-        ⚠️ Berkas persyaratan mahasiswa ini belum disetujui. Dosen/instansi baru bisa ditentukan setelah berkas disetujui.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalEdit')">Batal</button>
@@ -399,16 +396,37 @@ document.getElementById('formTambah').addEventListener('submit', function (e) {
 });
 
 /* ── Open Edit Modal ── */
-function openEdit(id, nama, angkatan, status, dosenId, instansiId, tglMulai, siapDitempatkan) {
+function openEdit(id, nama, angkatan, status) {
   document.getElementById('editForm').action = `/admin/mahasiswa/${id}`;
   document.getElementById('eNama').value      = nama;
   document.getElementById('eAngkatan').value  = angkatan;
   document.getElementById('eStatus').value    = status;
-  document.getElementById('eDosen').value     = dosenId    || '';
-  document.getElementById('eInstansi').value  = instansiId || '';
-  document.getElementById('eHintBerkas').style.display = siapDitempatkan ? 'none' : '';
   openModal('modalEdit');
+}
+
+function openTetapkanDosen(id, nama, instansi) {
+  document.getElementById('tetapkanDosenForm').action = `/admin/mahasiswa/${id}/dosen-pembimbing`;
+  document.getElementById('tetapkanDosenId').value = '';
+  document.getElementById('tetapkanDosenInfo').textContent = instansi
+    ? `Tetapkan dosen pembimbing untuk ${nama}. Instansi KP: ${instansi}.`
+    : `Tetapkan dosen pembimbing untuk ${nama}. Instansi KP masih belum ditentukan.`;
+  openModal('modalTetapkanDosen');
 }
 </script>
 @endpush
 @endsection
+@push('scripts')
+<script>
+function openRevisiSurat(id, nama) {
+  const catatan = prompt('Catatan revisi untuk surat balasan ' + nama + ':');
+  if (!catatan) return;
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = `{{ url('admin/persyaratan') }}/${id}/verifikasi-surat-balasan`;
+  form.innerHTML = '@csrf<input type="hidden" name="keputusan" value="revisi"><input type="hidden" name="catatan">';
+  form.querySelector('[name="catatan"]').value = catatan;
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+@endpush

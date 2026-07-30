@@ -9,8 +9,8 @@
   $accSeminar = $mahasiswa->bimbingans->firstWhere('jenis', \App\Models\Bimbingan::JENIS_ACC_SEMINAR);
   $seminar = $mahasiswa->seminar;
   $aktif = $mahasiswa->sudahAktifKp();
-  $statusBadge = ['disetujui' => 'badge-selesai', 'selesai' => 'badge-selesai', 'menunggu' => 'badge-proses', 'diteruskan' => 'badge-proses', 'terjadwal' => 'badge-proses', 'revisi' => 'badge-rejected'];
-  $labelStatus = ['diterbitkan' => 'Belum diteruskan', 'diteruskan' => 'Menunggu persetujuan', 'menunggu' => 'Menunggu verifikasi', 'revisi' => 'Perlu revisi', 'disetujui' => 'Disetujui', 'terjadwal' => 'Terjadwal', 'selesai' => 'Selesai', 'menunggu_acc_dospem' => 'Menunggu ACC dosen'];
+  $statusBadge = ['diterbitkan' => 'badge-selesai', 'disetujui' => 'badge-selesai', 'selesai' => 'badge-selesai', 'menunggu' => 'badge-proses', 'terjadwal' => 'badge-proses', 'revisi' => 'badge-rejected'];
+  $labelStatus = ['diterbitkan' => 'Diterbitkan', 'menunggu' => 'Menunggu verifikasi', 'revisi' => 'Perlu revisi', 'disetujui' => 'Disetujui', 'terjadwal' => 'Terjadwal', 'selesai' => 'Selesai', 'menunggu_acc_dospem' => 'Menunggu ACC dosen'];
 @endphp
 
 <div class="page-header">
@@ -51,7 +51,7 @@
       @foreach($items as $item)
         @php
           $status = $item['status'];
-          $selesai = in_array($status, ['disetujui', 'selesai']);
+          $selesai = in_array($status, ['diterbitkan', 'disetujui', 'selesai']);
           $label = $status ? ($labelStatus[$status] ?? ucfirst(str_replace('_', ' ', $status))) : $item['kosong'];
         @endphp
         <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--gray-100)">

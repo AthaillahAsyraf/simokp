@@ -37,8 +37,12 @@
 <div class="card">
   <div class="card-header">
     <div><h3>Berkas Surat Balasan</h3><p>Format PDF/JPG/PNG, maksimal 5MB.</p></div>
-    @if($syarat->sudahUploadSuratBalasan())
-      <span class="badge badge-selesai">Terkirim</span>
+    @if($mahasiswa->tahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN)
+      <span class="badge badge-proses">Menunggu Verifikasi</span>
+    @elseif($syarat->surat_balasan_status === \App\Models\SyaratAdministrasi::SURAT_BALASAN_REVISI)
+      <span class="badge badge-rejected">Perlu Revisi</span>
+    @elseif($syarat->sudahUploadSuratBalasan())
+      <span class="badge badge-selesai">Disetujui</span>
     @else
       <span class="badge badge-belum">Belum Diupload</span>
     @endif
@@ -71,8 +75,12 @@
         </div>
       @else
         <div class="alert alert-info" style="margin-top:16px">
-          @if($syarat->sudahUploadSuratBalasan())
-            Surat balasan sudah terkirim, tidak bisa diubah lagi di halaman ini.
+          @if($mahasiswa->tahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN)
+            Surat balasan sedang diverifikasi admin jurusan. Anda belum dapat melanjutkan ke pendaftaran instansi.
+          @elseif($syarat->surat_balasan_status === \App\Models\SyaratAdministrasi::SURAT_BALASAN_REVISI)
+            Surat balasan perlu direvisi: {{ $syarat->surat_balasan_catatan }}
+          @elseif($syarat->sudahUploadSuratBalasan())
+            Surat balasan telah disetujui.
           @else
             Halaman ini baru bisa diakses setelah berkas persyaratan Anda disetujui admin.
           @endif

@@ -147,11 +147,11 @@
       <div class="form-group">
         <label class="form-label">Email Pembimbing Lapangan *</label>
         <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="email@instansi.com" required>
-        <div style="font-size:12px;color:var(--gray-500);margin-top:4px">Sistem akan mengirim tautan aktivasi ke alamat ini.</div>
+        <div style="font-size:12px;color:var(--gray-500);margin-top:4px">Admin jurusan akan memverifikasi data ini terlebih dahulu, lalu mengirim tautan aktivasi ke alamat tersebut.</div>
       </div>
 
       <div style="text-align:right;margin-top:18px">
-        <button type="submit" class="btn btn-primary">Daftarkan & Kirim Undangan</button>
+        <button type="submit" class="btn btn-primary">Daftarkan untuk Verifikasi Admin</button>
       </div>
     </form>
 

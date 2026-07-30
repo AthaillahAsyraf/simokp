@@ -84,14 +84,6 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
       <button type="submit" class="btn-login">Masuk ke Sistem →</button>
     </form>
 
-    <div class="demo-box">
-      <h4>🔑 Akun Demo — Password: <code style="background:#e2e8f0;padding:1px 5px;border-radius:3px;font-size:11px">password</code></h4>
-      <div class="demo-row"><span class="demo-role">Admin</span><span class="demo-email">admin@cs.unila.ac.id</span></div>
-      <div class="demo-row"><span class="demo-role">Dosen</span><span class="demo-email">ahmad.rifai@cs.unila.ac.id</span></div>
-      <div class="demo-row"><span class="demo-role">Instansi</span><span class="demo-email">hrd@teknusantara.co.id</span></div>
-      <div class="demo-row"><span class="demo-role">Mahasiswa</span><span class="demo-email">2017061001@students.cs.unila.ac.id</span></div>
-    </div>
-
     <div class="reg-link">Mahasiswa baru? <a href="{{ route('register') }}">Daftar di sini</a></div>
   </div>
 </div>

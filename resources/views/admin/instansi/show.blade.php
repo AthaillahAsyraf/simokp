@@ -4,7 +4,7 @@
 
 <div class="page-header page-header-row">
   <div style="display:flex;align-items:center;gap:12px">
-    <a href="{{ route('admin.instansi.index') }}" class="btn btn-outline btn-sm">← Kembali</a>
+    <a href="{{ route('admin.pembimbing.index', request()->query() ?: ['tab' => 'lapangan']) }}" class="btn btn-outline btn-sm">← Kembali</a>
     <div>
       <h1>{{ $instansi->nama }}</h1>
       <p>{{ $instansi->bidang ?? 'Instansi KP' }}</p>
@@ -31,24 +31,17 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>NIM</th><th>Nama</th><th>Dosen</th><th>Progress</th><th>Status</th></tr></thead>
+        <thead><tr><th>NIM</th><th>Nama</th><th>Dosen</th><th>Status</th></tr></thead>
         <tbody>
           @forelse($instansi->mahasiswas as $m)
-          @php $pct = $m->progressPersen(); @endphp
           <tr>
             <td><code>{{ $m->nim }}</code></td>
             <td><strong>{{ $m->nama }}</strong></td>
             <td class="text-sm">{{ $m->dosen?->nama ?? '–' }}</td>
-            <td style="min-width:90px">
-              <div class="prog-wrap" style="height:5px;margin-bottom:2px">
-                <div class="prog-bar prog-bar-{{ $pct==100?'green':'amber' }}" style="width:{{ $pct }}%"></div>
-              </div>
-              <div class="text-sm text-muted">{{ $pct }}%</div>
-            </td>
             <td><span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span></td>
           </tr>
           @empty
-            <tr><td colspan="5" style="text-align:center;padding:20px;color:#94a3b8">Belum ada mahasiswa KP.</td></tr>
+            <tr><td colspan="4" style="text-align:center;padding:20px;color:#94a3b8">Belum ada mahasiswa KP.</td></tr>
           @endforelse
         </tbody>
       </table>

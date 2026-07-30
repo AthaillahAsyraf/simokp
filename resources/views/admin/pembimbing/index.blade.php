@@ -138,11 +138,11 @@
   <div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:14px 18px">
     <form method="GET" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input type="hidden" name="tab" value="lapangan"><input type="text" name="search_lapangan" value="{{ request('search_lapangan') }}" placeholder="Cari instansi / pembimbing / lokasi..." class="form-control" style="width:280px"><button type="submit" class="btn btn-outline btn-sm">Filter</button><a href="{{ route('admin.pembimbing.index',['tab'=>'lapangan']) }}" class="btn btn-outline btn-sm">Reset</a></form>
   </div></div>
-  <div class="card"><div class="table-wrap"><table><thead><tr><th>Instansi</th><th>Pembimbing Lapangan</th><th>Email</th><th>No. HP</th><th>Mhs Dibimbing</th><th>Aksi</th></tr></thead><tbody>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Instansi</th><th>Pembimbing Lapangan</th><th>Email</th><th>Status Akun</th><th>No. HP</th><th>Mhs Dibimbing</th><th>Aksi</th></tr></thead><tbody>
     @forelse($instansis as $inst)<tr>
-      <td><strong>{{ $inst->nama }}</strong></td><td class="text-sm">{{ $inst->kontak_person ?? '-' }}</td><td class="text-sm text-muted">{{ $inst->user?->email ?? '-' }}</td><td class="text-sm text-muted">{{ $inst->no_hp ?? '-' }}</td><td><span class="badge badge-proses">{{ $inst->mahasiswas->count() }} mhs</span></td>
-      <td><div style="display:flex;gap:4px"><a href="{{ route('admin.instansi.show',$inst) }}" class="btn btn-ghost btn-xs">Detail</a><button type="button" class="btn btn-outline btn-xs" onclick="openEditInstansi({{ $inst->id }}, @json($inst->nama), @json($inst->bidang), @json($inst->alamat), @json($inst->kontak_person), @json($inst->no_hp), @json($inst->latitude), @json($inst->longitude))">Edit</button><form method="POST" action="{{ route('admin.instansi.destroy',$inst) }}" onsubmit="return confirm('Hapus pembimbing lapangan ini?')">@csrf @method('DELETE')<button class="btn btn-danger btn-xs">Hapus</button></form></div></td>
-    </tr>@empty<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--gray-400)">Belum ada pembimbing lapangan.</td></tr>@endforelse
+      <td><strong>{{ $inst->nama }}</strong></td><td class="text-sm">{{ $inst->kontak_person ?? '-' }}</td><td class="text-sm text-muted">{{ $inst->user?->email ?? '-' }}</td><td>@if($inst->user?->wajib_ganti_password)<span class="badge badge-proses">{{ $inst->user?->activation_token ? 'Undangan terkirim' : 'Menunggu verifikasi' }}</span>@else<span class="badge badge-selesai">Aktif</span>@endif</td><td class="text-sm text-muted">{{ $inst->no_hp ?? '-' }}</td><td><span class="badge badge-proses">{{ $inst->mahasiswas->count() }} mhs</span></td>
+      <td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap"><a href="{{ route('admin.instansi.show', $inst) }}?{{ http_build_query(request()->query()) }}" class="btn btn-ghost btn-xs">Detail</a><button type="button" class="btn btn-outline btn-xs js-edit-instansi" data-id="{{ $inst->id }}" data-nama='@json($inst->nama)' data-bidang='@json($inst->bidang)' data-alamat='@json($inst->alamat)' data-kontak='@json($inst->kontak_person)' data-hp='@json($inst->no_hp)' data-lat='@json($inst->latitude)' data-lng='@json($inst->longitude)'>Edit</button><form method="POST" action="{{ route('admin.instansi.destroy',$inst) }}" onsubmit="return confirm('Hapus pembimbing lapangan ini?')">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-xs">Hapus</button></form></div></td>
+    </tr>@empty<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--gray-400)">Belum ada pembimbing lapangan.</td></tr>@endforelse
   </tbody></table></div></div>
 </div>
 
@@ -319,6 +319,22 @@ function openEditInstansi(id, nama, bidang, alamat, kontak, hp, lat, lng) {
   document.getElementById('eiLng').value = lng || '';
   openModal('modalEditInstansi');
 }
+
+document.querySelectorAll('.js-edit-instansi').forEach(function (button) {
+  button.addEventListener('click', function () {
+    const data = button.dataset;
+    openEditInstansi(
+      data.id,
+      JSON.parse(data.nama),
+      JSON.parse(data.bidang),
+      JSON.parse(data.alamat),
+      JSON.parse(data.kontak),
+      JSON.parse(data.hp),
+      JSON.parse(data.lat),
+      JSON.parse(data.lng)
+    );
+  });
+});
 
 function openEditLapangan(id, namaMhs, nama, jabatan, hp) {
   document.getElementById('editFormLapangan').action = `{{ url('admin/pembimbing-lapangan') }}/${id}`;

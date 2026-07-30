@@ -44,11 +44,6 @@ class DashboardController extends Controller
                 'warna' => 'purple',
             ],
             [
-                'label' => 'Persetujuan dosen',
-                'jumlah' => (int) ($jumlahTahap[Mahasiswa::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING] ?? 0),
-                'warna' => 'purple',
-            ],
-            [
                 'label' => 'Aktif KP',
                 'jumlah' => (int) ($jumlahTahap[Mahasiswa::TAHAP_AKTIF_KP] ?? 0),
                 'warna' => 'green',
@@ -110,17 +105,9 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $perluPerhatian = Mahasiswa::with('bimbingans')
-            ->where('status', 'proses')
-            ->get()
-            ->sortBy(fn ($m) => $m->progressPersen())
-            ->take(5)
-            ->values();
-
         $jumlahTindakanAdmin = $jumlahMenungguBerkas + $jumlahSiapBelumJadwal + $jumlahSeminarMenunggu;
         $menungguAksiMahasiswa = (int) ($jumlahTahap[Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN] ?? 0)
             + (int) ($jumlahTahap[Mahasiswa::TAHAP_MENUNGGU_INSTANSI] ?? 0);
-        $menungguAksiDosen = (int) ($jumlahTahap[Mahasiswa::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING] ?? 0);
 
         return view('admin.dashboard', compact(
             'stats',
@@ -130,13 +117,11 @@ class DashboardController extends Controller
             'seminarMenunggu',
             'antrianAdmin',
             'seminarMendatang',
-            'perluPerhatian',
             'jumlahMenungguBerkas',
             'jumlahSiapBelumJadwal',
             'jumlahSeminarMenunggu',
             'jumlahTindakanAdmin',
             'menungguAksiMahasiswa',
-            'menungguAksiDosen',
         ));
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 class MahasiswaController extends Controller {
 
     public function index(Request $request) {
-        $query = Mahasiswa::with(['dosen','instansi','bimbingans','syaratAdministrasi']);
+        $query = Mahasiswa::with(['dosen','instansi.user','syaratAdministrasi']);
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(fn($q2) => $q2->where('nama','like',"%$q%")->orWhere('nim','like',"%$q%"));
@@ -39,7 +39,7 @@ class MahasiswaController extends Controller {
     }
 
     public function show(Mahasiswa $mahasiswa) {
-        $mahasiswa->load(['dosen','instansi','seminar','bimbingans']);
+        $mahasiswa->load(['dosen','instansi','seminar']);
         return view('admin.mahasiswa.show', compact('mahasiswa'));
     }
 
@@ -63,10 +63,10 @@ class MahasiswaController extends Controller {
             'nama'         => $request->nama,
             'angkatan'     => $request->angkatan,
             'no_hp'        => $request->no_hp,
-            'dosen_id'     => $request->dosen_id ?: null,
-            'instansi_id'  => $request->instansi_id ?: null,
+            'dosen_id'     => null,
+            'instansi_id'  => null,
             'status'       => 'proses',
-            'tahap'        => ($request->dosen_id && $request->instansi_id) ? 'menunggu_instansi' : 'lengkapi_berkas',
+            'tahap'        => Mahasiswa::TAHAP_LENGKAPI_BERKAS,
         ]);
         $mhs->cekMajukanKeAktifKp();
         foreach (['BAB I','BAB II','BAB III','BAB IV','BAB V'] as $bab) {
@@ -78,20 +78,26 @@ class MahasiswaController extends Controller {
     public function update(Request $request, Mahasiswa $mahasiswa) {
         $request->validate(['nama'=>'required','angkatan'=>'required']);
 
-        // Instansi/dosen baru cuma boleh diisi kalau berkas persyaratan mahasiswa
-        // sudah disetujui (tahap >= menunggu_instansi), sesuai Prosedur KP.
-        $akanSetInstansi = $request->filled('instansi_id') && !$mahasiswa->instansi_id;
-        $akanSetDosen    = $request->filled('dosen_id') && !$mahasiswa->dosen_id;
-        if (($akanSetInstansi || $akanSetDosen) && !$mahasiswa->sudahMencapaiTahap(Mahasiswa::TAHAP_MENUNGGU_INSTANSI)) {
-            return back()->with('error', "Berkas persyaratan {$mahasiswa->nama} belum disetujui admin. Instansi/dosen belum bisa ditentukan dulu.")->withInput();
+        $mahasiswa->update($request->only(['nama','angkatan','no_hp','status']));
+
+        return back()->with('success', 'Data mahasiswa diperbarui.');
+    }
+
+    public function tetapkanDosen(Request $request, Mahasiswa $mahasiswa) {
+        $request->validate([
+            'dosen_id' => 'required|exists:dosens,id',
+        ]);
+
+        if (!$mahasiswa->sudahMencapaiTahap(Mahasiswa::TAHAP_MENUNGGU_INSTANSI)) {
+            return back()->with('error', "Berkas persyaratan {$mahasiswa->nama} belum disetujui. Dosen pembimbing belum dapat ditetapkan.");
         }
 
-        $mahasiswa->update($request->only(['nama','angkatan','no_hp','dosen_id','instansi_id','status']));
+        $mahasiswa->update(['dosen_id' => $request->dosen_id]);
         $mahasiswa->cekMajukanKeAktifKp();
 
-        $pesan = 'Data mahasiswa diperbarui.';
-        if ($mahasiswa->tahap === Mahasiswa::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING) {
-            $pesan .= ' Form kesediaan pembimbing telah diterbitkan untuk diteruskan mahasiswa kepada dosen.';
+        $pesan = "Dosen pembimbing untuk {$mahasiswa->nama} berhasil ditetapkan.";
+        if ($mahasiswa->fresh()->sudahAktifKp()) {
+            $pesan .= ' Mahasiswa kini dapat memulai KP.';
         }
 
         return back()->with('success', $pesan);

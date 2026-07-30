@@ -339,22 +339,9 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">🏢</span> Instansi
       </a>
       @endif
-      <div class="nav-section">Monitoring</div>
-      <a href="{{ route('admin.proposal-rencana-kerja.index') }}" class="nav-item {{ request()->routeIs('admin.proposal-rencana-kerja*') ? 'active role-admin' : '' }}">
-        <span class="nav-icon">📄</span> Proposal Rencana Kerja
-      </a>
-      @if(false)<a href="{{ route('admin.progress.index') }}" class="nav-item {{ request()->routeIs('admin.progress*') ? 'active role-admin' : '' }}">
-        <span class="nav-icon">📈</span> Laporan
-      </a>
-      @endif
-      <a href="{{ route('admin.nilai.index') }}" class="nav-item {{ request()->routeIs('admin.nilai*') ? 'active role-admin' : '' }}">
-        <span class="nav-icon">📝</span> Nilai
-      </a>
+      <div class="nav-section">Operasional</div>
       <a href="{{ route('admin.seminar.index') }}" class="nav-item {{ request()->routeIs('admin.seminar*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
-      </a>
-      <a href="{{ route('admin.absensi.index') }}" class="nav-item {{ request()->routeIs('admin.absensi*') ? 'active role-admin' : '' }}">
-        <span class="nav-icon">📋</span> Absensi Mahasiswa
       </a>
       <a href="{{ route('admin.surat.index') }}" class="nav-item {{ request()->routeIs('admin.surat*') ? 'active role-admin' : '' }}">
   <span class="nav-icon">✉️</span> Surat/Pesan
@@ -369,9 +356,10 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       <a href="{{ route('dosen.proposal-rencana-kerja.index') }}" class="nav-item {{ request()->routeIs('dosen.proposal-rencana-kerja*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">📄</span> Proposal Rencana Kerja
       </a>
-      <a href="{{ route('dosen.form-kesediaan-pembimbing.index') }}" class="nav-item {{ request()->routeIs('dosen.form-kesediaan-pembimbing*') ? 'active role-dosen' : '' }}">
+      {{-- <a href="{{ route('dosen.form-kesediaan-pembimbing.index') }}" class="nav-item {{ request()->routeIs('dosen.form-kesediaan-pembimbing*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">📋</span> Kesediaan Membimbing
       </a>
+      --}}
       <a href="{{ route('dosen.progress.index') }}" class="nav-item {{ request()->routeIs('dosen.progress*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">📈</span> Laporan
       </a>
@@ -383,9 +371,6 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
       </a>
       <a href="{{ route('dosen.absensi.index') }}" class="nav-item {{ request()->routeIs('dosen.absensi*') ? 'active role-dosen' : '' }}">
         <span class="nav-icon">📋</span> Absensi Mahasiswa
-      </a>
-      <a href="{{ route('dosen.chat.index') }}" class="nav-item {{ request()->routeIs('dosen.chat*') ? 'active role-dosen' : '' }}">
-        <span class="nav-icon">💬</span> Pesan Instansi
       </a>
       <a href="{{ route('dosen.surat.index') }}" class="nav-item {{ request()->routeIs('dosen.surat*') ? 'active role-dosen' : '' }}">
   <span class="nav-icon">✉️</span> Surat

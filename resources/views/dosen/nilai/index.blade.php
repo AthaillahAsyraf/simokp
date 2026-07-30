@@ -19,6 +19,14 @@
 @section('content')
 <div class="page-header"><h1>Nilai Mahasiswa</h1><p>Input nilai pembimbing & lihat nilai akhir mahasiswa bimbingan Anda</p></div>
 
+<div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:14px 18px">
+  <form method="GET" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama, NIM, atau instansi..." class="form-control" style="width:260px">
+    <select name="filter" class="form-control" style="width:210px"><option value="">Semua Mahasiswa</option><option value="siap_dinilai" {{ $filter === 'siap_dinilai' ? 'selected' : '' }}>Belum Dinilai</option><option value="sudah_dinilai" {{ $filter === 'sudah_dinilai' ? 'selected' : '' }}>Sudah Dinilai</option></select>
+    <button type="submit" class="btn btn-outline btn-sm">Filter</button><a href="{{ route('dosen.nilai.index') }}" class="btn btn-outline btn-sm">Reset</a>
+  </form>
+</div></div>
+
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
 @if(session('error'))<div class="alert alert-warning">⚠️ {{ session('error') }}</div>@endif
 
@@ -27,7 +35,7 @@
     <table>
       <thead>
         <tr>
-          <th>Mahasiswa</th><th>Nilai Lapangan</th><th>Nilai Pembimbing</th>
+          <th>Mahasiswa</th><th>Nilai Pembimbing Lapangan</th><th>Nilai Dosen Pembimbing</th>
           <th>Nilai Akhir</th><th>Status</th><th>Aksi</th>
         </tr>
       </thead>

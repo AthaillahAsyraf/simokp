@@ -11,13 +11,23 @@ use Illuminate\Support\Facades\Validator;
 
 class NilaiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $dosen      = Auth::user()->dosen;
-        $mahasiswas = Mahasiswa::with(['nilai', 'seminar', 'instansi'])
-                        ->where('dosen_id', $dosen->id)->get();
+        $search = trim((string) $request->query('search'));
+        $filter = $request->query('filter', '');
+        $query = Mahasiswa::with(['nilai', 'seminar', 'instansi'])->where('dosen_id', $dosen->id)
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(fn ($q) => $q->where('nama', 'like', "%{$search}%")->orWhere('nim', 'like', "%{$search}%")->orWhereHas('instansi', fn ($i) => $i->where('nama', 'like', "%{$search}%")));
+            });
+        if ($filter === 'siap_dinilai') {
+            $query->whereHas('seminar', fn ($q) => $q->whereIn('status', ['terjadwal', 'selesai']))->where(fn ($q) => $q->whereDoesntHave('nilai')->orWhereHas('nilai', fn ($n) => $n->whereNull('nilai_seminar')));
+        } elseif ($filter === 'sudah_dinilai') {
+            $query->whereHas('nilai', fn ($q) => $q->whereNotNull('nilai_seminar'));
+        }
+        $mahasiswas = $query->orderBy('nama')->get();
 
-        return view('dosen.nilai.index', compact('mahasiswas'));
+        return view('dosen.nilai.index', compact('mahasiswas', 'search', 'filter'));
     }
 
     /**

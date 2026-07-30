@@ -7,16 +7,9 @@
 </style>
 @endpush
 @section('content')
-<div class="page-header"><h1>Form Kesediaan Pembimbing</h1><p>Form diterbitkan otomatis oleh admin. Cetak atau simpan PDF, lalu teruskan kepada dosen pembimbing Anda.</p></div>
-@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-@if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
+<div class="page-header"><h1>Form Kesediaan Pembimbing</h1><p>Form ini diterbitkan otomatis setelah admin jurusan menetapkan dosen pembimbing Anda.</p></div>
 <div class="no-print" style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:14px">
   <button class="btn btn-outline" onclick="window.print()">Cetak / Simpan PDF</button>
-  @if($mahasiswa->formKesediaanPembimbing->status === \App\Models\FormKesediaanPembimbing::STATUS_DITERBITKAN)
-    <form method="POST" action="{{ route('mahasiswa.form-kesediaan-pembimbing.teruskan') }}">@csrf<button class="btn btn-primary">Teruskan ke Dosen Pembimbing</button></form>
-  @elseif($mahasiswa->formKesediaanPembimbing->status === \App\Models\FormKesediaanPembimbing::STATUS_DITERUSKAN)
-    <span class="badge badge-proses">Menunggu persetujuan dosen</span>
-  @endif
 </div>
 <article class="form-kesediaan">
   <h1>FORM KESEDIAAN PEMBIMBING</h1>

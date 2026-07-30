@@ -19,8 +19,8 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
     const TAHAP_MENUNGGU_VERIFIKASI  = 'menunggu_verifikasi';
     const TAHAP_REVISI_BERKAS        = 'revisi_berkas';
     const TAHAP_UNGGAH_SURAT_BALASAN = 'unggah_surat_balasan';
+    const TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN = 'menunggu_verifikasi_surat_balasan';
     const TAHAP_MENUNGGU_INSTANSI    = 'menunggu_instansi';
-    const TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING = 'menunggu_kesediaan_pembimbing';
     const TAHAP_AKTIF_KP             = 'aktif_kp';
 
     const URUTAN_TAHAP = [
@@ -28,18 +28,18 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
         self::TAHAP_MENUNGGU_VERIFIKASI  => 1,
         self::TAHAP_REVISI_BERKAS        => 1,
         self::TAHAP_UNGGAH_SURAT_BALASAN => 2,
+        self::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN => 2,
         self::TAHAP_MENUNGGU_INSTANSI    => 3,
-        self::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING => 4,
-        self::TAHAP_AKTIF_KP             => 5,
+        self::TAHAP_AKTIF_KP             => 4,
     ];
 
     const LABEL_TAHAP = [
-        self::TAHAP_LENGKAPI_BERKAS      => 'Lengkapi Berkas Persyaratan',
+        self::TAHAP_LENGKAPI_BERKAS      => 'Belum Melengkapi Berkas Persyaratan',
         self::TAHAP_MENUNGGU_VERIFIKASI  => 'Menunggu Verifikasi Admin',
         self::TAHAP_REVISI_BERKAS        => 'Perlu Revisi Berkas',
         self::TAHAP_UNGGAH_SURAT_BALASAN => 'Unggah Surat Balasan Instansi',
-        self::TAHAP_MENUNGGU_INSTANSI    => 'Menunggu Penempatan Instansi & Dosen',
-        self::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING => 'Menunggu Persetujuan Dosen Pembimbing',
+        self::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN => 'Menunggu Verifikasi Surat Balasan',
+        self::TAHAP_MENUNGGU_INSTANSI    => 'Menunggu Pemilihan Dosen dan Kirim Akun Instansi',
         self::TAHAP_AKTIF_KP             => 'Aktif Melaksanakan KP',
     ];
 
@@ -73,8 +73,9 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
     }
 
     /**
-     * Dipanggil setelah dosen dan instansi terisi. Sistem menerbitkan form
-     * kesediaan pembimbing; mahasiswa baru aktif KP setelah dosen menyetujuinya.
+     * Dipanggil setelah dosen dan instansi terisi. Admin jurusan menetapkan
+     * dosen pembimbing, sehingga form kesediaan langsung diterbitkan sebagai
+     * arsip dan mahasiswa dapat memulai KP tanpa persetujuan tambahan dosen.
      */
     public function cekMajukanKeAktifKp(): void
     {
@@ -86,7 +87,11 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
                 'status'      => FormKesediaanPembimbing::STATUS_DITERBITKAN,
                 'diterbitkan_at' => now(),
             ]);
-            $this->update(['tahap' => self::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING]);
+            $this->update([
+                'tahap'           => self::TAHAP_AKTIF_KP,
+                'tanggal_mulai'   => $this->tanggal_mulai ?? now()->toDateString(),
+                'tanggal_selesai' => null,
+            ]);
         }
     }
 

@@ -79,12 +79,6 @@
   <form method="GET" class="filter-row">
     <input type="hidden" name="tab" value="masuk">
     <input type="text" name="search_masuk" class="form-control" placeholder="🔍 Cari perihal/isi/pengirim/balasan..." value="{{ $searchMasuk }}">
-    <select name="jenis_masuk" class="form-control">
-      <option value="">Semua Jenis</option>
-      <option value="{{ \App\Models\Surat::JENIS_UMUM }}" {{ $jenisMasuk === \App\Models\Surat::JENIS_UMUM ? 'selected' : '' }}>Surat Umum</option>
-      <option value="{{ \App\Models\Surat::JENIS_BALASAN }}" {{ $jenisMasuk === \App\Models\Surat::JENIS_BALASAN ? 'selected' : '' }}>Surat Balasan</option>
-      <option value="{{ \App\Models\Surat::JENIS_PENGANTAR }}" {{ $jenisMasuk === \App\Models\Surat::JENIS_PENGANTAR ? 'selected' : '' }}>Surat Pengantar</option>
-    </select>
     <select name="status_masuk" class="form-control">
       <option value="">Semua Status</option>
       <option value="dibalas" {{ $statusMasuk === 'dibalas' ? 'selected' : '' }}>Sudah Dibalas</option>
@@ -255,12 +249,6 @@
   <form method="GET" class="filter-row">
     <input type="hidden" name="tab" value="riwayat">
     <input type="text" name="search_riwayat" class="form-control" placeholder="🔍 Cari perihal/isi/mahasiswa..." value="{{ $searchRiwayat }}">
-    <select name="jenis_riwayat" class="form-control">
-      <option value="">Semua Jenis</option>
-      <option value="{{ \App\Models\Surat::JENIS_PENGANTAR }}" {{ $jenisRiwayat === \App\Models\Surat::JENIS_PENGANTAR ? 'selected' : '' }}>Pengantar</option>
-      <option value="{{ \App\Models\Surat::JENIS_BALASAN }}" {{ $jenisRiwayat === \App\Models\Surat::JENIS_BALASAN ? 'selected' : '' }}>Balasan</option>
-      <option value="{{ \App\Models\Surat::JENIS_UMUM }}" {{ $jenisRiwayat === \App\Models\Surat::JENIS_UMUM ? 'selected' : '' }}>Umum</option>
-    </select>
     <select name="status_riwayat" class="form-control">
       <option value="">Semua Status</option>
       <option value="{{ \App\Models\Surat::STATUS_PENDING }}" {{ $statusRiwayat === \App\Models\Surat::STATUS_PENDING ? 'selected' : '' }}>Pending</option>

@@ -11,7 +11,6 @@
 .stage-list{padding:4px 16px 12px}.stage-row{display:grid;grid-template-columns:136px 1fr 32px;gap:10px;align-items:center;padding:8px 0}.stage-label{font-size:12px;color:var(--gray-600)}.stage-track{height:7px;background:var(--gray-100);border-radius:10px;overflow:hidden}.stage-fill{height:100%;border-radius:inherit}.stage-fill.slate{background:#94a3b8}.stage-fill.amber{background:#f59e0b}.stage-fill.blue{background:#3b82f6}.stage-fill.purple{background:#8b5cf6}.stage-fill.green{background:#22c55e}.stage-count{text-align:right;font-size:12px;font-weight:700;color:var(--gray-700)}
 .monitoring-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}.monitoring-item{border:1px solid var(--gray-100);border-radius:10px;padding:12px}.monitoring-item strong{font-size:20px;display:block;color:var(--gray-800)}.monitoring-item span{font-size:11px;color:var(--gray-500);line-height:1.35;display:block;margin-top:4px}
 .schedule-row{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--gray-100)}.schedule-row:last-child{border-bottom:0}.schedule-date{background:var(--blue-50);border-radius:8px;text-align:center;padding:5px 2px;color:var(--blue-700)}.schedule-date strong{display:block;font-size:16px;line-height:1}.schedule-date span{font-size:10px;text-transform:uppercase}.schedule-copy strong{font-size:12px;display:block}.schedule-copy span{font-size:11px;color:var(--gray-500)}.schedule-room{font-size:11px;color:var(--gray-500);text-align:right}
-.progress-row{padding:11px 16px;border-bottom:1px solid var(--gray-100)}.progress-row:last-child{border-bottom:0}.progress-copy{display:flex;justify-content:space-between;gap:10px;font-size:12px}.progress-copy strong{color:var(--gray-800)}.progress-copy span{color:var(--gray-500)}
 @media(max-width:900px){.dashboard-grid{grid-template-columns:1fr}.command-banner{align-items:flex-start}.action-summary{grid-template-columns:1fr}.action-summary a{border-right:0;border-bottom:1px solid var(--gray-100)}.action-summary a:last-child{border-bottom:0}}@media(max-width:560px){.command-banner{display:block}.command-total{text-align:left;margin-top:16px}.stage-row{grid-template-columns:112px 1fr 26px}.monitoring-grid{grid-template-columns:1fr}}
 </style>
 @endpush
@@ -19,7 +18,7 @@
 @section('content')
 <div class="page-header">
   <h1>Pusat Kendali KP</h1>
-  <p>Prioritas operasional dan pemantauan progres Kerja Praktik.</p>
+  <p>Prioritas operasional dan administrasi Kerja Praktik.</p>
 </div>
 
 <section class="command-banner">
@@ -54,15 +53,6 @@
       </div>
     </section>
 
-    <section class="card">
-      <div class="card-header"><div><h3 class="section-title">Mahasiswa yang perlu dipantau</h3><p class="section-subtitle">Progress terendah dari mahasiswa yang sedang menjalani KP.</p></div><a href="{{ route('admin.progress.index') }}" class="btn btn-outline btn-sm">Lihat progres</a></div>
-      @forelse($perluPerhatian as $m)
-        @php($persen = $m->progressPersen())
-        <div class="progress-row"><div class="progress-copy"><strong>{{ $m->nama }} <span>· {{ $m->nim }}</span></strong><span>{{ $persen }}%</span></div><div class="prog-wrap" style="height:6px;margin-top:7px"><div class="prog-bar prog-bar-{{ $persen === 0 ? 'red' : 'amber' }}" style="width:{{ max($persen, 3) }}%"></div></div></div>
-      @empty
-        <div class="empty-state" style="padding:28px"><div class="icon">✓</div><p>Belum ada mahasiswa berstatus proses untuk dipantau.</p></div>
-      @endforelse
-    </section>
   </div>
 
   <div class="dashboard-stack">
@@ -78,7 +68,7 @@
 
     <section class="card">
       <div class="card-header"><div><h3 class="section-title">Menunggu aksi pihak lain</h3><p class="section-subtitle">Dipantau admin, tetapi tidak memerlukan keputusan admin saat ini.</p></div></div>
-      <div class="monitoring-grid"><div class="monitoring-item"><strong>{{ $menungguAksiMahasiswa }}</strong><span>mahasiswa masih perlu mengunggah surat balasan atau mendaftarkan instansi</span></div><div class="monitoring-item"><strong>{{ $menungguAksiDosen }}</strong><span>menunggu persetujuan kesediaan dari dosen pembimbing</span></div></div>
+      <div class="monitoring-grid"><div class="monitoring-item"><strong>{{ $menungguAksiMahasiswa }}</strong><span>mahasiswa masih perlu mengunggah surat balasan atau mendaftarkan instansi</span></div></div>
     </section>
   </div>
 </div>

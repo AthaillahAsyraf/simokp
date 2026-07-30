@@ -12,7 +12,7 @@ class SyaratAdministrasi extends Model
         'file_bukti_spp', 'file_bukti_spp_asli',
         'file_krs', 'file_krs_asli',
         'file_transkrip', 'file_transkrip_asli',
-        'file_surat_balasan', 'file_surat_balasan_asli', 'surat_balasan_uploaded_at',
+        'file_surat_balasan', 'file_surat_balasan_asli', 'surat_balasan_uploaded_at', 'surat_balasan_status', 'surat_balasan_catatan', 'surat_balasan_diverifikasi_at',
         'status', 'catatan', 'submitted_at', 'diverifikasi_at',
     ];
 
@@ -20,12 +20,16 @@ class SyaratAdministrasi extends Model
         'submitted_at'              => 'datetime',
         'diverifikasi_at'           => 'datetime',
         'surat_balasan_uploaded_at' => 'datetime',
+        'surat_balasan_diverifikasi_at' => 'datetime',
     ];
 
     const STATUS_BELUM_LENGKAP     = 'belum_lengkap';
     const STATUS_MENUNGGU_VERIFIKASI = 'menunggu_verifikasi';
     const STATUS_REVISI            = 'revisi';
     const STATUS_DISETUJUI         = 'disetujui';
+    const SURAT_BALASAN_MENUNGGU = 'menunggu_verifikasi';
+    const SURAT_BALASAN_REVISI = 'revisi';
+    const SURAT_BALASAN_DISETUJUI = 'disetujui';
 
     /** 4 berkas wajib sesuai Prosedur KP, dipakai untuk cek kelengkapan & render form */
     const BERKAS = [

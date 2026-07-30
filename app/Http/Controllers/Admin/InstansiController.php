@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class InstansiController extends Controller
 {
@@ -96,6 +98,51 @@ class InstansiController extends Controller
         }
 
         return redirect()->route('admin.pembimbing.index', ['tab' => 'lapangan'])->with('success', 'Data pembimbing lapangan diperbarui.');
+    }
+
+    /** Kirim atau kirim ulang tautan aktivasi setelah data diverifikasi admin. */
+    public function kirimUndangan(Instansi $instansi)
+    {
+        $user = $instansi->user;
+
+        if (! $user || $user->role !== 'pembimbing_lapangan') {
+            return back()->with('db_error', 'Akun Pembimbing Lapangan untuk instansi ini tidak ditemukan.');
+        }
+
+        if (! $user->wajib_ganti_password && ! $user->activation_token) {
+            return back()->with('db_error', 'Akun Pembimbing Lapangan ini sudah aktif.');
+        }
+
+        if (config('mail.default') === 'log') {
+            return back()->with('db_error', 'Email belum dikirim karena server email (SMTP) belum dikonfigurasi.');
+        }
+
+        $pernahDiundang = (bool) $user->activation_token;
+        $tokenAktivasi = Str::random(64);
+
+        try {
+            $user->update([
+                'name'                  => $instansi->kontak_person ?: $instansi->nama,
+                'activation_token'      => hash('sha256', $tokenAktivasi),
+                'activation_expires_at' => now()->addDays(7),
+                'wajib_ganti_password'  => true,
+            ]);
+
+            Mail::send('emails.undangan-pembimbing', [
+                'nama' => $instansi->kontak_person ?: $instansi->nama,
+                'instansi' => $instansi->nama,
+                'urlAktivasi' => route('aktivasi-pembimbing.show', $tokenAktivasi),
+            ], function ($message) use ($user, $instansi) {
+                $message->to($user->email)->subject('Aktivasi Akun Pembimbing Lapangan - '.$instansi->nama);
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('db_error', 'Undangan gagal dikirim. Periksa konfigurasi email server lalu coba lagi.');
+        }
+
+        return back()->with('success', $pernahDiundang
+            ? "Undangan aktivasi telah dikirim ulang ke {$user->email}."
+            : "Undangan aktivasi telah dikirim ke {$user->email}.");
     }
 
     public function destroy(Instansi $instansi)

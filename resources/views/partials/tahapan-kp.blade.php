@@ -12,6 +12,8 @@
         ['key' => 4, 'label' => 'Kesediaan Dosen', 'icon' => '📋'],
         ['key' => 5, 'label' => 'Aktif KP', 'icon' => '🚀'],
     ];
+    unset($steps[4]);
+    $steps[5]['key'] = 4;
 @endphp
 <div class="card">
   <div class="card-header">
@@ -69,8 +71,13 @@
             🏢 Surat balasan diterima! Sekarang daftarkan instansi tempat KP dan Pembimbing Lapangan Anda di halaman <a href="{{ route('mahasiswa.instansi.index') }}"><strong>Daftarkan Instansi</strong></a>.
           @endif
           @break
-        @case(\App\Models\Mahasiswa::TAHAP_MENUNGGU_KESEDIAAN_PEMBIMBING)
+        {{-- Tahap persetujuan dosen sudah dihapus; blok ini hanya disembunyikan
+             agar data lama tidak lagi menampilkan alur tersebut. --}}
+        {{-- @case('menunggu_kesediaan_pembimbing')
           📋 Admin telah menetapkan dosen pembimbing. Silakan buka <a href="{{ route('mahasiswa.form-kesediaan-pembimbing.index') }}"><strong>Form Kesediaan Pembimbing</strong></a>, lalu teruskan kepada dosen untuk disetujui.
+          @break --}}
+        @case(\App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN)
+          Surat balasan sedang diverifikasi admin jurusan. Anda dapat melanjutkan setelah surat disetujui.
           @break
         @case(\App\Models\Mahasiswa::TAHAP_AKTIF_KP)
           🚀 Anda resmi memulai KP di <strong>{{ $mahasiswa->instansi->nama ?? '-' }}</strong> dengan pembimbing <strong>{{ $mahasiswa->dosen->nama ?? '-' }}</strong>. Absensi, laporan, dan seminar sudah bisa diakses.

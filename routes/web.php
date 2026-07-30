@@ -35,6 +35,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::post('mahasiswa',               [App\Http\Controllers\Admin\MahasiswaController::class,'store'])->name('mahasiswa.store');
     Route::get('mahasiswa/{mahasiswa}',    [App\Http\Controllers\Admin\MahasiswaController::class,'show'])->name('mahasiswa.show');
     Route::put('mahasiswa/{mahasiswa}',    [App\Http\Controllers\Admin\MahasiswaController::class,'update'])->name('mahasiswa.update');
+    Route::patch('mahasiswa/{mahasiswa}/dosen-pembimbing', [App\Http\Controllers\Admin\MahasiswaController::class,'tetapkanDosen'])->name('mahasiswa.tetapkanDosen');
     Route::delete('mahasiswa/{mahasiswa}', [App\Http\Controllers\Admin\MahasiswaController::class,'destroy'])->name('mahasiswa.destroy');
 
     Route::get('dosen',             [App\Http\Controllers\Admin\DosenController::class,'index'])->name('dosen.index');
@@ -47,16 +48,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::post('instansi',               [App\Http\Controllers\Admin\InstansiController::class,'store'])->name('instansi.store');
     Route::get('instansi/{instansi}',     [App\Http\Controllers\Admin\InstansiController::class,'show'])->name('instansi.show');
     Route::put('instansi/{instansi}',     [App\Http\Controllers\Admin\InstansiController::class,'update'])->name('instansi.update');
+    Route::post('instansi/{instansi}/kirim-undangan', [App\Http\Controllers\Admin\InstansiController::class,'kirimUndangan'])->name('instansi.kirimUndangan');
     Route::delete('instansi/{instansi}',  [App\Http\Controllers\Admin\InstansiController::class,'destroy'])->name('instansi.destroy');
     Route::post('instansi/resolve-lokasi',[App\Http\Controllers\Admin\InstansiController::class,'resolveLokasi'])->name('instansi.resolveLokasi');
 
     Route::get('persyaratan',                       [App\Http\Controllers\Admin\PersyaratanController::class,'index'])->name('persyaratan.index');
     Route::post('persyaratan/{mahasiswa}/verifikasi',[App\Http\Controllers\Admin\PersyaratanController::class,'verifikasi'])->name('persyaratan.verifikasi');
-
-    Route::get('progress', [App\Http\Controllers\Admin\ProgressController::class,'index'])->name('progress.index');
-    Route::get('proposal-rencana-kerja', [App\Http\Controllers\Admin\ProposalRencanaKerjaController::class,'index'])->name('proposal-rencana-kerja.index');
-
-    Route::get('nilai', [App\Http\Controllers\Admin\NilaiController::class,'index'])->name('nilai.index');
+    Route::post('persyaratan/{mahasiswa}/verifikasi-surat-balasan',[App\Http\Controllers\Admin\PersyaratanController::class,'verifikasiSuratBalasan'])->name('persyaratan.verifikasiSuratBalasan');
 
     Route::get('pembimbing',                     [App\Http\Controllers\Admin\PembimbingController::class,'index'])->name('pembimbing.index');
     Route::put('pembimbing-lapangan/{mahasiswa}', [App\Http\Controllers\Admin\PembimbingController::class,'updateLapangan'])->name('pembimbing.updateLapangan');
@@ -67,10 +65,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::post('seminar/{seminar}/approve', [App\Http\Controllers\Admin\SeminarController::class,'approve'])->name('seminar.approve');
     Route::post('seminar/{seminar}/reject',  [App\Http\Controllers\Admin\SeminarController::class,'reject'])->name('seminar.reject');
     Route::delete('seminar/{seminar}',       [App\Http\Controllers\Admin\SeminarController::class,'destroy'])->name('seminar.destroy');
-
-    Route::get('absensi',                     [App\Http\Controllers\Admin\AbsensiController::class,'index'])->name('absensi.index');
-    Route::get('absensi/{mahasiswa}',         [App\Http\Controllers\Admin\AbsensiController::class,'show'])->name('absensi.show');
-    Route::patch('absensi/catatan/{absensi}', [App\Http\Controllers\Admin\AbsensiController::class,'updateCatatan'])->name('absensi.catatan');
 
     // ── Surat ──
     Route::get('surat',                  [App\Http\Controllers\Admin\SuratController::class,'index'])->name('surat.index');
@@ -86,9 +80,6 @@ Route::prefix('dosen-area')->name('dosen.')->middleware(['auth','role:dosen'])->
     Route::post('progress/{bimbingan}/verifikasi', [App\Http\Controllers\Dosen\ProgressController::class,'verifikasi'])->name('progress.verifikasi');
     Route::get('proposal-rencana-kerja', [App\Http\Controllers\Dosen\ProposalRencanaKerjaController::class,'index'])->name('proposal-rencana-kerja.index');
     Route::post('proposal-rencana-kerja/{proposal}/verifikasi', [App\Http\Controllers\Dosen\ProposalRencanaKerjaController::class,'verifikasi'])->name('proposal-rencana-kerja.verifikasi');
-    Route::get('form-kesediaan-pembimbing', [App\Http\Controllers\Dosen\FormKesediaanPembimbingController::class,'index'])->name('form-kesediaan-pembimbing.index');
-    Route::get('form-kesediaan-pembimbing/{form}', [App\Http\Controllers\Dosen\FormKesediaanPembimbingController::class,'show'])->name('form-kesediaan-pembimbing.show');
-    Route::post('form-kesediaan-pembimbing/{form}/setujui', [App\Http\Controllers\Dosen\FormKesediaanPembimbingController::class,'setujui'])->name('form-kesediaan-pembimbing.setujui');
 
     Route::get('seminar', [App\Http\Controllers\Dosen\SeminarController::class,'index'])->name('seminar.index');
     Route::post('seminar/{seminar}/verifikasi-acc', [App\Http\Controllers\Dosen\SeminarController::class,'verifikasiAcc'])->name('seminar.verifikasi-acc');
@@ -143,7 +134,6 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
     Route::get('surat-balasan',  [App\Http\Controllers\Mahasiswa\SuratBalasanController::class,'index'])->name('surat-balasan.index');
     Route::post('surat-balasan', [App\Http\Controllers\Mahasiswa\SuratBalasanController::class,'upload'])->name('surat-balasan.upload');
     Route::get('form-kesediaan-pembimbing', [App\Http\Controllers\Mahasiswa\FormKesediaanPembimbingController::class,'index'])->name('form-kesediaan-pembimbing.index');
-    Route::post('form-kesediaan-pembimbing/teruskan', [App\Http\Controllers\Mahasiswa\FormKesediaanPembimbingController::class,'teruskan'])->name('form-kesediaan-pembimbing.teruskan');
 
     // ── Fitur di bawah ini baru bisa diakses setelah mahasiswa aktif KP
     //    (berkas disetujui admin + instansi & dosen pembimbing sudah ditentukan) ──

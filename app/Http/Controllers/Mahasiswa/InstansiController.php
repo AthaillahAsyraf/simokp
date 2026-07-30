@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -110,19 +109,16 @@ class InstansiController extends Controller
             return back()->withErrors($validator, 'daftarInstansiBaru')->withInput();
         }
 
-        $tokenAktivasi = Str::random(64);
-
         try {
-            $instansi = DB::transaction(function () use ($request, $tokenAktivasi) {
+            $instansi = DB::transaction(function () use ($request) {
                 $user = User::create([
                     'name'                 => $request->kontak_person,
                     'email'                => $request->email,
-                    // Password ditentukan pembimbing melalui tautan aktivasi.
+                    // Akun diaktifkan setelah admin memverifikasi data dan
+                    // mengirim tautan aktivasi resmi ke pembimbing lapangan.
                     'password'             => Str::random(64),
                     'role'                 => 'pembimbing_lapangan',
                     'wajib_ganti_password' => true,
-                    'activation_token'     => hash('sha256', $tokenAktivasi),
-                    'activation_expires_at' => now()->addDays(7),
                 ]);
 
                 return Instansi::create([
@@ -149,23 +145,7 @@ class InstansiController extends Controller
 
         $mahasiswa->cekMajukanKeAktifKp();
 
-        $undanganTerkirim = true;
-        try {
-            Mail::send('emails.undangan-pembimbing', [
-                'nama' => $instansi->kontak_person,
-                'instansi' => $instansi->nama,
-                'urlAktivasi' => route('aktivasi-pembimbing.show', $tokenAktivasi),
-            ], function ($message) use ($request, $instansi) {
-                $message->to($request->email)->subject('Aktivasi Akun Pembimbing Lapangan - '.$instansi->nama);
-            });
-        } catch (\Throwable $e) {
-            report($e);
-            $undanganTerkirim = false;
-        }
-
         return redirect()->route('mahasiswa.dashboard')
-            ->with($undanganTerkirim ? 'success' : 'error', $undanganTerkirim
-                ? "Instansi {$instansi->nama} berhasil didaftarkan. Tautan aktivasi akun telah dikirim ke email Pembimbing Lapangan ({$request->email})."
-                : "Instansi {$instansi->nama} berhasil didaftarkan, tetapi undangan aktivasi tidak dapat dikirim. Hubungi admin KP.");
+            ->with('success', "Instansi {$instansi->nama} berhasil didaftarkan. Admin jurusan akan memverifikasi data Pembimbing Lapangan lalu mengirim undangan aktivasi ke {$request->email}.");
     }
 }

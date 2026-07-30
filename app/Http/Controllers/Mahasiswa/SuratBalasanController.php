@@ -13,8 +13,7 @@ use Illuminate\Support\Facades\Validator;
  * Sesuai Prosedur KP poin 7-10: mahasiswa membuat surat permohonan lewat
  * SAIDATA (di luar SIMOKP) lalu mengirimkannya ke instansi tujuan. Di
  * SIMOKP, mahasiswa hanya perlu mengunggah SURAT BALASAN dari instansi
- * tersebut. Begitu file tersimpan, tahap KP otomatis maju ke
- * "menunggu_instansi" (admin lalu menentukan instansi & dosen pembimbing).
+ * tersebut. File wajib diverifikasi admin sebelum mahasiswa dapat mendaftarkan instansi.
  */
 class SuratBalasanController extends Controller
 {
@@ -68,11 +67,14 @@ class SuratBalasanController extends Controller
             'file_surat_balasan'        => $path,
             'file_surat_balasan_asli'   => $uploaded->getClientOriginalName(),
             'surat_balasan_uploaded_at' => now(),
+            'surat_balasan_status'      => \App\Models\SyaratAdministrasi::SURAT_BALASAN_MENUNGGU,
+            'surat_balasan_catatan'     => null,
+            'surat_balasan_diverifikasi_at' => null,
         ]);
 
-        $mahasiswa->update(['tahap' => Mahasiswa::TAHAP_MENUNGGU_INSTANSI]);
+        $mahasiswa->update(['tahap' => Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN]);
 
         return redirect()->route('mahasiswa.dashboard')
-            ->with('success', 'Surat balasan instansi berhasil diunggah. Admin jurusan akan segera menentukan instansi & dosen pembimbing Anda.');
+            ->with('success', 'Surat balasan berhasil diunggah dan menunggu verifikasi admin jurusan.');
     }
 }
