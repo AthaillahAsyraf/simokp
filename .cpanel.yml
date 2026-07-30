@@ -1,0 +1,10 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/simx5692/simokp/
+    - /bin/cp -R ./* $DEPLOYPATH
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan migrate --force
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan config:cache
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan route:cache
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan view:cache
+    - "[ ! -L /home/simx5692/public_html/storage ] && ln -s /home/simx5692/simokp/storage/app/public /home/simx5692/public_html/storage"
