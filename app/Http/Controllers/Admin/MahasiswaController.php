@@ -28,6 +28,7 @@ class MahasiswaController extends Controller {
                 WHEN 'unggah_surat_balasan' THEN 4
                 WHEN 'menunggu_instansi' THEN 5
                 WHEN 'aktif_kp' THEN 6
+                WHEN 'selesai_kp' THEN 7
                 ELSE 99 END")
             ->orderBy('nama')
             ->get();
@@ -78,7 +79,14 @@ class MahasiswaController extends Controller {
     public function update(Request $request, Mahasiswa $mahasiswa) {
         $request->validate(['nama'=>'required','angkatan'=>'required']);
 
-        $mahasiswa->update($request->only(['nama','angkatan','no_hp','status']));
+        $data = $request->only(['nama','angkatan','no_hp','status']);
+        if (($data['status'] ?? null) === 'selesai') {
+            $data['tahap'] = Mahasiswa::TAHAP_SELESAI_KP;
+        } elseif ($mahasiswa->tahap === Mahasiswa::TAHAP_SELESAI_KP) {
+            $data['tahap'] = Mahasiswa::TAHAP_AKTIF_KP;
+        }
+
+        $mahasiswa->update($data);
 
         return back()->with('success', 'Data mahasiswa diperbarui.');
     }

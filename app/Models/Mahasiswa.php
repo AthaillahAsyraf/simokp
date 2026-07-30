@@ -22,6 +22,7 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
     const TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN = 'menunggu_verifikasi_surat_balasan';
     const TAHAP_MENUNGGU_INSTANSI    = 'menunggu_instansi';
     const TAHAP_AKTIF_KP             = 'aktif_kp';
+    const TAHAP_SELESAI_KP           = 'selesai_kp';
 
     const URUTAN_TAHAP = [
         self::TAHAP_LENGKAPI_BERKAS      => 0,
@@ -31,16 +32,18 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
         self::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN => 2,
         self::TAHAP_MENUNGGU_INSTANSI    => 3,
         self::TAHAP_AKTIF_KP             => 4,
+        self::TAHAP_SELESAI_KP           => 5,
     ];
 
     const LABEL_TAHAP = [
         self::TAHAP_LENGKAPI_BERKAS      => 'Belum Melengkapi Berkas Persyaratan',
-        self::TAHAP_MENUNGGU_VERIFIKASI  => 'Menunggu Verifikasi Admin',
-        self::TAHAP_REVISI_BERKAS        => 'Perlu Revisi Berkas',
-        self::TAHAP_UNGGAH_SURAT_BALASAN => 'Unggah Surat Balasan Instansi',
-        self::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN => 'Menunggu Verifikasi Surat Balasan',
-        self::TAHAP_MENUNGGU_INSTANSI    => 'Menunggu Pemilihan Dosen dan Kirim Akun Instansi',
+        self::TAHAP_MENUNGGU_VERIFIKASI  => 'Menunggu Verifikasi Berkas Persyaratan',
+        self::TAHAP_REVISI_BERKAS        => 'Perlu Revisi Berkas Persyaratan',
+        self::TAHAP_UNGGAH_SURAT_BALASAN => 'Belum Unggah Surat Balasan Instansi',
+        self::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN => 'Menunggu Verifikasi Surat Balasan Instansi',
+        self::TAHAP_MENUNGGU_INSTANSI    => 'Menunggu Pemilihan Dosen dan Buat Akun Instansi',
         self::TAHAP_AKTIF_KP             => 'Aktif Melaksanakan KP',
+        self::TAHAP_SELESAI_KP           => 'Selesai KP',
     ];
 
     public function user()         { return $this->belongsTo(User::class); }
@@ -69,7 +72,7 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
 
     public function sudahAktifKp(): bool
     {
-        return $this->tahap === self::TAHAP_AKTIF_KP;
+        return in_array($this->tahap, [self::TAHAP_AKTIF_KP, self::TAHAP_SELESAI_KP], true);
     }
 
     /**
@@ -80,7 +83,7 @@ const TAHAP_LENGKAPI_BERKAS      = 'lengkapi_berkas';
     public function cekMajukanKeAktifKp(): void
     {
         if ($this->dosen_id && $this->instansi_id
-            && $this->tahap !== self::TAHAP_AKTIF_KP
+            && !in_array($this->tahap, [self::TAHAP_AKTIF_KP, self::TAHAP_SELESAI_KP], true)
             && $this->sudahMencapaiTahap(self::TAHAP_MENUNGGU_INSTANSI)) {
             $this->formKesediaanPembimbing()->firstOrCreate([], [
                 'dosen_id'    => $this->dosen_id,

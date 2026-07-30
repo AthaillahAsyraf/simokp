@@ -10,10 +10,25 @@ class AuthController extends Controller {
     public function showRegister(){ return view('auth.register'); }
 
     public function login(Request $request) {
-        $request->validate(['email'=>'required|email','password'=>'required']);
-        if (!Auth::attempt($request->only('email','password'), $request->boolean('remember'))) {
-            return back()->withErrors(['email'=>'Email atau password salah.'])->withInput();
+        $request->validate([
+            'login'    => 'required|string|max:255',
+            'password' => 'required',
+        ]);
+
+        $login = trim($request->input('login'));
+        $user = User::query()
+            ->where('email', $login)
+            ->orWhere(function ($query) use ($login) {
+                $query->where('role', 'mahasiswa')
+                    ->whereHas('mahasiswa', fn ($mahasiswa) => $mahasiswa->where('nim', $login));
+            })
+            ->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['login' => 'Email/NIM atau password salah.'])->withInput();
         }
+
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
         return redirect($this->redirectByRole(Auth::user()->role));
     }

@@ -26,13 +26,27 @@ class InstansiController extends Controller
         $mahasiswa = Auth::user()->mahasiswa;
 
         if ($mahasiswa->instansi_id) {
-            return redirect()->route('mahasiswa.dashboard')
-                ->with('error', 'Anda sudah terdaftar di instansi KP. Pendaftaran instansi hanya dapat dilakukan satu kali.');
+            return redirect()->route('mahasiswa.instansi.show');
         }
 
         $instansis = Instansi::orderBy('nama')->get();
 
         return view('mahasiswa.instansi.index', compact('mahasiswa', 'instansis'));
+    }
+
+    /** Menampilkan instansi KP mahasiswa saat ini dalam mode baca saja. */
+    public function show()
+    {
+        $mahasiswa = Auth::user()->mahasiswa;
+
+        if (! $mahasiswa->instansi_id) {
+            return redirect()->route('mahasiswa.instansi.index')
+                ->with('error', 'Anda belum mendaftarkan instansi KP.');
+        }
+
+        $instansi = $mahasiswa->instansi()->with('user')->firstOrFail();
+
+        return view('mahasiswa.instansi.show', compact('mahasiswa', 'instansi'));
     }
 
     public function store(Request $request)

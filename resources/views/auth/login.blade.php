@@ -39,6 +39,15 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
 .demo-email{color:#64748b;font-family:monospace}
 .reg-link{text-align:center;margin-top:16px;font-size:13px;color:#64748b}
 .reg-link a{color:#2563eb;font-weight:600}
+@media(max-width:700px){
+  body{align-items:flex-start;padding:16px}
+  .container{grid-template-columns:1fr;max-width:480px;margin:20px 0;border-radius:16px}
+  .left{padding:26px 24px}
+  .brand{margin-bottom:20px}
+  .tagline h2{font-size:22px;margin-bottom:8px}
+  .tagline p{font-size:13px}
+  .right{padding:28px 24px}
+}
 </style>
 </head>
 <body>
@@ -67,8 +76,9 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
     <form method="POST" action="{{ route('login.post') }}">
       @csrf
       <div class="fg">
-        <label>Email</label>
-        <input type="email" name="email" value="{{ old('email') }}" placeholder="email@cs.unila.ac.id" required autofocus>
+        <label>Email atau NIM</label>
+        <input type="text" name="login" value="{{ old('login') }}" placeholder="email@cs.unila.ac.id atau NIM" required autofocus autocomplete="username">
+        @error('login')<div class="err" style="margin-top:8px;margin-bottom:0">{{ $message }}</div>@enderror
       </div>
       <div class="fg">
         <label>Password</label>

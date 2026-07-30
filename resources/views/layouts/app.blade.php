@@ -289,10 +289,49 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
 .empty-state .icon{font-size:40px;margin-bottom:10px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+
+/* Tampilan tablet dan ponsel */
+.mobile-menu-toggle,.sidebar-backdrop{display:none}
+@media (max-width:900px){
+  body{display:block;overflow-x:hidden}
+  .sidebar{width:min(280px,85vw);transform:translateX(-100%);transition:transform .2s ease;z-index:400}
+  .sidebar.is-open{transform:translateX(0)}
+  .sidebar-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:350}
+  .sidebar-backdrop.is-visible{display:block}
+  .mobile-menu-toggle{position:fixed;top:14px;left:14px;z-index:300;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-200);border-radius:9px;background:var(--white);box-shadow:var(--shadow-md);font-size:20px;cursor:pointer}
+  .main{margin-left:0;max-width:none;padding:72px 20px 24px}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .stats-4,.stats-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bab-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .page-header-row{flex-wrap:wrap}
+  .modal-bg{padding:16px}
+  .modal-box{width:100%;max-width:560px;padding:20px;max-height:calc(100vh - 32px)}
+}
+@media (max-width:600px){
+  .main{padding:68px 12px 20px}
+  .page-header{margin-bottom:18px}
+  .page-header h1{font-size:19px}
+  .page-header-row{flex-direction:column;align-items:stretch}
+  .page-header-row .btn{justify-content:center}
+  .card-header,.card-body{padding:13px}
+  .stats-4,.stats-3,.stats-2{grid-template-columns:1fr}
+  .grid-2,.grid-3{gap:14px}
+  .form-grid{grid-template-columns:1fr !important}
+  .bab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .modal-footer{flex-direction:column-reverse}
+  .modal-footer .btn{justify-content:center}
+  .table-wrap{margin:0 -13px}
+  .table-wrap table{min-width:620px}
+  th,td{padding:10px 12px}
+  .alert{line-height:1.5}
+}
 </style>
 @stack('styles')
 </head>
 <body>
+
+<button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Buka menu navigasi" aria-controls="mainSidebar" aria-expanded="false">☰</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 {{-- ── SIDEBAR ─────────────────────────────────────────────────── --}}
 @php
@@ -305,7 +344,7 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
   // ikut di-rename, jadi untuk pembimbing_lapangan tetap pakai slug "instansi".
   $roleSlug  = $role === 'pembimbing_lapangan' ? 'instansi' : $role;
 @endphp
-<aside class="sidebar">
+<aside class="sidebar" id="mainSidebar">
   <div class="sb-logo">
     <div class="sb-logo-icon">🎓</div>
     <div>
@@ -422,7 +461,11 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
           @else
             <span class="nav-item is-locked" title="Selesaikan dan tunggu persetujuan Persyaratan KP terlebih dahulu"><span class="nav-step">2</span> Surat Balasan Instansi</span>
           @endif
-          @if($bisaDaftarInstansi)
+          @if($mhsNav?->instansi_id)
+            <a href="{{ route('mahasiswa.instansi.show') }}" class="nav-item {{ request()->routeIs('mahasiswa.instansi*') ? 'active role-mahasiswa' : '' }}">
+              <span class="nav-step">3</span> Informasi Instansi
+            </a>
+          @elseif($bisaDaftarInstansi)
             <a href="{{ route('mahasiswa.instansi.index') }}" class="nav-item {{ request()->routeIs('mahasiswa.instansi*') ? 'active role-mahasiswa' : '' }}">
               <span class="nav-step">3</span> Daftarkan Instansi
             </a>
@@ -526,6 +569,24 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.modal-bg').forEach(m=>{
     m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
   });
+
+  const sidebar = document.getElementById('mainSidebar');
+  const menuToggle = document.getElementById('mobileMenuToggle');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const closeMenu = () => {
+    sidebar.classList.remove('is-open');
+    backdrop.classList.remove('is-visible');
+    menuToggle.setAttribute('aria-expanded', 'false');
+  };
+  menuToggle.addEventListener('click', () => {
+    const willOpen = !sidebar.classList.contains('is-open');
+    sidebar.classList.toggle('is-open', willOpen);
+    backdrop.classList.toggle('is-visible', willOpen);
+    menuToggle.setAttribute('aria-expanded', String(willOpen));
+  });
+  backdrop.addEventListener('click', closeMenu);
+  sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
 });
 </script>
 @stack('scripts')

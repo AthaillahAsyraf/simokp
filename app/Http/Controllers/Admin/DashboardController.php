@@ -48,6 +48,11 @@ class DashboardController extends Controller
                 'jumlah' => (int) ($jumlahTahap[Mahasiswa::TAHAP_AKTIF_KP] ?? 0),
                 'warna' => 'green',
             ],
+            [
+                'label' => 'Selesai KP',
+                'jumlah' => (int) ($jumlahTahap[Mahasiswa::TAHAP_SELESAI_KP] ?? 0),
+                'warna' => 'blue',
+            ],
         ]);
 
         $menungguBerkas = Mahasiswa::with('syaratAdministrasi')

@@ -123,6 +123,7 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
     Route::get('profile',      [App\Http\Controllers\Mahasiswa\ProfileController::class,'show'])->name('profile.show');
     Route::get('profile/edit', [App\Http\Controllers\Mahasiswa\ProfileController::class,'edit'])->name('profile.edit');
     Route::put('profile',      [App\Http\Controllers\Mahasiswa\ProfileController::class,'update'])->name('profile.update');
+    Route::get('instansi/detail', [App\Http\Controllers\Mahasiswa\InstansiController::class,'show'])->name('instansi.show');
 
     // ── Persyaratan KP (tahap paling awal, sesuai Prosedur KP) ──
     Route::get('persyaratan',  [App\Http\Controllers\Mahasiswa\PersyaratanController::class,'index'])->name('persyaratan.index');
@@ -143,10 +144,6 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth','role:mahasis
         Route::post('proposal-rencana-kerja', [App\Http\Controllers\Mahasiswa\ProposalRencanaKerjaController::class,'upload'])->name('proposal-rencana-kerja.upload');
         Route::get('progress',                        [App\Http\Controllers\Mahasiswa\ProgressController::class,'index'])->name('progress.index');
         Route::post('progress/upload',                 [App\Http\Controllers\Mahasiswa\ProgressController::class,'upload'])->name('progress.upload');
-
-        Route::get('logbook',              [App\Http\Controllers\Mahasiswa\LogbookController::class,'index'])->name('logbook.index');
-        Route::post('logbook',             [App\Http\Controllers\Mahasiswa\LogbookController::class,'store'])->name('logbook.store');
-        Route::delete('logbook/{logbook}', [App\Http\Controllers\Mahasiswa\LogbookController::class,'destroy'])->name('logbook.destroy');
 
         Route::get('seminar',  [App\Http\Controllers\Mahasiswa\SeminarController::class,'index'])->name('seminar.index');
         Route::post('seminar', [App\Http\Controllers\Mahasiswa\SeminarController::class,'store'])->name('seminar.store');

@@ -51,7 +51,8 @@
     </div>
 
     <div class="alert alert-info" style="margin-top:18px">
-      @switch($mahasiswa->tahap)
+      <div style="min-width:0;line-height:1.55">
+        @switch($mahasiswa->tahap)
         @case(\App\Models\Mahasiswa::TAHAP_LENGKAPI_BERKAS)
           💡 Upload 4 berkas persyaratan (Form Pengajuan, Bukti SPP, KRS, Transkrip Nilai) di halaman <a href="{{ route('mahasiswa.persyaratan.index') }}"><strong>Persyaratan KP</strong></a> untuk memulai proses.
           @break
@@ -82,7 +83,8 @@
         @case(\App\Models\Mahasiswa::TAHAP_AKTIF_KP)
           🚀 Anda resmi memulai KP di <strong>{{ $mahasiswa->instansi->nama ?? '-' }}</strong> dengan pembimbing <strong>{{ $mahasiswa->dosen->nama ?? '-' }}</strong>. Absensi, laporan, dan seminar sudah bisa diakses.
           @break
-      @endswitch
+        @endswitch
+      </div>
     </div>
   </div>
 </div>

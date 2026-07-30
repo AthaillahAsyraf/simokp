@@ -70,7 +70,7 @@ class NilaiController extends Controller
         }
 
         $seminar->update(['status' => 'selesai']);
-        $mahasiswa->update(['status' => 'selesai', 'tanggal_selesai' => now()->toDateString()]);
+        $mahasiswa->update(['status' => 'selesai', 'tahap' => Mahasiswa::TAHAP_SELESAI_KP, 'tanggal_selesai' => now()->toDateString()]);
 
         $nilai = Nilai::firstOrCreate(['mahasiswa_id' => $mahasiswa->id]);
         $nilai->fill($request->only([

@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        Schema::dropIfExists('logbooks');
+    }
+
+    public function down(): void
+    {
         Schema::create('logbooks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('mahasiswa_id')->constrained('mahasiswas')->cascadeOnDelete();
@@ -18,10 +23,5 @@ return new class extends Migration {
             $table->text('catatan_instansi')->nullable();
             $table->timestamps();
         });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('logbooks');
     }
 };

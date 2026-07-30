@@ -40,12 +40,12 @@ class PersyaratanController extends Controller
     {
         $syarat = $mahasiswa->syaratAdministrasi;
         abort_if(!$syarat?->file_surat_balasan || $mahasiswa->tahap !== Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN, 422, 'Surat balasan tidak menunggu verifikasi.');
-        $data = $request->validate(['keputusan' => 'required|in:disetujui,revisi', 'catatan' => 'nullable|string|max:1000']);
-        if ($data['keputusan'] === 'revisi' && blank($data['catatan'] ?? null)) return back()->with('error', 'Catatan revisi wajib diisi.');
+        $data = $request->validate(['keputusan' => 'required|in:disetujui,ditolak', 'catatan' => 'nullable|string|max:1000']);
         $setuju = $data['keputusan'] === 'disetujui';
-        $syarat->update(['surat_balasan_status' => $setuju ? SyaratAdministrasi::SURAT_BALASAN_DISETUJUI : SyaratAdministrasi::SURAT_BALASAN_REVISI, 'surat_balasan_catatan' => $setuju ? null : $data['catatan'], 'surat_balasan_diverifikasi_at' => now()]);
+        $catatan = $data['catatan'] ?? null;
+        $syarat->update(['surat_balasan_status' => $setuju ? SyaratAdministrasi::SURAT_BALASAN_DISETUJUI : SyaratAdministrasi::SURAT_BALASAN_REVISI, 'surat_balasan_catatan' => $setuju ? null : ($catatan ?: 'Surat balasan ditolak. Silakan unggah ulang surat yang sesuai.'), 'surat_balasan_diverifikasi_at' => now()]);
         $mahasiswa->update(['tahap' => $setuju ? Mahasiswa::TAHAP_MENUNGGU_INSTANSI : Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN]);
-        return back()->with('success', $setuju ? 'Surat balasan disetujui. Mahasiswa dapat mendaftarkan instansi.' : 'Surat balasan dikembalikan untuk direvisi.');
+        return back()->with('success', $setuju ? 'Surat balasan disetujui. Mahasiswa dapat mendaftarkan instansi.' : 'Surat balasan ditolak. Mahasiswa diminta mengunggah ulang.');
     }
 
     /**

@@ -107,7 +107,7 @@
       <h3>{{ $labelTahap }}</h3>
       <p style="margin:3px 0 0;font-size:12px;color:var(--gray-500)">Mahasiswa pada tahapan ini</p>
     </div>
-    <span class="badge {{ $kodeTahap === 'revisi_berkas' ? 'badge-rejected' : ($kodeTahap === 'aktif_kp' ? 'badge-proses' : 'badge-belum') }}">
+    <span class="badge {{ $kodeTahap === 'revisi_berkas' ? 'badge-rejected' : ($kodeTahap === 'selesai_kp' ? 'badge-selesai' : ($kodeTahap === 'aktif_kp' ? 'badge-proses' : 'badge-belum')) }}">
       {{ $mahasiswaTahap->count() }} mahasiswa
     </span>
   </div>
@@ -153,7 +153,7 @@
           <td>
             <span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span>
             @if($m->tahap !== 'aktif_kp')
-              <br><span class="badge {{ $m->tahap === 'revisi_berkas' ? 'badge-rejected' : 'badge-belum' }}" style="margin-top:3px">{{ $m->tahapLabel() }}</span>
+              <br><span class="badge {{ $m->tahap === 'revisi_berkas' ? 'badge-rejected' : ($m->tahap === 'selesai_kp' ? 'badge-selesai' : 'badge-belum') }}" style="margin-top:3px">{{ $m->tahapLabel() }}</span>
             @endif
           </td>
           <td>
@@ -162,7 +162,7 @@
               @if($m->tahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN && $m->syaratAdministrasi?->file_surat_balasan)
                 <a href="{{ $m->syaratAdministrasi->urlBerkas('file_surat_balasan') }}" target="_blank" class="btn btn-primary btn-xs">Lihat Surat</a>
                 <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:inline" data-confirm="Setujui surat balasan ini?">@csrf<input type="hidden" name="keputusan" value="disetujui"><button type="submit" class="btn btn-success btn-xs">Setujui</button></form>
-                <button type="button" class="btn btn-outline btn-xs" onclick="openRevisiSurat({{ $m->id }}, @json($m->nama))">Revisi</button>
+                <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:inline" data-confirm="Tolak surat balasan ini? Mahasiswa akan diminta mengunggah ulang.">@csrf<input type="hidden" name="keputusan" value="ditolak"><button type="submit" class="btn btn-danger btn-xs">Tolak</button></form>
               @endif
               @php($akunPembimbing = $m->instansi?->user)
               @if($m->instansi && $akunPembimbing?->wajib_ganti_password)
@@ -415,18 +415,3 @@ function openTetapkanDosen(id, nama, instansi) {
 </script>
 @endpush
 @endsection
-@push('scripts')
-<script>
-function openRevisiSurat(id, nama) {
-  const catatan = prompt('Catatan revisi untuk surat balasan ' + nama + ':');
-  if (!catatan) return;
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = `{{ url('admin/persyaratan') }}/${id}/verifikasi-surat-balasan`;
-  form.innerHTML = '@csrf<input type="hidden" name="keputusan" value="revisi"><input type="hidden" name="catatan">';
-  form.querySelector('[name="catatan"]').value = catatan;
-  document.body.appendChild(form);
-  form.submit();
-}
-</script>
-@endpush

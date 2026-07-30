@@ -8,6 +8,7 @@
 .berkas-name{font-size:13px;font-weight:600;color:var(--gray-800)}
 .berkas-file{font-size:12px;color:var(--gray-500);margin-top:2px}
 .catatan-box{background:var(--red-50);border:1px solid var(--red-100);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--red-600);margin-bottom:16px}
+.upload-validation{background:var(--amber-50);border:1px solid var(--amber-100);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--amber-600);margin-bottom:14px}
 </style>
 @endpush
 
@@ -50,7 +51,7 @@
 
     @php $bisaEdit = in_array($mahasiswa->tahap, ['lengkapi_berkas','revisi_berkas']); @endphp
 
-    <div id="uploadPersyaratanInfo" class="alert alert-warning" style="display:none;margin-bottom:14px"></div>
+    <div id="uploadPersyaratanInfo" class="upload-validation" style="display:none"></div>
     <form method="POST" id="formUploadPersyaratan" action="{{ route('mahasiswa.persyaratan.upload') }}" enctype="multipart/form-data">
       @csrf
       @foreach(\App\Models\SyaratAdministrasi::BERKAS as $field => $label)

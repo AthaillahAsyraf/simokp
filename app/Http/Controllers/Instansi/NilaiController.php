@@ -31,7 +31,7 @@ class NilaiController extends Controller
     public function update(Request $request, Mahasiswa $mahasiswa)
     {
         $instansi = Auth::user()->instansi;
-        abort_if($mahasiswa->instansi_id !== $instansi->id, 403);
+        abort_if(! $instansi || (int) $mahasiswa->instansi_id !== (int) $instansi->id, 403, 'Mahasiswa ini bukan peserta KP di instansi Anda.');
 
         if (!$mahasiswa->pembimbing_lapangan_nama) {
             return back()->with('error', "Nama Pembimbing Lapangan untuk {$mahasiswa->nama} belum diisi admin. Hubungi admin untuk melengkapi data ini sebelum memberi nilai.");
@@ -72,7 +72,7 @@ class NilaiController extends Controller
     public function cetak(Mahasiswa $mahasiswa)
     {
         $instansi = Auth::user()->instansi;
-        abort_if($mahasiswa->instansi_id !== $instansi->id, 403);
+        abort_if(! $instansi || (int) $mahasiswa->instansi_id !== (int) $instansi->id, 403, 'Mahasiswa ini bukan peserta KP di instansi Anda.');
 
         $mahasiswa->load(['seminar', 'instansi', 'nilai']);
         abort_if(!$mahasiswa->nilai || $mahasiswa->nilai->nilai_lapangan === null, 404, 'Nilai lapangan belum diisi.');

@@ -25,6 +25,12 @@ input.touched:invalid{border-color:#fca5a5;background:#fef9f9}
 .err{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#dc2626;margin-bottom:14px}
 .login-link{text-align:center;margin-top:16px;font-size:13px;color:#64748b}
 .login-link a{color:#7c3aed;font-weight:600}
+@media(max-width:560px){
+  body{display:block;padding:16px}
+  .card{width:100%;padding:26px 20px;margin:12px 0;border-radius:14px}
+  .header{margin-bottom:22px}
+  .grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>

@@ -72,7 +72,7 @@ class SeminarController extends Controller
 
         $seminar->update(array_merge($this->jadwalData($request), ['dosen_penguji_id' => $mahasiswa->dosen_id, 'status' => $request->status, 'catatan' => $request->catatan]));
         if ($request->status === Seminar::STATUS_SELESAI) {
-            $mahasiswa->update(['status' => 'selesai', 'tanggal_selesai' => now()->toDateString()]);
+            $mahasiswa->update(['status' => 'selesai', 'tahap' => Mahasiswa::TAHAP_SELESAI_KP, 'tanggal_selesai' => now()->toDateString()]);
         }
         return back()->with('success', 'Data seminar diperbarui.');
     }
