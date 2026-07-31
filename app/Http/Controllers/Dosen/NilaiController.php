@@ -47,7 +47,7 @@ class NilaiController extends Controller
     public function updateSeminar(Request $request, Mahasiswa $mahasiswa)
     {
         $dosen = Auth::user()->dosen;
-        abort_if($mahasiswa->dosen_id !== $dosen->id, 403);
+        abort_if((int) $mahasiswa->dosen_id !== (int) $dosen->id, 403);
 
         $validator = Validator::make($request->all(), [
             'seminar_penguasaan_materi' => 'required|numeric|min:0|max:100',
@@ -94,7 +94,7 @@ class NilaiController extends Controller
     public function cetak(Mahasiswa $mahasiswa)
     {
         $dosen = Auth::user()->dosen;
-        abort_if($mahasiswa->dosen_id !== $dosen->id, 403);
+        abort_if((int) $mahasiswa->dosen_id !== (int) $dosen->id, 403);
 
         $mahasiswa->load(['seminar', 'instansi', 'nilai']);
         abort_if(!$mahasiswa->nilai || $mahasiswa->nilai->nilai_seminar === null, 404, 'Nilai pembimbing belum diisi.');

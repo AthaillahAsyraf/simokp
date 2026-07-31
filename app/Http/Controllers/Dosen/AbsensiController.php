@@ -61,7 +61,7 @@ class AbsensiController extends Controller
         $dosen = Auth::user()->dosen;
 
         // Pastikan mahasiswa ini adalah bimbingan dosen yang login
-        abort_if($mahasiswa->dosen_id !== $dosen->id, 403, 'Mahasiswa ini bukan bimbingan Anda.');
+        abort_if((int) $mahasiswa->dosen_id !== (int) $dosen->id, 403, 'Mahasiswa ini bukan bimbingan Anda.');
 
         $mahasiswa->load(['instansi']);
 
@@ -91,7 +91,7 @@ class AbsensiController extends Controller
     public function updateCatatan(Request $request, Absensi $absensi)
     {
         $dosen = Auth::user()->dosen;
-        abort_if($absensi->mahasiswa->dosen_id !== $dosen->id, 403);
+        abort_if((int) $absensi->mahasiswa->dosen_id !== (int) $dosen->id, 403);
 
         $request->validate(['catatan_dosen' => 'nullable|string|max:1000']);
         $absensi->update(['catatan_dosen' => $request->catatan_dosen]);

@@ -19,7 +19,7 @@ class ProgressController extends Controller
     public function verifikasi(Request $request, Bimbingan $bimbingan)
     {
         $dosen = Auth::user()->dosen;
-        abort_if($bimbingan->mahasiswa->dosen_id !== $dosen->id, 403);
+        abort_if((int) $bimbingan->mahasiswa->dosen_id !== (int) $dosen->id, 403);
         $request->validate(['keputusan' => 'required|in:approved,revisi', 'catatan' => 'nullable|string|max:1000']);
         if ($request->keputusan === 'revisi' && !$request->filled('catatan')) {
             return back()->with('error', 'Catatan revisi wajib diisi supaya mahasiswa tahu tindak lanjutnya.');

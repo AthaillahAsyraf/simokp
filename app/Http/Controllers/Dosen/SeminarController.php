@@ -13,7 +13,7 @@ class SeminarController extends Controller {
         return view('dosen.seminar.index', compact('seminars'));
     }
     public function verifikasiAcc(Request $request, Seminar $seminar) {
-        abort_if($seminar->mahasiswa->dosen_id !== Auth::user()->dosen->id, 403);
+        abort_if((int) $seminar->mahasiswa->dosen_id !== (int) Auth::user()->dosen->id, 403);
         abort_unless($seminar->status === 'menunggu_acc_dospem', 422);
         $request->validate(['keputusan' => 'required|in:setujui,tolak', 'catatan' => 'nullable|string|max:500']);
         if ($request->keputusan === 'tolak' && !$request->filled('catatan')) return back()->with('error', 'Catatan wajib diisi saat menolak ACC.');

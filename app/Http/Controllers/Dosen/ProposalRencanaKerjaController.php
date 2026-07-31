@@ -21,7 +21,7 @@ class ProposalRencanaKerjaController extends Controller
 
     public function verifikasi(Request $request, ProposalRencanaKerja $proposal)
     {
-        abort_if($proposal->mahasiswa->dosen_id !== Auth::user()->dosen->id, 403);
+        abort_if((int) $proposal->mahasiswa->dosen_id !== (int) Auth::user()->dosen->id, 403);
         $request->validate(['keputusan' => 'required|in:disetujui,revisi', 'catatan' => 'nullable|string|max:1000']);
 
         if ($proposal->status !== 'menunggu') {
