@@ -33,12 +33,6 @@
     <div class="stat-sub">Nilai lapangan sudah diisi</div>
     <div class="stat-icon">📝</div>
   </div>
-  <div class="stat-card c-inst">
-    <div class="stat-label">Progress Rata-rata</div>
-    <div class="stat-val">{{ $avgProgress }}%</div>
-    <div class="stat-sub">Seluruh mahasiswa</div>
-    <div class="stat-icon">📊</div>
-  </div>
 </div>
 
 <div class="grid-2">
