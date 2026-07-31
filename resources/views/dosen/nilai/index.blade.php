@@ -3,11 +3,11 @@
 
 @push('styles')
 <style>
-.predikat{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;font-weight:700;font-size:13px}
+.predikat{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border-radius:8px;font-weight:700;font-size:13px}
 .predikat-A{background:var(--green-100);color:var(--green-700)}
 .predikat-B{background:var(--blue-100);color:var(--blue-700)}
 .predikat-C{background:var(--amber-100);color:var(--amber-600)}
-.predikat-D, .predikat-E{background:var(--red-100);color:var(--red-600)}
+.predikat-D, .predikat-E, .predikat-BL{background:var(--red-100);color:var(--red-600)}
 .status-lulus{color:var(--green-600);font-weight:600}
 .status-tidak-lulus{color:var(--red-600);font-weight:600}
 .status-belum{color:var(--gray-400)}
@@ -96,7 +96,10 @@
 
       <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gray-50);border-radius:8px;padding:10px 14px;margin-top:10px">
         <span class="text-sm text-muted">Nilai Total (otomatis, sesuai bobot)</span>
-        <strong id="sTotalOut" style="font-size:18px">–</strong>
+        <span style="display:flex;align-items:center;gap:8px">
+          <strong id="sTotalOut" style="font-size:18px">–</strong>
+          <span id="sHurufMutuOut" class="predikat" style="display:none"></span>
+        </span>
       </div>
 
       <div class="modal-footer">
@@ -133,6 +136,26 @@ function hitungTotalSeminar() {
     total += parseFloat(v) * BOBOT_SEMINAR[id];
   }
   document.getElementById('sTotalOut').textContent = lengkap ? total.toFixed(2) : '–';
+
+  const hurufEl = document.getElementById('sHurufMutuOut');
+  if (!lengkap) {
+    hurufEl.style.display = 'none';
+    return;
+  }
+  const { huruf, kelas } = hitungHurufMutu(total);
+  hurufEl.textContent = huruf;
+  hurufEl.className = 'predikat predikat-' + kelas;
+  hurufEl.style.display = 'inline-flex';
+}
+
+// Meniru persis tabel konversi di Nilai::getHurufMutuSeminarAttribute()
+function hitungHurufMutu(nilai) {
+  if (nilai >= 76) return { huruf: 'A',  kelas: 'A' };
+  if (nilai >= 71) return { huruf: 'B+', kelas: 'B' };
+  if (nilai >= 66) return { huruf: 'B',  kelas: 'B' };
+  if (nilai >= 61) return { huruf: 'C+', kelas: 'C' };
+  if (nilai >= 56) return { huruf: 'C',  kelas: 'C' };
+  return { huruf: 'BL', kelas: 'BL' };
 }
 </script>
 @endpush
