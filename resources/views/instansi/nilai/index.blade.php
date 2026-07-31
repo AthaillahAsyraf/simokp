@@ -29,7 +29,7 @@
     <table>
       <thead>
         <tr>
-          <th>Mahasiswa</th><th>Nilai Pembimbing Lapangan</th>
+          <th>Mahasiswa</th><th>Pembimbing Lapangan</th><th>Dosen Pembimbing</th><th>Nilai Pembimbing Lapangan</th>
           <th>Nilai Pembimbing</th><th>Nilai Akhir</th><th>Status</th><th>Aksi</th>
         </tr>
       </thead>

@@ -7,10 +7,11 @@
   $statusCounts   = $mahasiswas->groupBy('status')->map->count();
   $avgProgress    = $mahasiswas->count() ? round($mahasiswas->avg(fn($m) => $m->progressPersen())) : 0;
 
-  // Hanya mahasiswa yang perlu disorot: progress rendah atau status bermasalah/ditolak
+  // Perlu disorot: mahasiswa yang belum diberi nilai lapangan oleh pembimbing.
+  // Mahasiswa yang sudah selesai KP tidak perlu terus muncul di sini.
   $perluPerhatian = $mahasiswas
-      ->filter(fn($m) => $m->progressPersen() < 30 || in_array($m->status, ['bermasalah','ditolak']))
-      ->sortBy(fn($m) => $m->progressPersen())
+      ->filter(fn($m) => is_null($m->nilai?->nilai_lapangan) && $m->status !== 'selesai')
+      ->sortBy(fn($m) => $m->nama)
       ->take(5);
 @endphp
 
@@ -49,21 +50,21 @@
     </div>
     <div class="card-body">
       @forelse($perluPerhatian as $m)
-        @php $pct = $m->progressPersen(); @endphp
         <div style="padding:10px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
             <div>
               <div style="font-size:14px;font-weight:700">{{ $m->nama }}</div>
               <div style="font-size:11px;color:var(--muted)">{{ $m->nim }}</div>
             </div>
-            <span class="pill pill-{{ $m->status }}">{{ ucfirst($m->status) }}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="pill" style="background:var(--red-50);color:var(--red-600)">⚠️ Belum dinilai</span>
+              <a href="{{ route('instansi.nilai.index') }}" class="btn btn-outline btn-xs">Input Nilai</a>
+            </div>
           </div>
-          <div class="prog-wrap"><div class="prog-bar" style="width:{{ $pct }}%;background:var(--inst)"></div></div>
-          <div class="prog-txt">{{ $pct }}% laporan selesai</div>
         </div>
       @empty
         <p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">
-          ✅ Semua mahasiswa progress-nya aman, tidak ada yang perlu perhatian khusus.
+          ✅ Semua mahasiswa aktif sudah diberi nilai lapangan.
         </p>
       @endforelse
     </div>
