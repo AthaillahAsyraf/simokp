@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Instansi;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Nilai;
+use App\Models\Surat;
 
 class DashboardController extends Controller
 {
@@ -28,12 +29,18 @@ class DashboardController extends Controller
                 ->count()
             : 0;
 
+        $suratBelumDibaca = Surat::where('penerima_role', 'instansi')
+            ->where('penerima_id', $instansi->id)
+            ->whereNull('dibaca_at')
+            ->count();
+
         $stats = [
             'total'            => $total,
             'proses'           => $proses,
             'seminar'          => $seminar,
             'selesai'          => $selesai,
             'sudah_dinilai'    => $sudah_dinilai,
+            'surat_belum_dibaca' => $suratBelumDibaca,
         ];
 
         return view('instansi.dashboard', compact('instansi','mahasiswas','stats'));

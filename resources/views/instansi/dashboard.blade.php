@@ -33,6 +33,12 @@
     <div class="stat-sub">Nilai lapangan sudah diisi</div>
     <div class="stat-icon">📝</div>
   </div>
+  <div class="stat-card c-inst">
+    <div class="stat-label">Surat Belum Dibaca</div>
+    <div class="stat-val">{{ $stats['surat_belum_dibaca'] }}</div>
+    <div class="stat-sub">Surat masuk dari admin/dosen</div>
+    <div class="stat-icon">✉️</div>
+  </div>
 </div>
 
 <div class="grid-2">
