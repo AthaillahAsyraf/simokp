@@ -12,28 +12,34 @@ class PersyaratanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Mahasiswa::with('syaratAdministrasi')
-            ->whereIn('tahap', [
-                Mahasiswa::TAHAP_LENGKAPI_BERKAS,
-                Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI,
-                Mahasiswa::TAHAP_REVISI_BERKAS,
-                Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN,
-            ]);
+        $tahapans = Mahasiswa::LABEL_TAHAP;
+        $tahapDipilih = $request->input('tahap');
+        $mahasiswaTahap = collect();
 
-        if ($request->filled('search')) {
-            $q = $request->search;
-            $query->where(fn ($q2) => $q2->where('nama', 'like', "%$q%")->orWhere('nim', 'like', "%$q%"));
+        if ($tahapDipilih && array_key_exists($tahapDipilih, $tahapans)) {
+            $mahasiswaTahap = Mahasiswa::with(['syaratAdministrasi', 'dosen', 'instansi'])
+                ->where('tahap', $tahapDipilih)
+                ->when($request->filled('search'), fn ($query) => $query->where(fn ($q) => $q
+                    ->where('nama', 'like', '%'.$request->search.'%')
+                    ->orWhere('nim', 'like', '%'.$request->search.'%')))
+                ->latest('updated_at')
+                ->get();
         }
 
-        $menungguVerifikasi = (clone $query)->where('tahap', Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI)->latest('updated_at')->get();
-        $belumLengkapOrRevisi = (clone $query)->whereIn('tahap', [Mahasiswa::TAHAP_LENGKAPI_BERKAS, Mahasiswa::TAHAP_REVISI_BERKAS])->latest('updated_at')->get();
-        $sudahDisetujui = Mahasiswa::with('syaratAdministrasi')
-            ->whereHas('syaratAdministrasi', fn ($q) => $q->where('status', SyaratAdministrasi::STATUS_DISETUJUI))
-            ->latest('updated_at')->get();
+        // Satu grup per tahap, urut & berlabel persis seperti opsi pada dropdown filter.
+        $mahasiswaPerTahap = collect($tahapans)->mapWithKeys(function ($label, $kodeTahap) use ($request) {
+            $data = Mahasiswa::with(['syaratAdministrasi', 'dosen', 'instansi'])
+                ->where('tahap', $kodeTahap)
+                ->when($request->filled('search'), fn ($q) => $q->where(fn ($q2) => $q2
+                    ->where('nama', 'like', '%'.$request->search.'%')
+                    ->orWhere('nim', 'like', '%'.$request->search.'%')))
+                ->latest('updated_at')
+                ->get();
 
-        $menungguSuratBalasan = (clone $query)->where('tahap', Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN)->latest('updated_at')->get();
+            return [$kodeTahap => $data];
+        });
 
-        return view('admin.persyaratan.index', compact('menungguVerifikasi', 'belumLengkapOrRevisi', 'sudahDisetujui', 'menungguSuratBalasan'));
+        return view('admin.persyaratan.index', compact('mahasiswaPerTahap', 'tahapans', 'tahapDipilih', 'mahasiswaTahap'));
     }
 
     public function verifikasiSuratBalasan(Request $request, Mahasiswa $mahasiswa)

@@ -365,17 +365,20 @@ code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue-600)
         <span class="nav-icon">📊</span> Dashboard
       </a>
       <div class="nav-section">Data Master</div>
-      <a href="{{ route('admin.mahasiswa.index', ['tahap' => 'menunggu_verifikasi']) }}" class="nav-item {{ request()->routeIs('admin.mahasiswa*') ? 'active role-admin' : '' }}">
-        <span class="nav-icon">🎓</span> Mahasiswa
+      <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('admin.mahasiswa*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">🎓</span> Manajemen Mahasiswa
       </a>
       <a href="{{ route('admin.pembimbing.index') }}" class="nav-item {{ request()->routeIs('admin.pembimbing*') || request()->routeIs('admin.dosen*') ? 'active role-admin' : '' }}">
-        <span class="nav-icon">👨‍🏫</span> Pembimbing
+        <span class="nav-icon">👨‍🏫</span> Manajemen Pembimbing
       </a>
       @if(false)<a href="{{ route('admin.instansi.index') }}" class="nav-item {{ request()->routeIs('admin.instansi*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🏢</span> Instansi
       </a>
       @endif
       <div class="nav-section">Operasional</div>
+      <a href="{{ route('admin.persyaratan.index') }}" class="nav-item {{ request()->routeIs('admin.persyaratan*') ? 'active role-admin' : '' }}">
+        <span class="nav-icon">📋</span> Berkas KP
+      </a>
       <a href="{{ route('admin.seminar.index') }}" class="nav-item {{ request()->routeIs('admin.seminar*') ? 'active role-admin' : '' }}">
         <span class="nav-icon">🎤</span> Jadwal Seminar
       </a>

@@ -16,7 +16,7 @@
 @endpush
 
 @section('content')
-<div class="page-header"><h1>Pembimbing</h1><p>Dosen pembimbing akademik &amp; pembimbing lapangan di instansi</p></div>
+<div class="page-header"><h1>Manajemen Pembimbing</h1><p>Dosen pembimbing akademik &amp; pembimbing lapangan di instansi</p></div>
 
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
 @if(session('db_error'))<div class="err-box">❌ {{ session('db_error') }}</div>@endif

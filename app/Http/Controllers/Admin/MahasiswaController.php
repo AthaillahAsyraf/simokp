@@ -8,35 +8,21 @@ use Illuminate\Support\Facades\Hash;
 class MahasiswaController extends Controller {
 
     public function index(Request $request) {
-        $query = Mahasiswa::with(['dosen','instansi.user','syaratAdministrasi']);
+        $query = Mahasiswa::with(['user', 'dosen', 'instansi']);
         if ($request->filled('search')) {
             $q = $request->search;
-            $query->where(fn($q2) => $q2->where('nama','like',"%$q%")->orWhere('nim','like',"%$q%"));
+            $query->where(fn($q2) => $q2
+                ->where('nama','like',"%$q%")
+                ->orWhere('nim','like',"%$q%")
+                ->orWhereHas('user', fn($user) => $user->where('email', 'like', "%$q%")));
         }
         if ($request->filled('status'))   $query->where('status', $request->status);
-        if ($request->filled('dosen_id')) $query->where('dosen_id', $request->dosen_id);
-        if ($request->filled('instansi_id')) $query->where('instansi_id', $request->instansi_id);
-        if ($request->filled('tahap') && array_key_exists($request->tahap, Mahasiswa::LABEL_TAHAP)) {
-            $query->where('tahap', $request->tahap);
-        }
+        if ($request->filled('angkatan')) $query->where('angkatan', $request->angkatan);
 
-        $mahasiswas = $query
-            ->orderByRaw("CASE tahap
-                WHEN 'lengkapi_berkas' THEN 1
-                WHEN 'menunggu_verifikasi' THEN 2
-                WHEN 'revisi_berkas' THEN 3
-                WHEN 'unggah_surat_balasan' THEN 4
-                WHEN 'menunggu_instansi' THEN 5
-                WHEN 'aktif_kp' THEN 6
-                WHEN 'selesai_kp' THEN 7
-                ELSE 99 END")
-            ->orderBy('nama')
-            ->get();
-        $dosens     = Dosen::all();
-        $instansis  = Instansi::all();
-        $tahapans   = Mahasiswa::LABEL_TAHAP;
+        $mahasiswas = $query->orderBy('nama')->get();
+        $angkatans = Mahasiswa::whereNotNull('angkatan')->distinct()->orderByDesc('angkatan')->pluck('angkatan');
 
-        return view('admin.mahasiswa.index', compact('mahasiswas','dosens','instansis','tahapans'));
+        return view('admin.mahasiswa.index', compact('mahasiswas', 'angkatans'));
     }
 
     public function show(Mahasiswa $mahasiswa) {
@@ -77,7 +63,12 @@ class MahasiswaController extends Controller {
     }
 
     public function update(Request $request, Mahasiswa $mahasiswa) {
-        $request->validate(['nama'=>'required','angkatan'=>'required']);
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'angkatan' => 'required',
+            'email' => 'required|email|unique:users,email,'.$mahasiswa->user_id,
+            'password' => 'nullable|min:8|confirmed',
+        ]);
 
         $data = $request->only(['nama','angkatan','no_hp','status']);
         if (($data['status'] ?? null) === 'selesai') {
@@ -87,6 +78,11 @@ class MahasiswaController extends Controller {
         }
 
         $mahasiswa->update($data);
+        $mahasiswa->user->update(array_filter([
+            'name' => $request->nama,
+            'email' => $request->email,
+            'password' => $request->filled('password') ? Hash::make($request->password) : null,
+        ], fn ($value) => $value !== null));
 
         return back()->with('success', 'Data mahasiswa diperbarui.');
     }

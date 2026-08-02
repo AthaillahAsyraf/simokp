@@ -40,7 +40,7 @@
     <section class="card">
       <div class="card-header"><div><h3 class="section-title">Antrian tindakan admin</h3><p class="section-subtitle">Item ini memerlukan verifikasi, keputusan, atau penjadwalan dari admin.</p></div></div>
       <div class="action-summary">
-        <a href="{{ route('admin.mahasiswa.index', ['tahap' => \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI]) }}"><strong>{{ $jumlahMenungguBerkas }}</strong><span>Berkas menunggu verifikasi</span></a>
+        <a href="{{ route('admin.persyaratan.index') }}"><strong>{{ $jumlahMenungguBerkas }}</strong><span>Berkas menunggu verifikasi</span></a>
         <a href="{{ route('admin.seminar.index') }}"><strong>{{ $jumlahSiapBelumJadwal }}</strong><span>Siap seminar, belum dijadwalkan</span></a>
         <a href="{{ route('admin.seminar.index', ['status' => \App\Models\Seminar::STATUS_MENUNGGU]) }}"><strong>{{ $jumlahSeminarMenunggu }}</strong><span>Pengajuan seminar perlu ditinjau</span></a>
       </div>

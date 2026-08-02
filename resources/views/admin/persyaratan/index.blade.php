@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Persyaratan KP')
+@section('title','Berkas KP')
 
 @push('styles')
 <style>
@@ -16,61 +16,69 @@
 @endpush
 
 @section('content')
-<div class="page-header"><h1>Persyaratan KP</h1><p>Verifikasi berkas administrasi (Form Pengajuan, Bukti SPP, KRS, Transkrip Nilai) sebelum mahasiswa lanjut ke tahap penempatan instansi.</p></div>
+<div class="page-header"><h1>Berkas KP</h1><p>Verifikasi berkas administrasi (Form Pengajuan, Bukti SPP, KRS, Transkrip Nilai) sebelum mahasiswa lanjut ke tahap penempatan instansi.</p></div>
 
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
 @if(session('error'))<div class="alert alert-warning">⚠️ {{ session('error') }}</div>@endif
 
 <form method="GET" class="filter-row">
   <input type="text" name="search" class="form-control" placeholder="🔍 Cari nama/NIM..." value="{{ request('search') }}">
+  <select name="tahap" class="form-control" style="min-width:260px">
+    <option value="">Semua Tahap KP</option>
+    @foreach($tahapans as $kodeTahap => $labelTahap)
+      <option value="{{ $kodeTahap }}" @selected($tahapDipilih === $kodeTahap)>{{ $labelTahap }}</option>
+    @endforeach
+  </select>
   <button type="submit" class="btn btn-primary btn-sm">Terapkan</button>
   <a href="{{ route('admin.persyaratan.index') }}" class="btn btn-outline btn-sm">Reset</a>
 </form>
 
+@if($tahapDipilih)
 <div class="card">
-  <div class="card-header"><h3>Surat Balasan Menunggu Verifikasi ({{ $menungguSuratBalasan->count() }})</h3></div>
-  <div class="card-body">
-    @forelse($menungguSuratBalasan as $m)
-      @php($suratBalasan = $m->syaratAdministrasi)
-      <div class="mhs-block"><div class="mhs-block-head"><div><h4>{{ $m->nama }} <span style="color:var(--gray-400);font-weight:500">— {{ $m->nim }}</span></h4><p>Periksa keaslian surat sebelum menyetujui.</p></div><a href="{{ $suratBalasan->urlBerkas('file_surat_balasan') }}" target="_blank" class="btn btn-outline btn-sm">Lihat Berkas</a></div>
-        <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">@csrf<div class="form-group" style="margin:0"><label class="form-label">Keputusan</label><select name="keputusan" class="form-control"><option value="disetujui">Setujui</option><option value="ditolak">Tolak</option></select></div><div class="form-group" style="margin:0;min-width:260px;flex:1"><label class="form-label">Catatan penolakan (opsional)</label><input name="catatan" class="form-control" placeholder="Contoh: Surat tidak mencantumkan identitas instansi"></div><button class="btn btn-primary btn-sm">Simpan</button></form>
-      </div>
-    @empty<div class="empty-state">Tidak ada surat balasan yang menunggu verifikasi.</div>@endforelse
-  </div>
+  <div class="card-header"><h3>{{ $tahapans[$tahapDipilih] }} ({{ $mahasiswaTahap->count() }})</h3></div>
+  <div class="table-wrap"><table><thead><tr><th>Mahasiswa</th><th>NIM</th><th>Dosen</th><th>Instansi</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+    @forelse($mahasiswaTahap as $m)<tr><td><strong>{{ $m->nama }}</strong></td><td><code>{{ $m->nim }}</code></td><td>{{ $m->dosen?->nama ?? '-' }}</td><td>{{ $m->instansi?->nama ?? '-' }}</td><td><span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span></td><td><a href="{{ route('admin.mahasiswa.show', $m) }}" class="btn btn-ghost btn-xs">Detail</a></td></tr>
+    @empty<tr><td colspan="6" class="empty-state">Tidak ada mahasiswa pada tahap ini.</td></tr>@endforelse
+  </tbody></table></div>
 </div>
+@else
+@php $tahapIkon = [
+  \App\Models\Mahasiswa::TAHAP_LENGKAPI_BERKAS => '📋',
+  \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI => '🕓',
+  \App\Models\Mahasiswa::TAHAP_REVISI_BERKAS => '🔁',
+  \App\Models\Mahasiswa::TAHAP_UNGGAH_SURAT_BALASAN => '📮',
+  \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN => '📨',
+  \App\Models\Mahasiswa::TAHAP_MENUNGGU_INSTANSI => '🏢',
+  \App\Models\Mahasiswa::TAHAP_AKTIF_KP => '🚀',
+  \App\Models\Mahasiswa::TAHAP_SELESAI_KP => '✅',
+] @endphp
 
-<div class="card">
-  <div class="card-header"><h3>🕓 Menunggu Verifikasi ({{ $menungguVerifikasi->count() }})</h3></div>
-  <div class="card-body">
-    @forelse($menungguVerifikasi as $m)
-      @include('admin.persyaratan._row', ['m' => $m, 'bisaVerifikasi' => true])
-    @empty
-      <div class="empty-state">📭 Tidak ada berkas yang menunggu verifikasi.</div>
-    @endforelse
+@foreach($tahapans as $kodeTahap => $labelTahap)
+  @php($grup = $mahasiswaPerTahap[$kodeTahap])
+  <div class="card">
+    <div class="card-header"><h3>{{ $tahapIkon[$kodeTahap] ?? '•' }} {{ $labelTahap }} ({{ $grup->count() }})</h3></div>
+    <div class="card-body">
+      @if($kodeTahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI_SURAT_BALASAN)
+        @forelse($grup as $m)
+          @php($suratBalasan = $m->syaratAdministrasi)
+          <div class="mhs-block"><div class="mhs-block-head"><div><h4>{{ $m->nama }} <span style="color:var(--gray-400);font-weight:500">— {{ $m->nim }}</span></h4><p>Periksa keaslian surat sebelum menyetujui.</p></div><a href="{{ $suratBalasan->urlBerkas('file_surat_balasan') }}" target="_blank" class="btn btn-outline btn-sm">Lihat Berkas</a></div>
+            <form method="POST" action="{{ route('admin.persyaratan.verifikasiSuratBalasan', $m) }}" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">@csrf<div class="form-group" style="margin:0"><label class="form-label">Keputusan</label><select name="keputusan" class="form-control"><option value="disetujui">Setujui</option><option value="ditolak">Tolak</option></select></div><div class="form-group" style="margin:0;min-width:260px;flex:1"><label class="form-label">Catatan penolakan (opsional)</label><input name="catatan" class="form-control" placeholder="Contoh: Surat tidak mencantumkan identitas instansi"></div><button class="btn btn-primary btn-sm">Simpan</button></form>
+          </div>
+        @empty
+          <div class="empty-state">Tidak ada surat balasan yang menunggu verifikasi.</div>
+        @endforelse
+      @else
+        @forelse($grup as $m)
+          @include('admin.persyaratan._row', ['m' => $m, 'bisaVerifikasi' => $kodeTahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI])
+        @empty
+          <div class="empty-state">📭 Tidak ada mahasiswa pada tahap ini.</div>
+        @endforelse
+      @endif
+    </div>
   </div>
-</div>
+@endforeach
 
-<div class="card">
-  <div class="card-header"><h3>📋 Belum Lengkap / Direvisi ({{ $belumLengkapOrRevisi->count() }})</h3></div>
-  <div class="card-body">
-    @forelse($belumLengkapOrRevisi as $m)
-      @include('admin.persyaratan._row', ['m' => $m, 'bisaVerifikasi' => false])
-    @empty
-      <div class="empty-state">📭 Tidak ada data.</div>
-    @endforelse
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header"><h3>✅ Sudah Disetujui ({{ $sudahDisetujui->count() }})</h3></div>
-  <div class="card-body">
-    @forelse($sudahDisetujui as $m)
-      @include('admin.persyaratan._row', ['m' => $m, 'bisaVerifikasi' => false])
-    @empty
-      <div class="empty-state">📭 Belum ada berkas yang disetujui.</div>
-    @endforelse
-  </div>
-</div>
+@endif
 
 {{-- MODAL VERIFIKASI --}}
 <div class="modal-bg" id="modalVerifikasi">

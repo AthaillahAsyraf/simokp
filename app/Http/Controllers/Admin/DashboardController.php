@@ -84,7 +84,7 @@ class DashboardController extends Controller
                 'nama' => $m->nama,
                 'detail' => "{$m->nim} · Berkas menunggu verifikasi",
                 'label' => 'Verifikasi',
-                'url' => route('admin.mahasiswa.index', ['tahap' => Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI]),
+                'url' => route('admin.persyaratan.index'),
                 'tone' => 'amber',
             ]))
             ->concat($siapBelumJadwal->map(fn ($m) => [
