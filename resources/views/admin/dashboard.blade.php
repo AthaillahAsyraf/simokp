@@ -65,6 +65,11 @@
         @endforeach
       </div>
     </section>
+
+    <section class="card">
+      <div class="card-header"><div><h3 class="section-title">Menunggu aksi pihak lain</h3><p class="section-subtitle">Dipantau admin, tetapi tidak memerlukan keputusan admin saat ini.</p></div></div>
+      <div class="monitoring-grid"><div class="monitoring-item"><strong>{{ $menungguAksiMahasiswa }}</strong><span>mahasiswa masih perlu mengunggah surat balasan atau mendaftarkan instansi</span></div></div>
+    </section>
   </div>
 </div>
 @endsection
