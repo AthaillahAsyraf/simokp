@@ -16,6 +16,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login',    [AuthController::class,'login'])->name('login.post');
     Route::get('/register',  [AuthController::class,'showRegister'])->name('register');
     Route::post('/register', [AuthController::class,'register'])->name('register.post');
+    Route::get('/lupa-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/lupa-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 Route::get('/aktivasi-pembimbing/{token}', [\App\Http\Controllers\AktivasiPembimbingController::class, 'show'])->name('aktivasi-pembimbing.show');
 Route::post('/aktivasi-pembimbing/{token}', [\App\Http\Controllers\AktivasiPembimbingController::class, 'store'])->name('aktivasi-pembimbing.store');

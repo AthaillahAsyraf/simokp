@@ -84,6 +84,7 @@ input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
         <label>Password</label>
         <input type="password" name="password" placeholder="••••••••" required>
       </div>
+      <div style="text-align:right;margin:-7px 0 16px;font-size:13px"><a href="{{ route('password.request') }}" style="color:#2563eb;font-weight:600">Lupa password?</a></div>
       <button type="submit" class="btn-login">Masuk ke Sistem →</button>
     </form>
 

@@ -17,13 +17,13 @@ class DatabaseSeeder extends Seeder {
         $d2  = Dosen::create(['user_id'=>$uD2->id,'nip'=>'198003152005012002','nama'=>'Ir. Sartika Dewi, M.T','no_hp'=>'082345678901']);
 
         // INSTANSI
-        $uI1 = User::create(['name'=>'PT Teknologi Nusantara','email'=>'hrd@teknusantara.co.id','password'=>Hash::make('password'),'role'=>'instansi']);
+        $uI1 = User::create(['name'=>'PT Teknologi Nusantara','email'=>'hrd@teknusantara.co.id','password'=>Hash::make('password'),'role'=>'pembimbing_lapangan']);
         $i1  = Instansi::create(['user_id'=>$uI1->id,'nama'=>'PT Teknologi Nusantara','bidang'=>'Software Development','alamat'=>'Jl. Ahmad Yani No.5, Bandar Lampung','kontak_person'=>'Bpk. Hendra','no_hp'=>'081111222233']);
 
-        $uI2 = User::create(['name'=>'BPJS Ketenagakerjaan','email'=>'it@bpjstk-lampung.go.id','password'=>Hash::make('password'),'role'=>'instansi']);
+        $uI2 = User::create(['name'=>'BPJS Ketenagakerjaan','email'=>'it@bpjstk-lampung.go.id','password'=>Hash::make('password'),'role'=>'pembimbing_lapangan']);
         $i2  = Instansi::create(['user_id'=>$uI2->id,'nama'=>'BPJS Ketenagakerjaan Cab. Lampung','bidang'=>'IT & Sistem Informasi','alamat'=>'Jl. Kartini No.12, Bandar Lampung','kontak_person'=>'Ibu Sri','no_hp'=>'082222333344']);
 
-        $uI3 = User::create(['name'=>'Dinas Kominfo Lampung','email'=>'it@kominfo.lampungprov.go.id','password'=>Hash::make('password'),'role'=>'instansi']);
+        $uI3 = User::create(['name'=>'Dinas Kominfo Lampung','email'=>'it@kominfo.lampungprov.go.id','password'=>Hash::make('password'),'role'=>'pembimbing_lapangan']);
         $i3  = Instansi::create(['user_id'=>$uI3->id,'nama'=>'Dinas Kominfo Provinsi Lampung','bidang'=>'Jaringan & Infrastruktur','alamat'=>'Jl. Wolter Monginsidi, Bandar Lampung','kontak_person'=>'Bpk. Anton','no_hp'=>'083333444455']);
 
         $babs = ['BAB I','BAB II','BAB III','BAB IV','BAB V'];
@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder {
         $uM3 = User::create(['name'=>'Reza Firmansyah','email'=>'2017061003@students.cs.unila.ac.id','password'=>Hash::make('password'),'role'=>'mahasiswa']);
         $m3  = Mahasiswa::create(['user_id'=>$uM3->id,'nim'=>'2017061003','nama'=>'Reza Firmansyah','angkatan'=>'2021','dosen_id'=>$d1->id,'instansi_id'=>$i1->id,'tanggal_mulai'=>'2025-09-01','tanggal_selesai'=>'2026-01-31','status'=>'selesai']);
         foreach ($babs as $idx => $bab) {
-            ProgressBab::create(['mahasiswa_id'=>$m3->id,'bab'=>$bab,'status'=>'selesai','tanggal_selesai'=>'2025-'.($idx+10).'-10']);
+            ProgressBab::create(['mahasiswa_id'=>$m3->id,'bab'=>$bab,'status'=>'selesai','tanggal_selesai'=>'2025-'.sprintf('%02d', $idx + 8).'-10']);
         }
         Seminar::create(['mahasiswa_id'=>$m3->id,'tanggal'=>'2026-02-10','jam'=>'13:00:00','ruangan'=>'Lab A-302','dosen_penguji'=>'Ir. Sartika Dewi, M.T','status'=>'selesai']);
 

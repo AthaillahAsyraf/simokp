@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 use App\Models\{User, Mahasiswa, ProgressBab};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, Hash};
+use Illuminate\Support\Facades\{Auth, Hash, Password};
 
 class AuthController extends Controller {
 
@@ -62,6 +62,49 @@ class AuthController extends Controller {
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('login');
+    }
+
+    public function showForgotPassword() { return view('auth.forgot-password'); }
+
+    public function sendResetLink(Request $request) {
+        $request->validate(['email' => 'required|email']);
+        $user = User::where('email', $request->email)
+            ->whereIn('role', ['mahasiswa', 'dosen', 'pembimbing_lapangan'])->first();
+
+        // Respons sama untuk semua email agar keberadaan akun tidak dapat ditebak.
+        if ($user) Password::sendResetLink(['email' => $user->email]);
+
+        return back()->with('success', 'Jika email terdaftar, tautan untuk mengatur ulang password telah dikirim.');
+    }
+
+    public function showResetPassword(Request $request, string $token) {
+        return view('auth.reset-password', ['token' => $token, 'email' => $request->query('email')]);
+    }
+
+    public function resetPassword(Request $request) {
+        $request->validate([
+            'token' => 'required', 'email' => 'required|email', 'password' => 'required|min:8|confirmed',
+        ], [
+            'password.min' => 'Password baru minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $allowedUser = User::where('email', $request->email)
+            ->whereIn('role', ['mahasiswa', 'dosen', 'pembimbing_lapangan'])->exists();
+        if (! $allowedUser) return back()->withErrors(['email' => 'Tautan reset password tidak valid atau sudah kedaluwarsa.']);
+
+        $status = Password::reset($request->only('email', 'password', 'password_confirmation', 'token'), function (User $user, string $password) {
+            $user->forceFill([
+                'password' => Hash::make($password),
+                'remember_token' => \Illuminate\Support\Str::random(60),
+                'wajib_ganti_password' => false,
+            ])->save();
+        });
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('login')->with('success', 'Password berhasil diatur ulang. Silakan masuk menggunakan password baru Anda.');
+        }
+        return back()->withErrors(['email' => __($status)]);
     }
 
     // ── Ganti Password ──────────────────────────────────────────────────────
