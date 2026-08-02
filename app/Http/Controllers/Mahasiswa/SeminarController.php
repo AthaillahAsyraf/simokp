@@ -22,7 +22,7 @@ class SeminarController extends Controller {
         ]);
         if (!$mahasiswa->bimbingans()->where('jenis', 'laporan')->exists()) return back()->with('error', 'Unggah laporan final terlebih dahulu.');
         $lama = $mahasiswa->seminar;
-        if ($lama && $lama->status !== 'acc_ditolak_dospem') return back()->with('error', 'Permintaan seminar masih aktif.');
+        if ($lama && !in_array($lama->status, ['acc_ditolak_dospem', 'ditolak'], true)) return back()->with('error', 'Permintaan seminar masih aktif.');
         $bentrok = Seminar::cekBentrok($data['tanggal'], $data['jam_mulai'], $data['jam_selesai'], $data['ruangan'], $mahasiswa->dosen_id, $mahasiswa->dosen_id, $lama?->id);
         if ($bentrok) return back()->withErrors([$bentrok])->withInput();
 

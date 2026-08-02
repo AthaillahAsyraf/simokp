@@ -129,7 +129,7 @@ class AbsensiController extends Controller
 
         return redirect()->route('mahasiswa.absensi.index')
             ->with('success', 'Absen masuk berhasil dicatat pukul '.now()->format('H:i').
-                " WIB. Jarak Anda dari instansi: {$jarak} meter.");
+                " WIB. Jarak Anda dari instansi: ".round($jarak)." meter.");
     }
 
     public function checkOut(Request $request)

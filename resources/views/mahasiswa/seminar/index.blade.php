@@ -18,10 +18,10 @@
 @if(session('error'))<div class="alert alert-warning">{{ session('error') }}</div>@endif
 @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
 
-@if(!$s || $s->status === \App\Models\Seminar::STATUS_ACC_DITOLAK)
-  <datalist id="daftarRuangan">@foreach($ruanganList as $ruangan)<option value="{{ $ruangan }}">@endforeach</datalist>
+@if(!$s || in_array($s->status, [\App\Models\Seminar::STATUS_ACC_DITOLAK, \App\Models\Seminar::STATUS_DITOLAK], true))
   <div class="card"><div class="card-header"><h3>Ajukan Seminar dan Minta ACC</h3></div><div class="card-body">
-    @if($s)<div class="alert alert-warning">ACC sebelumnya ditolak: {{ $s->catatan }}</div>@endif
+    @if($s && $s->status === \App\Models\Seminar::STATUS_ACC_DITOLAK)<div class="alert alert-warning">ACC sebelumnya ditolak dosen pembimbing: {{ $s->catatan }}</div>@endif
+    @if($s && $s->status === \App\Models\Seminar::STATUS_DITOLAK)<div class="alert alert-warning">Jadwal seminar sebelumnya ditolak admin: {{ $s->catatan }}. Silakan ajukan jadwal baru.</div>@endif
     <div class="alert alert-info">Pilih tanggal, jam, dan ruangan sekarang. Sistem mengecek bentrok ruangan dan dosen pembimbing, termasuk slot yang masih menunggu ACC.</div>
     <form method="POST" action="{{ route('mahasiswa.seminar.minta-acc') }}" id="seminarForm">@csrf
       <div class="form-group"><label class="form-label">Judul KP *</label><textarea name="judul_kp" class="form-control" rows="2" required>{{ old('judul_kp') }}</textarea></div>
@@ -30,7 +30,17 @@
         <div class="form-group"><label class="form-label">Jam mulai *</label><input type="time" name="jam_mulai" id="jamMulai" class="form-control" value="{{ old('jam_mulai') }}" required></div>
         <div class="form-group"><label class="form-label">Jam selesai *</label><input type="time" name="jam_selesai" id="jamSelesai" class="form-control" value="{{ old('jam_selesai') }}" required></div>
       </div>
-      <div class="form-group"><label class="form-label">Ruangan *</label><input type="text" name="ruangan" id="ruangan" class="form-control" list="daftarRuangan" value="{{ old('ruangan') }}" placeholder="Pilih atau ketik ruangan" required></div>
+      <div class="form-group">
+        <label class="form-label">Ruangan *</label>
+        <select id="ruanganPilih" class="form-control" required>
+          <option value="">-- Pilih Ruangan --</option>
+          @foreach($ruanganList as $ruangan)
+            <option value="{{ $ruangan }}" @selected(old('ruangan') === $ruangan)>{{ $ruangan }}</option>
+          @endforeach
+          <option value="__baru__" @selected(old('ruangan') && !in_array(old('ruangan'), $ruanganList, true))>➕ Daftarkan ruangan baru...</option>
+        </select>
+        <input type="text" name="ruangan" id="ruanganBaru" class="form-control" style="margin-top:8px;display:none" placeholder="Ketik nama ruangan baru, contoh: Ruang Sidang 3" value="{{ old('ruangan') && !in_array(old('ruangan'), $ruanganList, true) ? old('ruangan') : '' }}">
+      </div>
       <div id="slotInfo" class="alert alert-info">Lengkapi pilihan jadwal untuk mengecek ketersediaan slot.</div>
       <button class="btn btn-primary" id="submitSeminar">Kirim ke Dosen Pembimbing</button>
     </form>
@@ -54,11 +64,32 @@ const dosenId = {{ (int) $mahasiswa->dosen_id }};
 const tanggal = document.getElementById('tanggal');
 const mulai = document.getElementById('jamMulai');
 const selesai = document.getElementById('jamSelesai');
-const ruangan = document.getElementById('ruangan');
+const ruanganPilih = document.getElementById('ruanganPilih');
+const ruangan = document.getElementById('ruanganBaru');
 const slotInfo = document.getElementById('slotInfo');
 const submit = document.getElementById('submitSeminar');
+
+let cekSlot = () => {};
+
+if (ruanganPilih && ruangan) {
+  const syncRuangan = () => {
+    if (ruanganPilih.value === '__baru__') {
+      ruangan.style.display = '';
+      ruangan.value = '';
+      ruangan.readOnly = false;
+      ruangan.focus();
+    } else {
+      ruangan.style.display = 'none';
+      ruangan.readOnly = true;
+      ruangan.value = ruanganPilih.value;
+    }
+  };
+  ruanganPilih.addEventListener('change', () => { syncRuangan(); cekSlot(); });
+  syncRuangan();
+}
+
 if (tanggal && mulai && selesai && ruangan) {
-  const cekSlot = () => {
+  cekSlot = () => {
     const date = tanggal.value, start = mulai.value, end = selesai.value, room = ruangan.value.trim().toLowerCase();
     if (!date || !start || !end || !room) return;
     const conflict = slots.find(slot => slot.tanggal === date && start < slot.selesai && end > slot.mulai && (slot.ruangan === room || Number(slot.dosen_id) === dosenId));
