@@ -14,19 +14,10 @@ class PersyaratanController extends Controller
     {
         $tahapans = Mahasiswa::LABEL_TAHAP;
         $tahapDipilih = $request->input('tahap');
-        $mahasiswaTahap = collect();
-
-        if ($tahapDipilih && array_key_exists($tahapDipilih, $tahapans)) {
-            $mahasiswaTahap = Mahasiswa::with(['syaratAdministrasi', 'dosen', 'instansi'])
-                ->where('tahap', $tahapDipilih)
-                ->when($request->filled('search'), fn ($query) => $query->where(fn ($q) => $q
-                    ->where('nama', 'like', '%'.$request->search.'%')
-                    ->orWhere('nim', 'like', '%'.$request->search.'%')))
-                ->latest('updated_at')
-                ->get();
-        }
 
         // Satu grup per tahap, urut & berlabel persis seperti opsi pada dropdown filter.
+        // Dipakai baik untuk tampilan "Semua Tahap KP" maupun saat salah satu tahap difilter,
+        // supaya aksi verifikasi / teruskan surat balasan tetap tersedia di kedua mode.
         $mahasiswaPerTahap = collect($tahapans)->mapWithKeys(function ($label, $kodeTahap) use ($request) {
             $data = Mahasiswa::with(['syaratAdministrasi', 'dosen', 'instansi'])
                 ->where('tahap', $kodeTahap)
@@ -39,7 +30,8 @@ class PersyaratanController extends Controller
             return [$kodeTahap => $data];
         });
 
-        return view('admin.persyaratan.index', compact('mahasiswaPerTahap', 'tahapans', 'tahapDipilih', 'mahasiswaTahap'));
+        return view('admin.persyaratan.index', compact('mahasiswaPerTahap', 'tahapans', 'tahapDipilih'))
+            ->with('dosens', \App\Models\Dosen::orderBy('nama')->get());
     }
 
     public function verifikasiSuratBalasan(Request $request, Mahasiswa $mahasiswa)

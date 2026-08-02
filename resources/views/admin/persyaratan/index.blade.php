@@ -33,15 +33,6 @@
   <a href="{{ route('admin.persyaratan.index') }}" class="btn btn-outline btn-sm">Reset</a>
 </form>
 
-@if($tahapDipilih)
-<div class="card">
-  <div class="card-header"><h3>{{ $tahapans[$tahapDipilih] }} ({{ $mahasiswaTahap->count() }})</h3></div>
-  <div class="table-wrap"><table><thead><tr><th>Mahasiswa</th><th>NIM</th><th>Dosen</th><th>Instansi</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
-    @forelse($mahasiswaTahap as $m)<tr><td><strong>{{ $m->nama }}</strong></td><td><code>{{ $m->nim }}</code></td><td>{{ $m->dosen?->nama ?? '-' }}</td><td>{{ $m->instansi?->nama ?? '-' }}</td><td><span class="badge badge-{{ $m->status }}">{{ ucfirst($m->status) }}</span></td><td><a href="{{ route('admin.mahasiswa.show', $m) }}" class="btn btn-ghost btn-xs">Detail</a></td></tr>
-    @empty<tr><td colspan="6" class="empty-state">Tidak ada mahasiswa pada tahap ini.</td></tr>@endforelse
-  </tbody></table></div>
-</div>
-@else
 @php $tahapIkon = [
   \App\Models\Mahasiswa::TAHAP_LENGKAPI_BERKAS => '📋',
   \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI => '🕓',
@@ -53,7 +44,9 @@
   \App\Models\Mahasiswa::TAHAP_SELESAI_KP => '✅',
 ] @endphp
 
+{{-- Kalau ada tahap yang difilter, cuma tahap itu yang ditampilkan; kalau tidak, semua tahap ditampilkan berurutan. --}}
 @foreach($tahapans as $kodeTahap => $labelTahap)
+  @continue($tahapDipilih && $tahapDipilih !== $kodeTahap)
   @php($grup = $mahasiswaPerTahap[$kodeTahap])
   <div class="card">
     <div class="card-header"><h3>{{ $tahapIkon[$kodeTahap] ?? '•' }} {{ $labelTahap }} ({{ $grup->count() }})</h3></div>
@@ -67,6 +60,48 @@
         @empty
           <div class="empty-state">Tidak ada surat balasan yang menunggu verifikasi.</div>
         @endforelse
+      @elseif($kodeTahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_INSTANSI)
+        @forelse($grup as $m)
+          <div class="mhs-block">
+            <div class="mhs-block-head">
+              <div>
+                <h4>{{ $m->nama }} <span style="color:var(--gray-400);font-weight:500">— {{ $m->nim }}</span></h4>
+                @if($m->instansi)
+                  <p>Instansi: {{ $m->instansi->nama }} — Pembimbing Lapangan: {{ $m->instansi->kontak_person ?? '-' }} ({{ $m->instansi->user?->email ?? '-' }})</p>
+                @else
+                  <p style="color:var(--red-600)">Belum mendaftarkan instansi & pembimbing lapangan.</p>
+                @endif
+              </div>
+            </div>
+
+            @if($m->instansi)
+              @if($m->instansi->user?->wajib_ganti_password)
+                <form method="POST" action="{{ route('admin.instansi.kirimUndangan', $m->instansi) }}" style="display:inline-block;margin-bottom:8px">
+                  @csrf
+                  <button class="btn btn-outline btn-sm">📨 {{ $m->instansi->user->activation_token ? 'Kirim Ulang Undangan' : 'Kirim Undangan' }} ke Pembimbing Lapangan</button>
+                </form>
+              @else
+                <span class="badge badge-selesai" style="margin-bottom:8px;display:inline-block">✅ Akun Pembimbing Lapangan sudah aktif</span>
+              @endif
+            @endif
+
+            <form method="POST" action="{{ route('admin.mahasiswa.tetapkanDosen', $m) }}" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+              @csrf @method('PATCH')
+              <div class="form-group" style="margin:0;min-width:260px;flex:1">
+                <label class="form-label">Dosen Pembimbing</label>
+                <select name="dosen_id" class="form-control" required>
+                  <option value="">-- Pilih Dosen --</option>
+                  @foreach($dosens as $d)
+                    <option value="{{ $d->id }}" @selected($m->dosen_id === $d->id)>{{ $d->nama }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <button class="btn btn-primary btn-sm">Tetapkan Dosen</button>
+            </form>
+          </div>
+        @empty
+          <div class="empty-state">📭 Tidak ada mahasiswa pada tahap ini.</div>
+        @endforelse
       @else
         @forelse($grup as $m)
           @include('admin.persyaratan._row', ['m' => $m, 'bisaVerifikasi' => $kodeTahap === \App\Models\Mahasiswa::TAHAP_MENUNGGU_VERIFIKASI])
@@ -77,8 +112,6 @@
     </div>
   </div>
 @endforeach
-
-@endif
 
 {{-- MODAL VERIFIKASI --}}
 <div class="modal-bg" id="modalVerifikasi">

@@ -30,7 +30,7 @@
 @include('partials.tahapan-kp', ['mahasiswa' => $mahasiswa])
 
 <div class="info-box">
-  💡 Surat <strong>permohonan</strong> Kerja Praktik dibuat dan dikirim melalui <strong>SAIDATA</strong> (di luar SIMOKP).
+  💡 Surat <strong>permohonan</strong> Kerja Praktik dibuat dan dikirim melalui <strong>SAIDATA</strong> (di luar SIMKAP).
   Setelah instansi membalas, unggah <strong>surat balasannya saja</strong> di halaman ini.
 </div>
 
