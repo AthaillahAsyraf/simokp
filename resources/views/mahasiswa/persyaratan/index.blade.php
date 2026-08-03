@@ -58,6 +58,9 @@
         <div class="berkas-row">
           <div style="flex:1">
             <div class="berkas-name">{{ $label }}</div>
+            @if($field === 'file_form_pengajuan' && $templateFormPengajuan)
+              <a href="{{ $templateFormPengajuan->file_url }}" target="_blank" class="berkas-file" style="display:inline-block;margin-top:5px;color:var(--blue-600);font-weight:600">Unduh template: {{ $templateFormPengajuan->nama_asli }}</a>
+            @endif
             @if($syarat->$field)
               <a href="{{ $syarat->urlBerkas($field) }}" target="_blank" class="berkas-file">📄 {{ $syarat->{$field.'_asli'} }}</a>
             @else

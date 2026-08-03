@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Mahasiswa;
 use App\Http\Controllers\Controller;
 use App\Models\Mahasiswa;
 use App\Models\SyaratAdministrasi;
+use App\Models\TemplateDokumen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,9 @@ class PersyaratanController extends Controller
         $mahasiswa = Auth::user()->mahasiswa->load(['dosen', 'instansi']);
         $syarat    = $mahasiswa->syaratAdministrasi ?? new SyaratAdministrasi(['mahasiswa_id' => $mahasiswa->id]);
 
-        return view('mahasiswa.persyaratan.index', compact('mahasiswa', 'syarat'));
+        $templateFormPengajuan = TemplateDokumen::where('kode', TemplateDokumen::FORM_PENGAJUAN)->first();
+
+        return view('mahasiswa.persyaratan.index', compact('mahasiswa', 'syarat', 'templateFormPengajuan'));
     }
 
     /**

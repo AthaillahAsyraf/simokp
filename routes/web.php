@@ -57,6 +57,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:admin'])->group
     Route::post('instansi/resolve-lokasi',[App\Http\Controllers\Admin\InstansiController::class,'resolveLokasi'])->name('instansi.resolveLokasi');
 
     Route::get('persyaratan',                       [App\Http\Controllers\Admin\PersyaratanController::class,'index'])->name('persyaratan.index');
+    Route::post('persyaratan/template-form-pengajuan',[App\Http\Controllers\Admin\PersyaratanController::class,'updateTemplateFormPengajuan'])->name('persyaratan.templateFormPengajuan');
     Route::post('persyaratan/{mahasiswa}/verifikasi',[App\Http\Controllers\Admin\PersyaratanController::class,'verifikasi'])->name('persyaratan.verifikasi');
     Route::post('persyaratan/{mahasiswa}/verifikasi-surat-balasan',[App\Http\Controllers\Admin\PersyaratanController::class,'verifikasiSuratBalasan'])->name('persyaratan.verifikasiSuratBalasan');
 

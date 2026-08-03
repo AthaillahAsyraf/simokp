@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Mahasiswa;
 use App\Models\SyaratAdministrasi;
+use App\Models\TemplateDokumen;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class PersyaratanController extends Controller
@@ -30,8 +32,37 @@ class PersyaratanController extends Controller
             return [$kodeTahap => $data];
         });
 
-        return view('admin.persyaratan.index', compact('mahasiswaPerTahap', 'tahapans', 'tahapDipilih'))
+        $templateFormPengajuan = TemplateDokumen::where('kode', TemplateDokumen::FORM_PENGAJUAN)->first();
+
+        return view('admin.persyaratan.index', compact('mahasiswaPerTahap', 'tahapans', 'tahapDipilih', 'templateFormPengajuan'))
             ->with('dosens', \App\Models\Dosen::orderBy('nama')->get());
+    }
+
+    public function updateTemplateFormPengajuan(Request $request)
+    {
+        $request->validate([
+            'template' => 'required|file|mimes:pdf,doc,docx|max:10240',
+        ], [
+            'template.required' => 'Pilih file template terlebih dahulu.',
+            'template.mimes'    => 'Template harus berformat PDF, DOC, atau DOCX.',
+            'template.max'      => 'Ukuran template maksimal 10 MB.',
+        ]);
+
+        $template = TemplateDokumen::firstOrNew(['kode' => TemplateDokumen::FORM_PENGAJUAN]);
+        $file = $request->file('template');
+        $path = $file->store('template_dokumen/form_pengajuan', 'public');
+        $fileLama = $template->file;
+
+        $template->fill([
+            'file'      => $path,
+            'nama_asli' => $file->getClientOriginalName(),
+        ])->save();
+
+        if ($fileLama) {
+            Storage::disk('public')->delete($fileLama);
+        }
+
+        return back()->with('success', 'Template Form Pengajuan berhasil diperbarui.');
     }
 
     public function verifikasiSuratBalasan(Request $request, Mahasiswa $mahasiswa)

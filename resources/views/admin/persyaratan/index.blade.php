@@ -16,6 +16,22 @@
 @endpush
 
 @section('content')
+<div class="card" style="margin-bottom:16px">
+  <div class="card-header"><div><h3>Template Form Pengajuan</h3><p>File ini dapat diunduh mahasiswa pada halaman Persyaratan KP.</p></div></div>
+  <div class="card-body">
+    @if($templateFormPengajuan)
+      <p class="text-sm" style="margin:0 0 12px">Template aktif: <a href="{{ $templateFormPengajuan->file_url }}" target="_blank">Template: {{ $templateFormPengajuan->nama_asli }}</a></p>
+    @else
+      <p class="text-sm text-muted" style="margin:0 0 12px">Belum ada template yang diunggah.</p>
+    @endif
+    <form method="POST" action="{{ route('admin.persyaratan.templateFormPengajuan') }}" enctype="multipart/form-data" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+      @csrf
+      <div class="form-group" style="margin:0;min-width:280px;flex:1"><label class="form-label">{{ $templateFormPengajuan ? 'Ganti template' : 'Unggah template' }}</label><input type="file" name="template" class="form-control" accept=".pdf,.doc,.docx" required><small class="text-muted">PDF, DOC, atau DOCX; maksimal 10 MB.</small></div>
+      <button class="btn btn-primary">Simpan Template</button>
+    </form>
+    @error('template')<div class="text-sm" style="color:var(--red-600);margin-top:8px">{{ $message }}</div>@enderror
+  </div>
+</div>
 <div class="page-header"><h1>Berkas KP</h1><p>Verifikasi berkas administrasi (Form Pengajuan, Bukti SPP, KRS, Transkrip Nilai) sebelum mahasiswa lanjut ke tahap penempatan instansi.</p></div>
 
 @if(session('success'))<div class="alert alert-success">✅ {{ session('success') }}</div>@endif
